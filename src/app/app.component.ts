@@ -20,6 +20,11 @@ export class AppComponent {
       title: 'Users',
       icon: 'people-outline',
       link: '/users'
+    },
+    {
+      title: 'd3 chart',
+      icon: 'bar-chart-outline',
+      link: '/d3-chart'
     }
   ];
 
