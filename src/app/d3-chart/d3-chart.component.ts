@@ -60,8 +60,7 @@ export class D3ChartComponent implements OnInit, OnDestroy, AfterContentInit {
         this.generateData();
         this.chart.data = [...this.chartData];
       }
-    }, 1000);
-
+    }, 3000);
   }
 
   ngOnDestroy() {

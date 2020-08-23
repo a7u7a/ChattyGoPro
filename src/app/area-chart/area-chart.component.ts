@@ -38,6 +38,7 @@ export class AreaChartComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges) {
       if (changes.data) {
           this.updateChart(changes.data.currentValue);
+          console.log(this.data);
       }
   }
 
@@ -96,9 +97,9 @@ export class AreaChartComponent implements OnInit, OnChanges {
   }
 
   private setColorScale() {
-      this.colorScale = d3.scaleOrdinal(d3.schemeCategory10);
+      //this.colorScale = d3.scaleOrdinal(d3.schemeCategory10);
       // Below is an example of using custom colors
-      // this.colorScale = d3.scaleOrdinal().domain([0,1,2,3]).range(['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728']);
+       this.colorScale = d3.scaleOrdinal().range(['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728']);
   }
 
   private createXAxis() {
@@ -139,6 +140,7 @@ export class AreaChartComponent implements OnInit, OnChanges {
           .attr('text-anchor', 'middle')
           .attr('transform', 'translate(10,50) rotate(-90)')
           .style('font-size', 8)
+          //.style('color', 'white')
           .text('Frequency');
       }
   }
