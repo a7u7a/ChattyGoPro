@@ -11,6 +11,7 @@ import { HomeComponent } from './home/home.component';
 import { D3ChartComponent } from './d3-chart/d3-chart.component';
 import { AreaChartComponent } from './area-chart/area-chart.component';
 import { D3TimeSeriesComponent } from './d3-time-series/d3-time-series.component';
+import { TimeSeriesWindowComponent } from './time-series-window/time-series-window.component';
 
 @NgModule({
   declarations: [
@@ -18,7 +19,8 @@ import { D3TimeSeriesComponent } from './d3-time-series/d3-time-series.component
     HomeComponent,
     D3ChartComponent,
     AreaChartComponent,
-    D3TimeSeriesComponent
+    D3TimeSeriesComponent,
+    TimeSeriesWindowComponent
   ],
   imports: [
     BrowserModule,

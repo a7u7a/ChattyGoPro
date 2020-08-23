@@ -1,4 +1,5 @@
 /* Chart container component */
+// Taken from: https://medium.com/better-programming/reactive-charts-in-angular-8-using-d3-4550bb0b4255
 
 import { Component, OnInit, ElementRef, ViewEncapsulation, Input, SimpleChanges, OnChanges } from '@angular/core';
 import * as d3 from 'd3';
@@ -27,6 +28,7 @@ export class AreaChartComponent implements OnInit, OnChanges {
   paths; // Path elements for each area chart
   area; // For D3 area function
   histogram; // For D3 histogram function
+  
 
   constructor(private elRef: ElementRef) {
       this.hostElement = this.elRef.nativeElement;
@@ -92,6 +94,7 @@ export class AreaChartComponent implements OnInit, OnChanges {
   }
 
   private addGraphicsElement() {
+    // Group element with origin at top left of SVG area
       this.g = this.svg.append("g")
           .attr("transform", "translate(0,0)");
   }
@@ -145,6 +148,9 @@ export class AreaChartComponent implements OnInit, OnChanges {
       }
   }
   private createAreaCharts() {
+    // Create one area for each bin 
+    // - each bin represents the frequency distribution 
+    //   for each type of lead time
       this.paths = [];
       this.bins.forEach((row, index) => {
           this.paths.push(this.g.append('path')
@@ -170,6 +176,9 @@ export class AreaChartComponent implements OnInit, OnChanges {
   }
 
   private updateAreaCharts() {
+    // Area function to convert the frequency distributions
+    // to an area in the chart. Makes use of X and Y axis functions
+    // to transform the interval range and size to chart dimensions
       this.paths.forEach((path, index) => {
           path.datum(this.bins[index])
               .transition().duration(this.transitionTime)

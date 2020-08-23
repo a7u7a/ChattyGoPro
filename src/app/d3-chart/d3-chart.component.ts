@@ -28,7 +28,6 @@ export class DeliveryMetric {
   templateUrl: './d3-chart.component.html',
   styleUrls: ['./d3-chart.component.scss']
 })
-//export class D3ChartComponent implements OnInit {
 
 export class D3ChartComponent implements OnInit, OnDestroy, AfterContentInit {
 
