@@ -4,6 +4,7 @@
 import { Component, OnInit, ViewEncapsulation, ElementRef } from '@angular/core';
 import * as d3 from 'd3';
 import { timeFormat, xml } from 'd3';
+import { visitAll } from '@angular/compiler';
 
 @Component({
   selector: 'app-time-series-window',
@@ -54,6 +55,7 @@ export class TimeSeriesWindowComponent implements OnInit {
   zoom;
 
   focus;
+  vis;
 
   constructor(private elRef: ElementRef) {
     this.hostElement = this.elRef.nativeElement;
@@ -135,9 +137,26 @@ private createAxis(){
       .y(function(d:any) { return this.y2(d.count); });
 
   this.brush = d3.brushX()
-      .extent([[0,this.width], [0, this.height_context]])
+      .extent([[0, this.width], [0, this.height_context]])
       .on("brushed", this.brushed)
       .on("brushend", this.brushend);
+
+  this.zoom = d3.zoom()
+      .on("zoom", this.draw)
+      .on("zoomend", this.brushend);
+
+  // HERE
+}
+
+private brushed() {
+  this.x.domain(this.brush.empty() ? this.x2.domain() : this.brush.extent()); // when brush is empty
+  this.focus.select(".area").attr("d", this.area);
+  this.focus.select(".line").attr("d", this.line);
+  this.focus.select(".x.axis").call(this.xAxis);
+  // Reset zoom scale's domain
+  this.zoom.x(this.x);
+  this.updateDisplayDates();
+  this.setYdomain();
 }
 
 private brushend() {
@@ -152,19 +171,41 @@ private brushend() {
 
 private moveInBounds(b) {
   // Move back to boundaries if user pans outside min and max date.
-  
+
+  var ms_in_year = 31536000000;
+  var brush_start_new;
+  var brush_end_new;
+
+  if      (b[0] < this.mindate) { brush_start_new = this.mindate; }
+  else if (b[0] > this.maxdate) { brush_start_new = new Date(this.maxdate.getTime() - ms_in_year); }
+  else                          { brush_start_new = b[0]; };
+
+  if  (b[1] > this.maxdate)     { brush_end_new = this.maxdate; }
+  else if (b[1] < this.mindate) { brush_end_new = new Date(this.mindate.getTime() + ms_in_year)}
+  else                          { brush_end_new = b[1]; };
+
+  this.brush.extent([brush_start_new, brush_end_new]);
+  this.brush(d3.select(".brush").transition());
+  this.brushed();
+  this.draw();
+
+  return (this.brush.extent())
 }
 
-private brushed(){
-  this.x.domain(this.brush.empty() ? this.x2.domain() : this.brush.extent()); // when brush is empty
+private draw(){
+  this.setYdomain();
   this.focus.select(".area").attr("d", this.area);
   this.focus.select(".line").attr("d", this.line);
   this.focus.select(".x.axis").call(this.xAxis);
-  // Reset zoom scale's domain
-  this.zoom.x(this.x);
+
+  // Force changing brush range
+  this.brush.extent(this.x.domain());
+  this.vis.select(".brush").call(this.brush);
+  // and update the text showing range of dates.
   this.updateDisplayDates();
-  this.setYdomain();
 }
+
+
 
 private setYdomain(){
   // This function dynamically changes the y-axis to fit the data in focus
