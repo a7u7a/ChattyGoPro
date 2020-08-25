@@ -186,7 +186,6 @@ export class AreaChartComponent implements OnInit, OnChanges {
                   .x((datum: any) => this.x(d3.mean([datum.x1, datum.x2])))
                   .y0(this.y(0))
                   .y1((datum: any) => this.y(datum.length)));
-
       });
   }
 

@@ -3,7 +3,7 @@
 
 import { Component, OnInit, ViewEncapsulation, ElementRef } from '@angular/core';
 import * as d3 from 'd3';
-import { timeFormat } from 'd3';
+import { timeFormat, xml } from 'd3';
 
 @Component({
   selector: 'app-time-series-window',
@@ -44,6 +44,16 @@ export class TimeSeriesWindowComponent implements OnInit {
   x2;
   y2;
   xAxis_context;
+
+  // Plotted line and area
+  line;
+  area;
+  area_context;
+  line_context;
+  brush;
+  zoom;
+
+  focus;
 
   constructor(private elRef: ElementRef) {
     this.hostElement = this.elRef.nativeElement;
@@ -103,8 +113,126 @@ private createAxis(){
   this.xAxis_context = d3.axisBottom(this.x2)
       .ticks(this.customTickFunction)
       .tickFormat(this.dynamicDateFormat);
+
+  // Focus chart: plotted line and area variables
+  this.line = d3.line()
+      .x(function(d: any){ return this.x(d.month); })
+      .y(function(d: any) { return this.y(d.count); });
+
+  this.area = d3.area()
+      .x(function(d: any) { return this.x(d.month); })
+      .y0((this.height))
+      .y1(function(d: any) { return this.y(d.count); });
+
+  // Context chart: plotted line and area variables
+  this.area_context = d3.area()
+      .x(function(d:any) { return this.x2(d.month); })
+      .y0((this.height_context))
+      .y1(function(d: any) { return this.y2(d.count); })
+  
+  this.line_context = d3.line()
+      .x(function(d: any) { return this.x2(d.month); })
+      .y(function(d:any) { return this.y2(d.count); });
+
+  this.brush = d3.brushX()
+      .extent([[0,this.width], [0, this.height_context]])
+      .on("brushed", this.brushed)
+      .on("brushend", this.brushend);
 }
 
+private brushend() {
+  // When brush stops moving:
+  // Check whether chart was scrolled out of bounds and fix
+  var b = this.brush.extend();
+  var out_of_bounds = this.brush.extent().some(function(e: any) { return e < this.mindate || e > this.maxdate; });
+  if (out_of_bounds) {
+     b = this.moveInBounds(b);
+    };
+}
+
+private moveInBounds(b) {
+  // Move back to boundaries if user pans outside min and max date.
+  
+}
+
+private brushed(){
+  this.x.domain(this.brush.empty() ? this.x2.domain() : this.brush.extent()); // when brush is empty
+  this.focus.select(".area").attr("d", this.area);
+  this.focus.select(".line").attr("d", this.line);
+  this.focus.select(".x.axis").call(this.xAxis);
+  // Reset zoom scale's domain
+  this.zoom.x(this.x);
+  this.updateDisplayDates();
+  this.setYdomain();
+}
+
+private setYdomain(){
+  // This function dynamically changes the y-axis to fit the data in focus
+
+  // Get the min and max date in focus
+  var xleft: any;
+  xleft = new Date(this.x.domain()[0]);
+  var xright: any;
+  xright = new Date(this.x.domain()[1]);
+
+  // A function that finds the nearest point to the right of a point
+  var bisectDate = d3.bisector(function(d: any) {return d.month; }).right;
+
+  // Get the y value of the line at the left edge of view port
+  var iL = bisectDate(this.dataset, xleft);
+
+  if (this.dataset[iL] !== undefined && this.dataset[iL] !== undefined){
+    var left_dateBefore = this.dataset[iL-1].month;
+    var left_dateAfter = this.dataset[iL].month;
+
+    var intfun = d3.interpolateNumber(this.dataset[iL - 1], this.dataset[iL].count);
+    var yleft = intfun((xleft - left_dateBefore) / (left_dateAfter - left_dateBefore));
+  } else {
+    var yleft = 0;
+  }
+
+  // Get the x value of the line at the right edge of view port:
+  var iR = bisectDate(this.dataset, xright);
+
+  if (this.dataset[iR] !== undefined && this.dataset[iR - 1] !== undefined){
+    var right_dateBefore = this.dataset[iR - 1].count;
+    var right_dateAfter = this.dataset[iR].count;
+
+    var intfun = d3.interpolateNumber(this.dataset[iR - 1].count, this.dataset[iR].count);
+    var yright = intfun((xright - right_dateBefore) / (right_dateAfter - right_dateBefore));
+  } else { 
+    var yright = 0;
+  }
+
+  // Get the y values of all the actual data points that are in view
+  var dataSubset = this.dataset.filter(function(d: any){ return d.month >= xleft && d.month <= xright; });
+  var countSubset = [];
+  dataSubset.map(function(d) { countSubset.push(d.count); });
+
+  // Add the edge values of the line to the array of counts in view, get the max y;
+  countSubset.push(yleft);
+  countSubset.push(yright);
+  var ymax_new = d3.max(countSubset);
+
+  if (ymax_new == 0){
+    ymax_new = this.dataYrange[1];
+  }
+
+  // Reset and redraw the yaxis
+  this.y.domain([0, ymax_new * 1.05]);
+  this.focus.select(".y.axis").call(this.yAxis);
+}
+
+private updateDisplayDates(){
+
+  // update the text that shows the range of displayed dates
+  var b = this.brush.extent();
+  var localBrushDateStart = (this.brush.empty()) ? this.DateFormat(this.dataXrange[0]) : this.DateFormat(b[0]);
+  var localBrushDateEnd   = (this.brush.empty()) ? this.DateFormat(this.dataXrange[1]) : this.DateFormat(b[1]);
+
+  d3.select("#displayDates")
+    .text(localBrushDateEnd == localBrushDateEnd ? localBrushDateStart : localBrushDateStart + " - " + localBrushDateEnd);
+};
 
 private setDataRanges(){
 
