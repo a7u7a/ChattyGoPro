@@ -3,7 +3,7 @@
 
 import { Component, OnInit, ViewEncapsulation, ElementRef } from '@angular/core';
 import * as d3 from 'd3';
-import { timeFormat, xml } from 'd3';
+import { timeFormat, xml, thresholdSturges } from 'd3';
 import { visitAll } from '@angular/compiler';
 
 @Component({
@@ -52,10 +52,22 @@ export class TimeSeriesWindowComponent implements OnInit {
   area_context;
   line_context;
   brush;
+  brushg
   zoom;
 
   focus;
   vis;
+  context;
+  rect;
+  display;
+  expl_text;
+  display_range_group;
+  button_width = 40;
+  button_height = 14;
+  dateRange;
+  ms_in_year = 31540000000;
+  button_data;
+  button;
 
   constructor(private elRef: ElementRef) {
     this.hostElement = this.elRef.nativeElement;
@@ -145,10 +157,168 @@ private createAxis(){
       .on("zoom", this.draw)
       .on("zoomend", this.brushend);
 
-  // HERE
+  // Define the SVG area ("vis") and append all the layers
+
+  this.vis = d3.select("#metric-modal").append("svg")
+      .attr("width", this.width + this.margin.left + this.margin.right)
+      .attr("height", this.height + this.margin.top + this.margin.bottom)
+      .attr("class", "metric-chart");
+  
+  this.vis.append("defs").append("clipPath")
+      .attr("id", "clip")
+      .append("rect")
+      .attr("width", this.width)
+      .attr("height", this.height);
+      // clipPath is used to keep line and area from moving outside of plot area when user zooms/scrolls/brushes
+
+  this.context = this.vis.append("g")
+      .attr("class", "context")
+      .attr("transform", "translate(" + this.margin_context.left + "," + this.margin_context.top + ")");
+
+  this.focus = this.vis.append("g")
+      .attr("class", "focus")
+      .attr("tranform", "translate(" + this.margin.left + "," + this.margin.top + ")");
+
+  this.rect = this.vis.append("svg:rect")
+      .attr("class", "pane")
+      .attr("width", this.width)
+      .attr("height", this.height)
+      .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")")
+      .call(this.zoom)
+      .call(this.draw);
+
+  // Current date range & zoom buttons
+  this.display_range_group = this.vis.append("g")
+      .attr("id", "buttons_group")
+      .attr("transform", "translate(" + 0 + "," + 0 + ")");
+
+  this.expl_text = this.display_range_group.append("text")
+      .text("Showing data from: ")
+      .style("text-anchor", "start")
+      .attr("transform", "translate(" + 0 + "," + 10 + ")");
+
+  this.display_range_group.append("text")
+      .attr("id", "displayDates")
+      .text(this.DateFormat(this.dataXrange[0]) + " - " + this.DateFormat(this.dataXrange[1]))
+      .style("text-anchor", "start")
+      .attr("transform", "translate(" + 82 + "," + 10 + ")" );
+
+  this.expl_text = this.display_range_group.append("text")
+      .text("Zoom to: ")
+      .style("text-anchor", "start")
+      .attr("transform", "translate(" + 180 + "," + 10 + ")");
+
+  // The zooming and scaling buttons 
+  this.dateRange = this.dataXrange[1] - this.dataXrange[0];
+  if (this.dateRange < this.ms_in_year) {
+    this.button_data = ["month", "data"];
+  } else {
+    this.button_data = ["year", "month", "data"];
+  };
+
+  this.button = this.display_range_group.selectAll("g")
+      .data(this.button_data)
+      .enter().append("g")
+      .attr("class", "scale_button")
+      .attr("transform", function(d,i) { return "translate(" + (220 + i * this.button_width + i * 10) + ",0)"; })
+      .on("click", this.scaleDate)
+
+  this.button.append("rect")
+      .attr("width", this.button_width)
+      .attr("height", this.button_height)
+      .attr("rx", 1)
+      .attr("ry", 1);
+
+  this.button.append("text")
+      .attr("dy", (this.button_height/2 + 3))
+      .attr("dx", this.button_width/2)
+      .style("text-anchor", "middle")
+      .text(function(d) { return this.dataXrange; });
+
+  // Focus Chart
+  this.focus.append("g")
+      .attr("class", "y axis")
+      .call(this.yAxis)
+      .attr("transform", "translate(" + (this.width) + ", 0)");
+
+  this.focus.append("path")
+      .datum(this.dataset)
+      .attr("class", "area")
+      .attr("d", this.area);
+  
+  this.focus.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + this.height + ")")
+      .call(this.xAxis);
+
+  this.focus.append("path")
+      .datum(this.dataset)
+      .attr("class", "line")
+      .attr("d", this.line);
+
+  // Context chart
+  this.context.append("path")
+      .datum(this.dataset)
+      .attr("class", "area")
+      .attr("d", this.area_context);
+
+  this.context.append("path")
+      .datum(this.dataset)
+      .attr("class", "line")
+      .attr("d", this.line_context);
+
+  this.context.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0" + this.height_context + ")")
+      .call(this.xAxis_context);
+  
+  // Brush (part of the context chart)
+
+  this.brushg = this.context.append("g")
+      .attr("class", "x brush")
+      .call(this.brush);
+
+  this.brushg.selectAll(".extent")
+      .attr("y", -6)
+      .attr("height", this.height_context + 8);
+      // .extent is the actual window/rectangle showing what's in focus
+
+  this.brushg.selectAll(".resize")
+      .append("rect")
+      .attr("class", "handle")
+      .attr("transform", "translate(0," + -3 + ")")
+      .attr('rx', 2)
+      .attr('ry', 2)
+      .attr("height", this.height_context + 6)
+      .attr("width",3);
+
+  this.brushg.selectAll(".resize")
+      .append("rect")
+      .attr("class", "handle")
+      .attr("transform", "translate(-2,8)")
+      .attr('rx', 3)
+      .attr('ry', 3)
+      .attr("height",(this.height_context/2))
+      .attr("width", 7);
+  // .resize are the handles on either size (**side?)
+  // of the 'window' (each is made of a set of rectangles)
+
+  // Y axis title
+  this.vis.append("text")
+      .attr("class", "y axis title")
+      .text("Monthly views")
+      .attr("x", (-(this.height/2)))
+      .attr("y", 0)
+      .attr("dy", "1em")
+      .attr("transform", "rotate(-90)")
+      .style("text-anchor", "middle");
+
+  this.zoom.x(this.x);
+
 }
 
 private brushed() {
+
   this.x.domain(this.brush.empty() ? this.x2.domain() : this.brush.extent()); // when brush is empty
   this.focus.select(".area").attr("d", this.area);
   this.focus.select(".line").attr("d", this.line);
@@ -157,6 +327,7 @@ private brushed() {
   this.zoom.x(this.x);
   this.updateDisplayDates();
   this.setYdomain();
+
 }
 
 private brushend() {
@@ -341,6 +512,45 @@ private setChartDimensions(){
       return d3.ascending(x.month, y.month);
     })
   }
+
+private scaleDate(d,i) {
+  // Action for buttons that scale focus to certain time interval
+
+  var b = this.brush.extent();
+  var interval_ms;
+  var brush_end_new;
+  var brush_start_new;
+
+  if (d == "year") { interval_ms = 31536000000}
+  else if (d == "month") { interval_ms = 2592000000};
+
+  if (d == "year" || d == "month") {
+
+    if((this.maxdate.getTime() - b[1].getTime())< interval_ms){
+      // if brush is too far to the right that increasing the right-hand brush boundary would make the chart go out of bounds....
+      brush_start_new = new Date(this.maxdate.getTime() + interval_ms); // ...then decrease the left-hand brush boundary...
+      brush_end_new = this.maxdate; //...and set the right-hand brush boundary to the maxiumum limit.
+    } else {
+      // otherwise, increase the right-hand brush boundary.
+      brush_start_new = b[0];
+      brush_end_new = new Date(b[0].getTime() + interval_ms);
+    };
+
+  } else if (d == "data") {
+    brush_start_new = this.dataXrange[0];
+    brush_end_new = this.dataXrange[1];
+  } else {
+    brush_start_new = b[0];
+    brush_end_new = b[1];
+  };
+
+  this.brush.extent([brush_start_new, brush_end_new]);
+
+  // Now draw the brush to match our extent
+  this.brush(d3.select(".brush").transition());
+  // Now fire the brushstart, brushmove and brushend events
+  this.brush.event(d3.select(".brush").transition());
+}
 
   private customTickFunction(t0,t1,dt){
     var labelSize = 42;
