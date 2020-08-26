@@ -64,7 +64,6 @@ export class AreaChartComponent implements OnInit, OnChanges {
           .y0(this.y(0))
           .y1((datum: any) => this.y(datum.length));
 
-
       this.histogram = d3.histogram()
           .value((datum) => datum)
           .domain([0, this.xmax])
@@ -74,7 +73,6 @@ export class AreaChartComponent implements OnInit, OnChanges {
       this.processData(data);
 
       this.createAreaCharts();
-
   }
 
   private processData(data) {
@@ -120,7 +118,6 @@ export class AreaChartComponent implements OnInit, OnChanges {
           .style("stroke-dasharray", ("1,1"))
           .attr("stroke-width", 0.1)
           .call(d3.axisBottom(this.x).ticks(10).tickSize(-80));
-
   }
 
   private createYAxis() {
@@ -147,6 +144,7 @@ export class AreaChartComponent implements OnInit, OnChanges {
           .text('Frequency');
       }
   }
+
   private createAreaCharts() {
     // Create one area for each bin 
     // - each bin represents the frequency distribution 
