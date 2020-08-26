@@ -12,6 +12,7 @@ import { D3ChartComponent } from './d3-chart/d3-chart.component';
 import { AreaChartComponent } from './area-chart/area-chart.component';
 import { D3TimeSeriesComponent } from './d3-time-series/d3-time-series.component';
 import { TimeSeriesWindowComponent } from './time-series-window/time-series-window.component';
+import { HttpClientModule } from '@angular/common/http';
 
 @NgModule({
   declarations: [
@@ -31,7 +32,8 @@ import { TimeSeriesWindowComponent } from './time-series-window/time-series-wind
     NbEvaIconsModule,
     NbSidebarModule.forRoot(),
     NbMenuModule.forRoot(),
-    NbIconModule
+    NbIconModule,
+    HttpClientModule
   ],
   providers: [],
   bootstrap: [AppComponent]
