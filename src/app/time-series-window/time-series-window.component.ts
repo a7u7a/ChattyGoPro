@@ -18,6 +18,7 @@ export class TimeSeriesWindowComponent implements OnInit {
   hostElement;
   svg;
   x;
+  y;
   xmax = 45;
   ymax = 200;
 
@@ -39,11 +40,12 @@ private createChart(objs){
   console.log(objs[0]);
 
   this.setChartDimensions();
+  this.createXAxis();
+  this.createYAxis();
 
-this.x = d3.scaleLinear()
-    .domain([0,this.xmax])
-    .range([0,200]);
+
   
+
 
 this.svg.append("circle")
     .attr("cx", this.x(2))
@@ -66,6 +68,7 @@ this.svg.append("circle")
 }
 
 private setChartDimensions(){
+  // max units of the viewbox
   let viewBoxHeight = 100;
   let viewBoxWidth = 200;
   this.svg = d3.select(this.hostElement).append('svg')
@@ -73,8 +76,32 @@ private setChartDimensions(){
       .attr('height', '100%')
       .attr('viewBox', '0 0 ' + viewBoxWidth + ' ' + viewBoxHeight);
 
+    
 }
 
+private createXAxis(){
+  // Create linear scale used for X axis
+  this.x = d3.scaleLinear()
+    .domain([0,this.xmax]) // This is the min and the max of the data: 0 to 100 if percentages
+    .range([0,100]); // This is the corresponding value I want in Pixel
+
+  
+// Apply to svg on the bottom
+  this.svg.append('g')
+    .attr("transform", "translate(0," + 50 + ")")
+    .call(d3.axisBottom(this.x));
+}
+
+
+private createYAxis(){
+  this.y = d3.scaleLinear()
+    .domain([0, this.ymax])
+    .range([50,0]);
+
+  this.svg.append('g')
+  .attr("transform", "translate(5," + 0 + ")")
+      .call(d3.axisLeft(this.y));
+}
 }
 
 
