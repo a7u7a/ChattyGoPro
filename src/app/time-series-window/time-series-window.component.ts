@@ -150,12 +150,12 @@ private createAxis(){
 
   this.brush = d3.brushX()
       .extent([[0, this.width], [0, this.height_context]])
-      .on("brushed", this.brushed)
-      .on("brushend", this.brushend);
+      //.on("brushed", this.brushed)
+      //.on("brushend", this.brushend);
 
   this.zoom = d3.zoom()
-      .on("zoom", this.draw)
-      .on("zoomend", this.brushend);
+      //.on("zoom", this.draw)
+      //.on("zoomend", this.brushend);
 
   // Define the SVG area ("vis") and append all the layers
 
