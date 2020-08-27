@@ -30,6 +30,11 @@ export class AppComponent {
       title: 'd3 time series',
       icon: 'bar-chart-2-outline',
       link: '/d3-time-series'
+    },
+    {
+      title: 'line basic',
+      icon: 'bar-chart-2-outline',
+      link: '/line-basic'
     }
   ];
 

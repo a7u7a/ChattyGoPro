@@ -89,12 +89,14 @@ export class AreaChartComponent implements OnInit, OnChanges {
           .attr('width', '100%')
           .attr('height', '100%')
           .attr('viewBox', '0 0 ' + viewBoxWidth + ' ' + viewBoxHeight);
+
+      
   }
 
   private addGraphicsElement() {
-    // Group element with origin at top left of SVG area
-      this.g = this.svg.append("g")
-          .attr("transform", "translate(0,0)");
+        // Group element with origin at top left of SVG area
+        this.g = this.svg.append("g")
+        .attr("transform", "translate(0,0)");
   }
 
   private setColorScale() {

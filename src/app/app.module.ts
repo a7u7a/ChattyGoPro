@@ -13,6 +13,8 @@ import { AreaChartComponent } from './area-chart/area-chart.component';
 import { D3TimeSeriesComponent } from './d3-time-series/d3-time-series.component';
 import { TimeSeriesWindowComponent } from './time-series-window/time-series-window.component';
 import { HttpClientModule } from '@angular/common/http';
+import { LineContainerComponent } from './line-container/line-container.component';
+import { LineChildComponent } from './line-child/line-child.component';
 
 @NgModule({
   declarations: [
@@ -21,7 +23,9 @@ import { HttpClientModule } from '@angular/common/http';
     D3ChartComponent,
     AreaChartComponent,
     D3TimeSeriesComponent,
-    TimeSeriesWindowComponent
+    TimeSeriesWindowComponent,
+    LineContainerComponent,
+    LineChildComponent
   ],
   imports: [
     BrowserModule,
