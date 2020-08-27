@@ -1,14 +1,14 @@
-import { Component, OnInit, ViewEncapsulation, ElementRef,Input } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation, ElementRef, Input } from '@angular/core';
 import * as d3 from 'd3';
 import { HttpClient } from '@angular/common/http';
 
 @Component({
-  selector: 'app-line-child',
+  selector: 'app-simple-zoom-child',
   encapsulation: ViewEncapsulation.None,
-  templateUrl: './line-child.component.html',
-  styleUrls: ['./line-child.component.scss']
+  templateUrl: './simple-zoom-child.component.html',
+  styleUrls: ['./simple-zoom-child.component.scss']
 })
-export class LineChildComponent implements OnInit {
+export class SimpleZoomChildComponent implements OnInit {
   hostElement;
   svg;
   margin;
@@ -20,8 +20,7 @@ export class LineChildComponent implements OnInit {
   sumstat;
   paths;
 
-
-  constructor(private elRef: ElementRef,private http: HttpClient) { 
+    constructor(private elRef: ElementRef,private http: HttpClient) { 
     this.hostElement = this.elRef.nativeElement;
   }
 

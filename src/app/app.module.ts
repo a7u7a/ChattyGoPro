@@ -15,6 +15,8 @@ import { TimeSeriesWindowComponent } from './time-series-window/time-series-wind
 import { HttpClientModule } from '@angular/common/http';
 import { LineContainerComponent } from './line-container/line-container.component';
 import { LineChildComponent } from './line-child/line-child.component';
+import { SimpleZoomParentComponent } from './simple-zoom/simple-zoom-parent/simple-zoom-parent.component';
+import { SimpleZoomChildComponent } from './simple-zoom/simple-zoom-child/simple-zoom-child.component';
 
 @NgModule({
   declarations: [
@@ -25,7 +27,9 @@ import { LineChildComponent } from './line-child/line-child.component';
     D3TimeSeriesComponent,
     TimeSeriesWindowComponent,
     LineContainerComponent,
-    LineChildComponent
+    LineChildComponent,
+    SimpleZoomParentComponent,
+    SimpleZoomChildComponent
   ],
   imports: [
     BrowserModule,

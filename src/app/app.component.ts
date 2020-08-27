@@ -22,19 +22,24 @@ export class AppComponent {
       link: '/users'
     },
     {
-      title: 'd3 chart',
+      title: 'Base example',
       icon: 'bar-chart-outline',
       link: '/d3-chart'
     },
     {
-      title: 'd3 time series',
+      title: 'Dots + Axis',
       icon: 'bar-chart-2-outline',
       link: '/d3-time-series'
     },
     {
-      title: 'Multi line',
+      title: 'Multi-line',
       icon: 'bar-chart-2-outline',
       link: '/multi-line'
+    },
+    {
+      title: 'Simple brush zoom',
+      icon: 'bar-chart-2-outline',
+      link: '/simple-zoom'
     }
   ];
 
