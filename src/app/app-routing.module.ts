@@ -14,7 +14,7 @@ const routes: Routes = [
   //{ path: '**', redirectTo:'home' }, // redirects to home when the path is empty or unknown
   { path: 'd3-chart', component: D3ChartComponent},
   { path: 'd3-time-series', component:D3TimeSeriesComponent },
-  { path: 'line-basic', component: LineContainerComponent}
+  { path: 'multi-line', component: LineContainerComponent}
 ];
 
 @NgModule({

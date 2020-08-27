@@ -54,7 +54,7 @@ paths;
         .attr("transform", "translate(" + 0 + " " +  this.height +")")
         .attr("stroke-width", 0.5)
         .call(d3.axisBottom(this.x).ticks(5));
-
+    
     // Create Y axis
     this.y = d3.scaleLinear()
         .domain([0, d3.max(this.data, function(d:any){return +d.n; })])
@@ -83,13 +83,13 @@ paths;
      .attr("fill", "none")
      .attr("stroke", d => { return color(d.key) })
      .attr("stroke-width", 1.5)
-     .attr("d", function(d) {
+     .attr("d", (d) => {
 
-       return d3.line()
+       const lineFunction = d3.line()
        .x((d:any) => { console.log("hola", d.year); return this.x(d.year); }) //x q no imprime esos valores ??
-       .y((d:any) => { return this.y(+d.n); })
-       (d.values); // x q arroja -> TypeError: this.x is not a function ??
-       
+       .y((d:any) => { return this.y(+d.n); });
+       return lineFunction(d.values); // x q arroja -> TypeError: this.x is not a function ??
+
      })
 
     // Create X axis
@@ -121,10 +121,7 @@ paths;
     //       .y((d:any) => { return this.y(d.value)})
     //     );
 
-
-      
-
-    this.svg.attr("transform", "translate(30,10)");
+    this.svg.attr("transform", "translate(0,0)");
   }
 
   private setChart(){

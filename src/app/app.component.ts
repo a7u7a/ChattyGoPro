@@ -32,9 +32,9 @@ export class AppComponent {
       link: '/d3-time-series'
     },
     {
-      title: 'line basic',
+      title: 'Multi line',
       icon: 'bar-chart-2-outline',
-      link: '/line-basic'
+      link: '/multi-line'
     }
   ];
 
