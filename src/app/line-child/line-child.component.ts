@@ -33,9 +33,9 @@ paths;
     // Test with raw file
     // https://raw.githubusercontent.com/a7u7a/dummydata/master/gyroscope/gyro_1.csv
 
-    this.http.get("https://raw.githubusercontent.com/holtzy/data_to_viz/master/Example_dataset/5_OneCatSevNumOrdered.csv",
+    this.http.get("https://raw.githubusercontent.com/a7u7a/dummydata/master/gyroscope/gyro_1.csv",
     { responseType: 'text' }).subscribe(data => {
-    var objs = d3.csvParse(data);
+    var objs = d3.csvParse(data, d3.autoType);
     this.createChart(objs);
     });
 
@@ -46,49 +46,72 @@ paths;
     this.data = objs;
     this.setChart();
 
-    this.sumstat = d3.nest()
-        .key(function(d:any)  { return d.name; })
-        .entries(this.data);
+  // Split and find max min values
+  var gyro_x = [];
+  var gyro_y = [];
+  var gyro_z = [];
+  var x_range = [];
+  var y_range = [];
+  var z_range = [];
+
+  this.data.forEach((d) => { 
+    gyro_x.push({"date": d.date, "val": d.gyro_x});
+    gyro_y.push({"date": d.date, "val": d.gyro_y});
+    gyro_z.push({"date": d.date, "val": d.gyro_z});
+
+    x_range.push(d.gyro_x);
+    y_range.push(d.gyro_y);
+    z_range.push(d.gyro_z);
+  });
+
+  var values = [gyro_x, gyro_y, gyro_z];
+
+  var top_limit = Math.max.apply(null,[
+    Math.max.apply(null,x_range),
+    Math.max.apply(null,y_range),
+    Math.max.apply(null,z_range)
+  ]);
+
+  var bottom_limit =  Math.min.apply(null,[
+    Math.min.apply(null,x_range),
+    Math.min.apply(null,y_range),
+    Math.min.apply(null,z_range)
+  ]);
 
     // Create X axis
-    this.x = d3.scaleLinear()
-        .domain(d3.extent(this.data, (d:any) => { return d.year; }))
+    this.x = d3.scaleTime()
+        .domain(d3.extent(this.data, (d:any) => { return d.date; }))
         .range([0, this.width]);
     this.svg.append("g")
         .attr("transform", "translate(" + 0 + " " +  this.height +")")
         .attr("stroke-width", 0.5)
-        .call(d3.axisBottom(this.x).ticks(5));
-    
+        .call(d3.axisBottom(this.x));
+
     // Create Y axis
     this.y = d3.scaleLinear()
-        .domain([0, d3.max(this.data, function(d:any){return +d.n; })])
+        .domain([bottom_limit+(bottom_limit*0.2), top_limit + (top_limit*0.2)])
         .range([this.height, 0]);
     this.svg.append("g")
         .call(d3.axisLeft(this.y));
 
-    // Color palette
-    var res = this.sumstat.map(function(d){ return d.key }) // list of group names
-    var color = d3.scaleOrdinal()
-                  .domain(res)
-                  .range(['#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#ffff33','#a65628','#f781bf','#999999'])
-
+    // // Color palette
+    var color = ['#e41a1c','#377eb8','#4daf4a'];
     this.svg.selectAll(".line")
-    .data(this.sumstat)
-     .enter()
-     .append("path")
-     .attr("fill", "none")
-     .attr("stroke", d => { return color(d.key) })
-     .attr("stroke-width", 1.5)
-     .attr("d", (d) => {
+    .data(values)
+    .enter()
+    .append("path")
+    .attr("fill", "none")
+    .attr("stroke",d => {return color[values.indexOf(d)]} )
+    .attr("stroke-width", 1.5)
+    .attr("d", d => { 
 
-       const lineFunction = d3.line()
-       .x((d:any) => { console.log("hola", d.year); return this.x(d.year); }) //x q no imprime esos valores ??
-       .y((d:any) => { return this.y(+d.n); });
-       return lineFunction(d.values); // x q arroja -> TypeError: this.x is not a function ??
+      var line = d3.line()
+      .x((f:any) => { return this.x(f.date); })
+      .y((p:any) => { return this.y(p.val); })
+      return line(d);
+     });
 
-     })
-
-    this.svg.attr("transform", "translate(0,0)");
+     this.svg.attr("transform", "translate(0,0)");
   }
 
   private setChart(){
