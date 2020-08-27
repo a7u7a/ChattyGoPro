@@ -1,9 +1,6 @@
 import { Component, OnInit, ViewEncapsulation, Input, ElementRef } from '@angular/core';
 import * as d3 from 'd3';
-import { timeFormat, xml, thresholdSturges, svg, dsv } from 'd3';
-import { visitAll } from '@angular/compiler';
 import { HttpClient } from '@angular/common/http';
-import { range } from 'rxjs';
  
 @Component({
   selector: 'app-time-series-window',
@@ -11,6 +8,7 @@ import { range } from 'rxjs';
   templateUrl: './time-series-window.component.html',
   styleUrls: ['./time-series-window.component.scss']
 })
+
 export class TimeSeriesWindowComponent implements OnInit {
   @Input() xmax = 200;
   @Input() ymax = 200;
@@ -52,8 +50,6 @@ private createChart(objs){
         .attr("cx", d => { return this.x(d.x) })
         .attr("cy", d => { return this.y(d.y) })
         .attr("r",7);
-
-
 }
 
 
