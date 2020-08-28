@@ -86,6 +86,9 @@ export class SimpleZoomChildComponent implements OnInit {
     SimpleZoomChildComponent.line = this.svg.append('g')
           .attr("clip-path", "url(#clip)")
     
+    // Color palette
+    var color = ['#e41a1c','#377eb8','#4daf4a'];
+
     // Add the line
     SimpleZoomChildComponent.line.selectAll(".line")
       .data(SimpleZoomChildComponent.values)
@@ -93,7 +96,7 @@ export class SimpleZoomChildComponent implements OnInit {
       .append("path")
       .attr("class", "line")  // I add the class line to be able to modify this line later on.
       .attr("fill", "none")
-      .attr("stroke", "steelblue")
+      .attr("stroke", d => {return color[SimpleZoomChildComponent.values.indexOf(d)]})
       .attr("stroke-width", 1.5)
       .attr("d", SimpleZoomChildComponent.setLine());
       
@@ -106,8 +109,7 @@ export class SimpleZoomChildComponent implements OnInit {
     this.svg.on("dblclick",()=>{
       SimpleZoomChildComponent.x.domain(d3.extent(this.data, (d:any) => { return d.date; }))
       SimpleZoomChildComponent.xAxis.transition().call(d3.axisBottom(SimpleZoomChildComponent.x))
-      SimpleZoomChildComponent.line
-        .select('.line')
+      SimpleZoomChildComponent.line.selectAll('.line')
         .transition()
         .attr("d", SimpleZoomChildComponent.setLine());
     });
@@ -147,7 +149,7 @@ export class SimpleZoomChildComponent implements OnInit {
           .duration(1000)
           .call(d3.axisBottom(SimpleZoomChildComponent.x));
 
-      SimpleZoomChildComponent.line.select('.line')
+      SimpleZoomChildComponent.line.selectAll('.line')
           .transition()
           .duration(1000)
           .attr("d", SimpleZoomChildComponent.setLine());
