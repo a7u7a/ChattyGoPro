@@ -19,6 +19,9 @@ export class LineChildComponent implements OnInit {
   data;
   sumstat;
   paths;
+  top_limit;
+  bottom_limit;
+  static values;
 
 
   constructor(private elRef: ElementRef,private http: HttpClient) { 
@@ -39,39 +42,7 @@ export class LineChildComponent implements OnInit {
   private createChart(objs){
     this.data = objs;
     this.setChart();
-
-
-  // Split and find max min values
-  var gyro_x = [];
-  var gyro_y = [];
-  var gyro_z = [];
-  var x_range = [];
-  var y_range = [];
-  var z_range = [];
-
-  this.data.forEach((d) => { 
-    gyro_x.push({"date": d.date, "val": d.gyro_x});
-    gyro_y.push({"date": d.date, "val": d.gyro_y});
-    gyro_z.push({"date": d.date, "val": d.gyro_z});
-
-    x_range.push(d.gyro_x);
-    y_range.push(d.gyro_y);
-    z_range.push(d.gyro_z);
-  });
-
-  var values = [gyro_x, gyro_y, gyro_z];
-
-  var top_limit = Math.max.apply(null,[
-    Math.max.apply(null,x_range),
-    Math.max.apply(null,y_range),
-    Math.max.apply(null,z_range)
-  ]);
-
-  var bottom_limit =  Math.min.apply(null,[
-    Math.min.apply(null,x_range),
-    Math.min.apply(null,y_range),
-    Math.min.apply(null,z_range)
-  ]);
+    this.processData();
 
     // Create X axis
     this.x = d3.scaleTime()
@@ -84,7 +55,7 @@ export class LineChildComponent implements OnInit {
 
     // Create Y axis
     this.y = d3.scaleLinear()
-        .domain([bottom_limit+(bottom_limit*0.2), top_limit + (top_limit*0.2)])
+        .domain([this.bottom_limit+(this.bottom_limit*0.2), this.top_limit + (this.top_limit*0.2)])
         .range([this.height, 0]);
     this.svg.append("g")
         .call(d3.axisLeft(this.y));
@@ -94,11 +65,11 @@ export class LineChildComponent implements OnInit {
 
     // Create lines
     this.svg.selectAll(".line")
-      .data(values)
+      .data(LineChildComponent.values)
       .enter()
       .append("path")
       .attr("fill", "none")
-      .attr("stroke",d => {return color[values.indexOf(d)]} )
+      .attr("stroke",d => {return color[LineChildComponent.values.indexOf(d)]} )
       .attr("stroke-width", 1.5)
       .attr("d", d => { 
 
@@ -126,5 +97,38 @@ export class LineChildComponent implements OnInit {
         .append('g')
         .attr("transform", "translate("+this.margin.left + this.margin.top +")");
   }
-  
+
+  private processData(){
+    // Split and find max min values
+    var gyro_x = [];
+    var gyro_y = [];
+    var gyro_z = [];
+    var x_range = [];
+    var y_range = [];
+    var z_range = [];
+
+    this.data.forEach((d) => { 
+      gyro_x.push({"date": d.date, "val": d.gyro_x});
+      gyro_y.push({"date": d.date, "val": d.gyro_y});
+      gyro_z.push({"date": d.date, "val": d.gyro_z});
+
+      x_range.push(d.gyro_x);
+      y_range.push(d.gyro_y);
+      z_range.push(d.gyro_z);
+    });
+
+    LineChildComponent.values = [gyro_x, gyro_y, gyro_z];
+    // Find top limit
+    this.top_limit = Math.max.apply(null,[
+      Math.max.apply(null,x_range),
+      Math.max.apply(null,y_range),
+      Math.max.apply(null,z_range)
+    ]);
+    // Find bottom limit
+    this.bottom_limit =  Math.min.apply(null,[
+      Math.min.apply(null,x_range),
+      Math.min.apply(null,y_range),
+      Math.min.apply(null,z_range)
+    ]);
+  }
 }

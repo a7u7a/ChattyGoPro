@@ -26,19 +26,19 @@ export class SimpleZoomChildComponent implements OnInit {
   static xAxis;
   yAxis;
   pisha;
+  static values;
+  top_limit;
+  bottom_limit;
 
     constructor(private elRef: ElementRef,private http: HttpClient) { 
     this.hostElement = this.elRef.nativeElement;
-
   }
 
   ngOnInit(): void {
     // Create chart once data has been loaded
-    this.http.get("https://raw.githubusercontent.com/holtzy/data_to_viz/master/Example_dataset/3_TwoNumOrdered_comma.csv",
+    this.http.get("https://raw.githubusercontent.com/a7u7a/dummydata/master/gyroscope/gyro_1.csv",
     { responseType: 'text' }).subscribe(data => {
-    var objs = d3.csvParse(data, (d) => {
-      return { date : d3.timeParse("%Y-%m-%d")(d.date), value : d.value }
-    });
+    var objs = d3.csvParse(data, d3.autoType);
     this.createChart(objs);
     });
 
@@ -46,13 +46,15 @@ export class SimpleZoomChildComponent implements OnInit {
   }
 
   private createChart(objs){
-    //console.log(objs);
+    
     this.data = objs;
     this.setChart();
-
+    this.processData();
+    console.log("values",SimpleZoomChildComponent.values[0]);
+    var test_data = SimpleZoomChildComponent.values[0];
     // Create X axis
     SimpleZoomChildComponent.x = d3.scaleTime()
-        .domain(d3.extent(this.data, (d) => {return d.date;}))
+        .domain(d3.extent(test_data, (d) => {return d.date;}))
         .range([0, this.width]);
         SimpleZoomChildComponent.xAxis = this.svg.append("g")
         .attr("transform", "translate(" + 0 + " " +  this.height +")")
@@ -61,7 +63,7 @@ export class SimpleZoomChildComponent implements OnInit {
 
     // Create Y axis
     SimpleZoomChildComponent.y = d3.scaleLinear()
-        .domain([0, d3.max(this.data, (d:any)=> { return +d.value; })])
+        .domain([this.bottom_limit+(this.bottom_limit*0.2), this.top_limit + (this.top_limit*0.2)])
         .range([this.height, 0]);
     this.yAxis = this.svg.append("g")
         .call(d3.axisLeft(SimpleZoomChildComponent.y));
@@ -85,8 +87,10 @@ export class SimpleZoomChildComponent implements OnInit {
           .attr("clip-path", "url(#clip)")
     
     // Add the line
-    SimpleZoomChildComponent.line.append("path")
-      .datum(this.data)
+    SimpleZoomChildComponent.line.selectAll(".line")
+      .data(SimpleZoomChildComponent.values)
+      .enter()
+      .append("path")
       .attr("class", "line")  // I add the class line to be able to modify this line later on.
       .attr("fill", "none")
       .attr("stroke", "steelblue")
@@ -98,7 +102,7 @@ export class SimpleZoomChildComponent implements OnInit {
       .attr("class", "brush")
       .call(SimpleZoomChildComponent.brush);
 
-      // If user double click, reinitialize the chart
+    //   // If user double click, reinitialize the chart
     this.svg.on("dblclick",()=>{
       SimpleZoomChildComponent.x.domain(d3.extent(this.data, (d:any) => { return d.date; }))
       SimpleZoomChildComponent.xAxis.transition().call(d3.axisBottom(SimpleZoomChildComponent.x))
@@ -109,13 +113,12 @@ export class SimpleZoomChildComponent implements OnInit {
     });
 
      this.svg.attr("transform", "translate(0,10)");
-var me = this;
   }
 
   static setLine(){
     return d3.line()
               .x((d:any) => { return SimpleZoomChildComponent.x(d.date) })
-              .y((d:any) => { return SimpleZoomChildComponent.y(d.value) })
+              .y((d:any) => { return SimpleZoomChildComponent.y(d.val) })
   }
 
 
@@ -126,7 +129,6 @@ var me = this;
 
     // Get extent of selection
     var extent = d3.event.selection;
-    //console.log("hey", this.x(10));
     
     // If no selection, back to initial coordinate. Otherwise, update X axis domain
     if(!extent){
@@ -169,5 +171,40 @@ var me = this;
         .append('g')
         .attr("transform", "translate("+this.margin.left + this.margin.top +")");
   }
+
+  private processData(){
+    // Split and find max min values
+    var gyro_x = [];
+    var gyro_y = [];
+    var gyro_z = [];
+    var x_range = [];
+    var y_range = [];
+    var z_range = [];
+
+    this.data.forEach((d) => { 
+      gyro_x.push({"date": d.date, "val": d.gyro_x});
+      gyro_y.push({"date": d.date, "val": d.gyro_y});
+      gyro_z.push({"date": d.date, "val": d.gyro_z});
+
+      x_range.push(d.gyro_x);
+      y_range.push(d.gyro_y);
+      z_range.push(d.gyro_z);
+    });
+
+    SimpleZoomChildComponent.values = [gyro_x, gyro_y, gyro_z];
+    // Find top limit
+    this.top_limit = Math.max.apply(null,[
+      Math.max.apply(null,x_range),
+      Math.max.apply(null,y_range),
+      Math.max.apply(null,z_range)
+    ]);
+    // Find bottom limit
+    this.bottom_limit =  Math.min.apply(null,[
+      Math.min.apply(null,x_range),
+      Math.min.apply(null,y_range),
+      Math.min.apply(null,z_range)
+    ]);
+  }
+
 
 }
