@@ -53,7 +53,7 @@ export class SimpleZoomChildComponent implements OnInit {
     // Create X axis
     SimpleZoomChildComponent.x = d3.scaleTime()
         .domain(d3.extent(this.data, (d) => {return d.date;}))
-        .range([0,this.width]);
+        .range([0, this.width]);
         SimpleZoomChildComponent.xAxis = this.svg.append("g")
         .attr("transform", "translate(" + 0 + " " +  this.height +")")
         .attr("stroke-width", 0.5)
@@ -86,17 +86,14 @@ export class SimpleZoomChildComponent implements OnInit {
     
     // Add the line
     SimpleZoomChildComponent.line.append("path")
-    .datum(this.data)
-    .attr("class", "line")  // I add the class line to be able to modify this line later on.
-    .attr("fill", "none")
-    .attr("stroke", "steelblue")
-    .attr("stroke-width", 1.5)
-    .attr("d", d3.line()
-      .x((d:any) => { return SimpleZoomChildComponent.x(d.date) })
-      .y((d:any) => { return SimpleZoomChildComponent.y(d.value) })
-      );
-
-    // Add the brushing
+      .datum(this.data)
+      .attr("class", "line")  // I add the class line to be able to modify this line later on.
+      .attr("fill", "none")
+      .attr("stroke", "steelblue")
+      .attr("stroke-width", 1.5)
+      .attr("d", SimpleZoomChildComponent.setLine());
+      
+    // Add the brushing to the line
     SimpleZoomChildComponent.line.append("g")
       .attr("class", "brush")
       .call(SimpleZoomChildComponent.brush);
@@ -108,16 +105,19 @@ export class SimpleZoomChildComponent implements OnInit {
       SimpleZoomChildComponent.line
         .select('.line')
         .transition()
-        .attr("d", d3.line()
-          .x((d:any) => { return SimpleZoomChildComponent.x(d.date) })
-          .y((d:any) => { return SimpleZoomChildComponent.y(d.value) })
-      )
+        .attr("d", SimpleZoomChildComponent.setLine());
     });
 
-    this.pisha = "hola"
-     this.svg.attr("transform", "translate(0,0)");
+     this.svg.attr("transform", "translate(0,10)");
 var me = this;
   }
+
+  static setLine(){
+    return d3.line()
+              .x((d:any) => { return SimpleZoomChildComponent.x(d.date) })
+              .y((d:any) => { return SimpleZoomChildComponent.y(d.value) })
+  }
+
 
   private updateChart(){
 
@@ -131,23 +131,29 @@ var me = this;
     // If no selection, back to initial coordinate. Otherwise, update X axis domain
     if(!extent){
       if (!idleTimeout) return idleTimeout = setTimeout(d => {idleTimeout = null}, 350); // This allows to wait a little bit
-      SimpleZoomChildComponent.x.domain([ 4,8])
+      SimpleZoomChildComponent.x.domain([4,8])
       
     }else{
+      // Transfer brush selection as the new domain for x axis
       SimpleZoomChildComponent.x.domain([ SimpleZoomChildComponent.x.invert(extent[0]), SimpleZoomChildComponent.x.invert(extent[1]) ]);
       SimpleZoomChildComponent.line.select(".brush").call(SimpleZoomChildComponent.brush.move, null); // This remove the grey brush area as soon as the selection has been done
     }
 
       // Update axis and line position
-      SimpleZoomChildComponent.xAxis.transition().duration(1000).call(d3.axisBottom(SimpleZoomChildComponent.x))
+      SimpleZoomChildComponent.xAxis
+          .transition()
+          .duration(1000)
+          .call(d3.axisBottom(SimpleZoomChildComponent.x));
+
       SimpleZoomChildComponent.line.select('.line')
           .transition()
           .duration(1000)
-          .attr("d", d3.line()
-            .x((d:any) => { return SimpleZoomChildComponent.x(d.date) })
-            .y((d:any) => { return SimpleZoomChildComponent.y(d.value) })
-          );
-  }
+          .attr("d", SimpleZoomChildComponent.setLine());
+
+    }
+  
+
+
 
   private setChart(){
     let viewBoxHeight = 500;

@@ -94,13 +94,13 @@ export class LineChildComponent implements OnInit {
 
     // Create lines
     this.svg.selectAll(".line")
-    .data(values)
-    .enter()
-    .append("path")
-    .attr("fill", "none")
-    .attr("stroke",d => {return color[values.indexOf(d)]} )
-    .attr("stroke-width", 1.5)
-    .attr("d", d => { 
+      .data(values)
+      .enter()
+      .append("path")
+      .attr("fill", "none")
+      .attr("stroke",d => {return color[values.indexOf(d)]} )
+      .attr("stroke-width", 1.5)
+      .attr("d", d => { 
 
       var line = d3.line()
       .x((f:any) => { return this.x(f.date); })
