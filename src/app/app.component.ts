@@ -40,6 +40,11 @@ export class AppComponent {
       title: 'Simple brush zoom',
       icon: 'bar-chart-2-outline',
       link: '/simple-zoom'
+    },
+    {
+      title: 'Zoom2',
+      icon: 'bar-chart-2-outline',
+      link: '/zoom2'
     }
   ];
 

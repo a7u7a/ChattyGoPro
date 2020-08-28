@@ -6,6 +6,7 @@ import { D3ChartComponent } from './d3-chart/d3-chart.component';
 import { D3TimeSeriesComponent } from './d3-time-series/d3-time-series.component';
 import { LineContainerComponent } from './line-container/line-container.component';
 import { SimpleZoomParentComponent } from './simple-zoom/simple-zoom-parent/simple-zoom-parent.component';
+import { Zoom2ParentComponent } from './zoom2/zoom2-parent/zoom2-parent.component';
 
 const routes: Routes = [
   { path: 'home', component: HomeComponent },
@@ -15,7 +16,8 @@ const routes: Routes = [
   { path: 'd3-chart', component: D3ChartComponent},
   { path: 'd3-time-series', component:D3TimeSeriesComponent },
   { path: 'multi-line', component: LineContainerComponent},
-  { path: 'simple-zoom', component: SimpleZoomParentComponent}
+  { path: 'simple-zoom', component: SimpleZoomParentComponent},
+  { path: 'zoom2', component: Zoom2ParentComponent }
 ];
 
 @NgModule({

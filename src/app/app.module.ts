@@ -17,6 +17,8 @@ import { LineContainerComponent } from './line-container/line-container.componen
 import { LineChildComponent } from './line-child/line-child.component';
 import { SimpleZoomParentComponent } from './simple-zoom/simple-zoom-parent/simple-zoom-parent.component';
 import { SimpleZoomChildComponent } from './simple-zoom/simple-zoom-child/simple-zoom-child.component';
+import { Zoom2ParentComponent } from './zoom2/zoom2-parent/zoom2-parent.component';
+import { Zoom2ChildComponent } from './zoom2/zoom2-child/zoom2-child.component';
 
 @NgModule({
   declarations: [
@@ -29,7 +31,9 @@ import { SimpleZoomChildComponent } from './simple-zoom/simple-zoom-child/simple
     LineContainerComponent,
     LineChildComponent,
     SimpleZoomParentComponent,
-    SimpleZoomChildComponent
+    SimpleZoomChildComponent,
+    Zoom2ParentComponent,
+    Zoom2ChildComponent
   ],
   imports: [
     BrowserModule,

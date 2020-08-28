@@ -3,12 +3,12 @@ import * as d3 from 'd3';
 import { HttpClient } from '@angular/common/http';
 
 @Component({
-  selector: 'app-simple-zoom-child',
+  selector: 'app-zoom2-child',
   encapsulation: ViewEncapsulation.None,
-  templateUrl: './simple-zoom-child.component.html',
-  styleUrls: ['./simple-zoom-child.component.scss']
+  templateUrl: './zoom2-child.component.html',
+  styleUrls: ['./zoom2-child.component.scss']
 })
-export class SimpleZoomChildComponent implements OnInit {
+export class Zoom2ChildComponent implements OnInit {
   hostElement;
   svg;
   margin;
@@ -29,7 +29,7 @@ export class SimpleZoomChildComponent implements OnInit {
   top_limit;
   bottom_limit;
 
-    constructor(private elRef: ElementRef,private http: HttpClient) { 
+  constructor(private elRef: ElementRef,private http: HttpClient) { 
     this.hostElement = this.elRef.nativeElement;
   }
 
@@ -43,29 +43,28 @@ export class SimpleZoomChildComponent implements OnInit {
 
     this.margin = {top: 10, right:30, bottom:30, left: 60};
   }
-
   private createChart(objs){
     
     this.data = objs;
     this.setChart();
     this.processData();
-    console.log("values",SimpleZoomChildComponent.values[0]);
-    var test_data = SimpleZoomChildComponent.values[0];
+    console.log("values",Zoom2ChildComponent.values[0]);
+    var test_data = Zoom2ChildComponent.values[0];
     // Create X axis
-    SimpleZoomChildComponent.x = d3.scaleTime()
+    Zoom2ChildComponent.x = d3.scaleTime()
         .domain(d3.extent(test_data, (d) => {return d.date;}))
         .range([0, this.width]);
-        SimpleZoomChildComponent.xAxis = this.svg.append("g")
+        Zoom2ChildComponent.xAxis = this.svg.append("g")
         .attr("transform", "translate(" + 0 + " " +  this.height +")")
         .attr("stroke-width", 0.5)
-        .call(d3.axisBottom(SimpleZoomChildComponent.x));
+        .call(d3.axisBottom(Zoom2ChildComponent.x));
 
     // Create Y axis
-    SimpleZoomChildComponent.y = d3.scaleLinear()
+    Zoom2ChildComponent.y = d3.scaleLinear()
         .domain([this.bottom_limit+(this.bottom_limit*0.2), this.top_limit + (this.top_limit*0.2)])
         .range([this.height, 0]);
     this.yAxis = this.svg.append("g")
-        .call(d3.axisLeft(SimpleZoomChildComponent.y));
+        .call(d3.axisLeft(Zoom2ChildComponent.y));
 
     // Add clip path
     this.clip = this.svg.append("defs").append("svg:clipPath")
@@ -77,40 +76,40 @@ export class SimpleZoomChildComponent implements OnInit {
         .attr("y", 0);
 
     // Add brushing
-    SimpleZoomChildComponent.brush = d3.brushX()        // Add the brush feature using the d3.brush function
+    Zoom2ChildComponent.brush = d3.brushX()        // Add the brush feature using the d3.brush function
         .extent( [ [0,0], [this.width,this.height] ] )  // initialise the brush area: start at 0,0 and finishes at width,height: it means I select the whole graph area
         .on("end", this.updateChart)                    // Each time the brush selection changes, trigger the 'updateChart' function
 
     // Create the line variable: where both the line and the brush take place
-    SimpleZoomChildComponent.line = this.svg.append('g')
+    Zoom2ChildComponent.line = this.svg.append('g')
           .attr("clip-path", "url(#clip)")
     
     // Color palette
     var color = ['#e41a1c','#377eb8','#4daf4a'];
 
     // Add the line
-    SimpleZoomChildComponent.line.selectAll(".line")
-      .data(SimpleZoomChildComponent.values)
+    Zoom2ChildComponent.line.selectAll(".line")
+      .data(Zoom2ChildComponent.values)
       .enter()
       .append("path")
       .attr("class", "line")  // I add the class line to be able to modify this line later on.
       .attr("fill", "none")
-      .attr("stroke", d => {return color[SimpleZoomChildComponent.values.indexOf(d)]})
+      .attr("stroke", d => {return color[Zoom2ChildComponent.values.indexOf(d)]})
       .attr("stroke-width", 1.5)
-      .attr("d", SimpleZoomChildComponent.setLine());
+      .attr("d", Zoom2ChildComponent.setLine());
       
     // Add the brushing to the line
-    SimpleZoomChildComponent.line.append("g")
+    Zoom2ChildComponent.line.append("g")
       .attr("class", "brush")
-      .call(SimpleZoomChildComponent.brush);
+      .call(Zoom2ChildComponent.brush);
 
     //   // If user double click, reinitialize the chart
     this.svg.on("dblclick",()=>{
-      SimpleZoomChildComponent.x.domain(d3.extent(this.data, (d:any) => { return d.date; }))
-      SimpleZoomChildComponent.xAxis.transition().call(d3.axisBottom(SimpleZoomChildComponent.x))
-      SimpleZoomChildComponent.line.selectAll('.line')
+      Zoom2ChildComponent.x.domain(d3.extent(this.data, (d:any) => { return d.date; }))
+      Zoom2ChildComponent.xAxis.transition().call(d3.axisBottom(Zoom2ChildComponent.x))
+      Zoom2ChildComponent.line.selectAll('.line')
         .transition()
-        .attr("d", SimpleZoomChildComponent.setLine());
+        .attr("d", Zoom2ChildComponent.setLine());
     });
 
      this.svg.attr("transform", "translate(0,10)");
@@ -118,8 +117,8 @@ export class SimpleZoomChildComponent implements OnInit {
 
   static setLine(){
     return d3.line()
-              .x((d:any) => { return SimpleZoomChildComponent.x(d.date) })
-              .y((d:any) => { return SimpleZoomChildComponent.y(d.val) })
+              .x((d:any) => { return Zoom2ChildComponent.x(d.date) })
+              .y((d:any) => { return Zoom2ChildComponent.y(d.val) })
   }
 
 
@@ -134,24 +133,24 @@ export class SimpleZoomChildComponent implements OnInit {
     // If no selection, back to initial coordinate. Otherwise, update X axis domain
     if(!extent){
       if (!idleTimeout) return idleTimeout = setTimeout(d => {idleTimeout = null}, 350); // This allows to wait a little bit
-      SimpleZoomChildComponent.x.domain([4,8])
+      Zoom2ChildComponent.x.domain([4,8])
       
     }else{
       // Transfer brush selection as the new domain for x axis
-      SimpleZoomChildComponent.x.domain([ SimpleZoomChildComponent.x.invert(extent[0]), SimpleZoomChildComponent.x.invert(extent[1]) ]);
-      SimpleZoomChildComponent.line.select(".brush").call(SimpleZoomChildComponent.brush.move, null); // This remove the grey brush area as soon as the selection has been done
+      Zoom2ChildComponent.x.domain([ Zoom2ChildComponent.x.invert(extent[0]), Zoom2ChildComponent.x.invert(extent[1]) ]);
+      Zoom2ChildComponent.line.select(".brush").call(Zoom2ChildComponent.brush.move, null); // This remove the grey brush area as soon as the selection has been done
     }
 
       // Update axis and line position
-      SimpleZoomChildComponent.xAxis
+      Zoom2ChildComponent.xAxis
           .transition()
           .duration(1000)
-          .call(d3.axisBottom(SimpleZoomChildComponent.x));
+          .call(d3.axisBottom(Zoom2ChildComponent.x));
 
-      SimpleZoomChildComponent.line.selectAll('.line')
+      Zoom2ChildComponent.line.selectAll('.line')
           .transition()
           .duration(1000)
-          .attr("d", SimpleZoomChildComponent.setLine());
+          .attr("d", Zoom2ChildComponent.setLine());
 
     }
   
@@ -192,7 +191,7 @@ export class SimpleZoomChildComponent implements OnInit {
       z_range.push(d.gyro_z);
     });
 
-    SimpleZoomChildComponent.values = [gyro_x, gyro_y, gyro_z];
+    Zoom2ChildComponent.values = [gyro_x, gyro_y, gyro_z];
     // Find top limit
     this.top_limit = Math.max.apply(null,[
       Math.max.apply(null,x_range),
@@ -206,6 +205,5 @@ export class SimpleZoomChildComponent implements OnInit {
       Math.min.apply(null,z_range)
     ]);
   }
-
 
 }
