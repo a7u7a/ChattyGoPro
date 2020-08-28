@@ -27,10 +27,6 @@ export class LineChildComponent implements OnInit {
 
   ngOnInit(): void {
     // Create chart once data has been loaded
-
-    // Test with raw file
-    // https://raw.githubusercontent.com/a7u7a/dummydata/master/gyroscope/gyro_1.csv
-
     this.http.get("https://raw.githubusercontent.com/a7u7a/dummydata/master/gyroscope/gyro_1.csv",
     { responseType: 'text' }).subscribe(data => {
     var objs = d3.csvParse(data, d3.autoType);
@@ -43,6 +39,7 @@ export class LineChildComponent implements OnInit {
   private createChart(objs){
     this.data = objs;
     this.setChart();
+
 
   // Split and find max min values
   var gyro_x = [];
@@ -92,8 +89,10 @@ export class LineChildComponent implements OnInit {
     this.svg.append("g")
         .call(d3.axisLeft(this.y));
 
-    // // Color palette
+    // Color palette
     var color = ['#e41a1c','#377eb8','#4daf4a'];
+
+    // Create lines
     this.svg.selectAll(".line")
     .data(values)
     .enter()
@@ -113,6 +112,7 @@ export class LineChildComponent implements OnInit {
   }
 
   private setChart(){
+
     let viewBoxHeight = 500;
     let viewBoxWidth = 800;
 
@@ -125,7 +125,6 @@ export class LineChildComponent implements OnInit {
         .attr('viewBox', '0 0 ' + viewBoxWidth + ' ' + viewBoxHeight)
         .append('g')
         .attr("transform", "translate("+this.margin.left + this.margin.top +")");
-
-
   }
+  
 }
