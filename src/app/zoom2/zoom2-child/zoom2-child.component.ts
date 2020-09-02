@@ -34,10 +34,16 @@ export class Zoom2ChildComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Create chart once data has been loaded
+    // // Create chart once data has been loaded
     this.http.get("https://raw.githubusercontent.com/a7u7a/dummydata/master/gyroscope/gyro_1.csv",
     { responseType: 'text' }).subscribe(data => {
-    var objs = d3.csvParse(data, d3.autoType);
+    var objs = d3.csvParse(data,  function(d) {
+      return {
+        date: d3.timeParse("%Y-%m-%d")(d.date),
+        gyro_x: d.gyro_x, 
+        gyro_y:d.gyro_y,
+        gyro_z: d.gyro_z }
+       });
     this.createChart(objs);
     });
 
@@ -52,7 +58,7 @@ export class Zoom2ChildComponent implements OnInit {
     var test_data = Zoom2ChildComponent.values[0];
     // Create X axis
     Zoom2ChildComponent.x = d3.scaleTime()
-        .domain(d3.extent(test_data, (d) => {return d.date;}))
+        .domain(<[Date, Date]>d3.extent(test_data, (d:any) => {return d.date;}))
         .range([0, this.width]);
         Zoom2ChildComponent.xAxis = this.svg.append("g")
         .attr("transform", "translate(" + 0 + " " +  this.height +")")
@@ -155,7 +161,7 @@ export class Zoom2ChildComponent implements OnInit {
     }
   
 
-
+ 
 
   private setChart(){
     let viewBoxHeight = 500;

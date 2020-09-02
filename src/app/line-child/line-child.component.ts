@@ -29,57 +29,57 @@ export class LineChildComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Create chart once data has been loaded
-    this.http.get("https://raw.githubusercontent.com/a7u7a/dummydata/master/gyroscope/gyro_1.csv",
-    { responseType: 'text' }).subscribe(data => {
-    var objs = d3.csvParse(data, d3.autoType);
-    this.createChart(objs);
-    });
+    // // Create chart once data has been loaded
+    // this.http.get("https://raw.githubusercontent.com/a7u7a/dummydata/master/gyroscope/gyro_1.csv",
+    // { responseType: 'text' }).subscribe(data => {
+    // var objs = d3.csvParse(data, d3.autoType);
+    // this.createChart(objs);
+    // });
 
-    this.margin = {top: 10, right:30, bottom:30, left: 60};
-  }
+    // this.margin = {top: 10, right:30, bottom:30, left: 60};
+  } 
 
   private createChart(objs){
     this.data = objs;
-    this.setChart();
-    this.processData();
+    // this.setChart();
+    // this.processData();
 
-    // Create X axis
-    this.x = d3.scaleTime()
-        .domain(d3.extent(this.data, (d:any) => { return d.date; }))
-        .range([0, this.width]);
-    this.svg.append("g")
-        .attr("transform", "translate(" + 0 + " " +  this.height +")")
-        .attr("stroke-width", 0.5)
-        .call(d3.axisBottom(this.x));
+    // // Create X axis
+    // this.x = d3.scaleTime()
+    //     .domain(d3.extent(this.data, (d:any) => { return d.date; }))
+    //     .range([0, this.width]);
+    // this.svg.append("g")
+    //     .attr("transform", "translate(" + 0 + " " +  this.height +")")
+    //     .attr("stroke-width", 0.5)
+    //     .call(d3.axisBottom(this.x));
 
-    // Create Y axis
-    this.y = d3.scaleLinear()
-        .domain([this.bottom_limit+(this.bottom_limit*0.2), this.top_limit + (this.top_limit*0.2)])
-        .range([this.height, 0]);
-    this.svg.append("g")
-        .call(d3.axisLeft(this.y));
+    // // Create Y axis
+    // this.y = d3.scaleLinear()
+    //     .domain([this.bottom_limit+(this.bottom_limit*0.2), this.top_limit + (this.top_limit*0.2)])
+    //     .range([this.height, 0]);
+    // this.svg.append("g")
+    //     .call(d3.axisLeft(this.y));
 
-    // Color palette
-    var color = ['#e41a1c','#377eb8','#4daf4a'];
+    // // Color palette
+    // var color = ['#e41a1c','#377eb8','#4daf4a'];
 
-    // Create lines
-    this.svg.selectAll(".line")
-      .data(LineChildComponent.values)
-      .enter()
-      .append("path")
-      .attr("fill", "none")
-      .attr("stroke",d => {return color[LineChildComponent.values.indexOf(d)]} )
-      .attr("stroke-width", 1.5)
-      .attr("d", d => { 
+    // // Create lines
+    // this.svg.selectAll(".line")
+    //   .data(LineChildComponent.values)
+    //   .enter()
+    //   .append("path")
+    //   .attr("fill", "none")
+    //   .attr("stroke",d => {return color[LineChildComponent.values.indexOf(d)]} )
+    //   .attr("stroke-width", 1.5)
+    //   .attr("d", d => { 
 
-      var line = d3.line()
-      .x((f:any) => { return this.x(f.date); })
-      .y((p:any) => { return this.y(p.val); })
-      return line(d);
-     });
+    //   var line = d3.line()
+    //   .x((f:any) => { return this.x(f.date); })
+    //   .y((p:any) => { return this.y(p.val); })
+    //   return line(d);
+    //  });
 
-     this.svg.attr("transform", "translate(0,0)");
+    //  this.svg.attr("transform", "translate(0,0)");
   }
 
   private setChart(){

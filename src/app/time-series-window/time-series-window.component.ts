@@ -26,14 +26,14 @@ export class TimeSeriesWindowComponent implements OnInit {
 }
 
   ngOnInit(): void {
-    // Create chart once data has been loaded
-    this.http.get("https://gist.githubusercontent.com/tristanwietsma/f4997974b5602a5b48ec8eba104335d4/raw/8c077d84249752e4ed16354aa25040590243ce4b/sp500.csv",
-     { responseType: 'text' }).subscribe(data => {
-      var objs = d3.csvParse(data, d3.autoType);
-      this.createChart(objs);
-   });
+  //   // Create chart once data has been loaded
+  //   this.http.get("https://gist.githubusercontent.com/tristanwietsma/f4997974b5602a5b48ec8eba104335d4/raw/8c077d84249752e4ed16354aa25040590243ce4b/sp500.csv",
+  //    { responseType: 'text' }).subscribe(data => {
+  //     var objs = d3.csvParse(data, d3.autoType);
+  //     this.createChart(objs);
+  //  });
 
-   this.margin = {top: 10, right:10, bottom:10, left: 25};
+  //  this.margin = {top: 10, right:10, bottom:10, left: 25};
   }
 
 private createChart(objs){

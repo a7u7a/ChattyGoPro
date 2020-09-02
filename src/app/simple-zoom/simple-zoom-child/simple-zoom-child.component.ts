@@ -37,23 +37,31 @@ export class SimpleZoomChildComponent implements OnInit {
     // Create chart once data has been loaded
     this.http.get("https://raw.githubusercontent.com/a7u7a/dummydata/master/gyroscope/gyro_1.csv",
     { responseType: 'text' }).subscribe(data => {
-    var objs = d3.csvParse(data, d3.autoType);
+    var objs = d3.csvParse(data, function(d) {
+       return {
+         date: d3.timeParse("%Y-%m-%d")(d.date),
+         gyro_x: d.gyro_x, 
+         gyro_y:d.gyro_y,
+         gyro_z: d.gyro_z }
+        });
     this.createChart(objs);
     });
 
     this.margin = {top: 10, right:30, bottom:30, left: 60};
   }
-
+ 
   private createChart(objs){
-    
+    console.log(objs);
     this.data = objs;
     this.setChart();
     this.processData();
+    
     console.log("values",SimpleZoomChildComponent.values[0]);
     var test_data = SimpleZoomChildComponent.values[0];
+
     // Create X axis
     SimpleZoomChildComponent.x = d3.scaleTime()
-        .domain(d3.extent(test_data, (d) => {return d.date;}))
+        .domain(<[Date,Date]>d3.extent(objs, (d:any) => { return d.date; })) // Type issue solved with: https://stackoverflow.com/questions/52124689/argument-of-type-string-string-error-in-angular-and-d3
         .range([0, this.width]);
         SimpleZoomChildComponent.xAxis = this.svg.append("g")
         .attr("transform", "translate(" + 0 + " " +  this.height +")")
