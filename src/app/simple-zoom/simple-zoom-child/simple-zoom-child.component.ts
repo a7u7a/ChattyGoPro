@@ -51,6 +51,7 @@ export class SimpleZoomChildComponent implements OnInit {
   }
  
   private createChart(objs){
+    
     console.log(objs);
     this.data = objs;
     this.setChart();

@@ -3,6 +3,11 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
+  //apiUrl: 'http://localhost:7000',
+  apiUrl: 'http://172.16.50.221:7000',
+  //apiUrl: 'http://172.16.50.221:7000', //UoE Test
+  //apiUrl: 'http://148.88.47.13:7000', //Lancaster server
+  websocketUrl: 'ws://localhost',
   production: false
 };
 

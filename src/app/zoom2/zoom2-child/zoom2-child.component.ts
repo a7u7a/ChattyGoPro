@@ -1,4 +1,6 @@
 import { Component, OnInit, ViewEncapsulation, ElementRef, Input } from '@angular/core';
+import { DataService } from './../../data.service';
+
 import * as d3 from 'd3';
 import { HttpClient } from '@angular/common/http';
 
@@ -29,32 +31,52 @@ export class Zoom2ChildComponent implements OnInit {
   top_limit;
   bottom_limit;
 
-  constructor(private elRef: ElementRef,private http: HttpClient) { 
+  constructor(private elRef: ElementRef,private http: HttpClient, private data_service : DataService) { 
     this.hostElement = this.elRef.nativeElement;
   }
 
   ngOnInit(): void {
-    // // Create chart once data has been loaded
-    this.http.get("https://raw.githubusercontent.com/a7u7a/dummydata/master/gyroscope/gyro_1.csv",
-    { responseType: 'text' }).subscribe(data => {
-    var objs = d3.csvParse(data,  function(d) {
-      return {
-        date: d3.timeParse("%Y-%m-%d")(d.date),
-        gyro_x: d.gyro_x, 
-        gyro_y:d.gyro_y,
-        gyro_z: d.gyro_z }
-       });
-    this.createChart(objs);
-    });
 
+    // Setup chart margins
     this.margin = {top: 10, right:30, bottom:30, left: 60};
+
+    // Create chart once data has been loaded
+    this.getData();
   }
+
+private getData(){
+  console.log("Fetching data..");
+  // Data file generated using gpmf_parser.py
+  this.http.get("https://raw.githubusercontent.com/a7u7a/dummydata/master/other/accl_gyro_6204.csv",
+  { responseType: 'text' }).subscribe(data => {
+  var objs = d3.csvParse(data,   function(d:any) {
+    if (d.GYRO_0 == NaN){console.log("null", d.GYRO_0)}
+    return {
+      // Pending: Dont parse to local time
+      date: d3.timeParse("%Y-%m-%d %H:%M:%S.%f%Z")(d.date) || d3.timeParse("%Y-%m-%d %H:%M:%S%Z")(d.date), // Accounts for edge case
+      accl_0: d.ACCL_0,
+      accl_1: d.ACCL_1,
+      accl_2: d.ACCL_2, 
+      gyro_0: d.GYRO_0,
+      gyro_1: d.GYRO_1,
+      gyro_2: d.GYRO_2}
+     });
+     
+  this.createChart(objs);
+  });
+
+}
+
   private createChart(objs){
-    
+    //console.log("gyro_0: ",objs[0].gyro_0);
+    //console.log(objs);
+  
+
+
     this.data = objs;
     this.setChart();
     this.processData();
-    console.log("values",Zoom2ChildComponent.values[0]);
+    //console.log("values",Zoom2ChildComponent.values[0]);
     var test_data = Zoom2ChildComponent.values[0];
     // Create X axis
     Zoom2ChildComponent.x = d3.scaleTime()
@@ -91,7 +113,7 @@ export class Zoom2ChildComponent implements OnInit {
           .attr("clip-path", "url(#clip)")
     
     // Color palette
-    var color = ['#e41a1c','#377eb8','#4daf4a'];
+    var color = ['#e41a1c','#377eb8','#4daf4a', '#FFFF00', '#FF00FF', '#000000'];
 
     // Add the line
     Zoom2ChildComponent.line.selectAll(".line")
@@ -180,24 +202,27 @@ export class Zoom2ChildComponent implements OnInit {
 
   private processData(){
     // Split and find max min values
-    var gyro_x = [];
-    var gyro_y = [];
-    var gyro_z = [];
+    var gyro_0 = [];
+    var gyro_1 = [];
+    var gyro_2 = [];
     var x_range = [];
     var y_range = [];
     var z_range = [];
 
     this.data.forEach((d) => { 
-      gyro_x.push({"date": d.date, "val": d.gyro_x});
-      gyro_y.push({"date": d.date, "val": d.gyro_y});
-      gyro_z.push({"date": d.date, "val": d.gyro_z});
+      gyro_0.push({"date": d.date, "val": d.gyro_0});
+      gyro_1.push({"date": d.date, "val": d.gyro_1});
+      gyro_2.push({"date": d.date, "val": d.gyro_2});
 
-      x_range.push(d.gyro_x);
-      y_range.push(d.gyro_y);
-      z_range.push(d.gyro_z);
+      //dont like this
+      x_range.push(d.gyro_0);
+      y_range.push(d.gyro_1);
+      z_range.push(d.gyro_2);
     });
 
-    Zoom2ChildComponent.values = [gyro_x, gyro_y, gyro_z];
+//console.log("gyroy",gyro_y);
+
+    Zoom2ChildComponent.values = [gyro_0, gyro_1, gyro_2];
     // Find top limit
     this.top_limit = Math.max.apply(null,[
       Math.max.apply(null,x_range),
