@@ -14,6 +14,7 @@ export class Zoom2ChildComponent implements OnInit {
   hostElement;
   svg;
   margin;
+  margin2;
   width;
   height;
   static x;
@@ -39,6 +40,7 @@ export class Zoom2ChildComponent implements OnInit {
 
     // Setup chart margins
     this.margin = {top: 10, right:30, bottom:30, left: 60};
+    this.margin2 = 
 
     // Create chart once data has been loaded
     this.getData();
@@ -189,8 +191,8 @@ private getData(){
     let viewBoxHeight = 500;
     let viewBoxWidth = 800;
 
-    this.height = viewBoxHeight - this.margin.right - this.margin.left;
-    this.width = viewBoxWidth - this.margin.top - this.margin.bottom;
+    this.height = viewBoxHeight - this.margin.top - this.margin.bottom;
+    this.width = viewBoxWidth - this.margin.right - this.margin.left;
 
     this.svg = d3.select(this.hostElement).append('svg')
         .attr('width', this.width + this.margin.left + this.margin.right)
@@ -220,9 +222,10 @@ private getData(){
       z_range.push(d.gyro_2);
     });
 
-//console.log("gyroy",gyro_y);
-
     Zoom2ChildComponent.values = [gyro_0, gyro_1, gyro_2];
+    
+    // do this using d3.extent(data, function(d) { return d.date; }));
+    // and d3.max(data, function(d) { return d.price; })]);
     // Find top limit
     this.top_limit = Math.max.apply(null,[
       Math.max.apply(null,x_range),
