@@ -7,6 +7,7 @@ import { D3TimeSeriesComponent } from './d3-time-series/d3-time-series.component
 import { LineContainerComponent } from './line-container/line-container.component';
 import { SimpleZoomParentComponent } from './simple-zoom/simple-zoom-parent/simple-zoom-parent.component';
 import { Zoom2ParentComponent } from './zoom2/zoom2-parent/zoom2-parent.component';
+import { FocusParentComponent } from './focus-context-test/focus-parent/focus-parent.component';
 
 const routes: Routes = [
   { path: 'home', component: HomeComponent },
@@ -17,7 +18,8 @@ const routes: Routes = [
   { path: 'd3-time-series', component:D3TimeSeriesComponent },
   { path: 'multi-line', component: LineContainerComponent},
   { path: 'simple-zoom', component: SimpleZoomParentComponent},
-  { path: 'zoom2', component: Zoom2ParentComponent }
+  { path: 'zoom2', component: Zoom2ParentComponent },
+  { path: 'focus1', component: FocusParentComponent }
 ];
 
 @NgModule({

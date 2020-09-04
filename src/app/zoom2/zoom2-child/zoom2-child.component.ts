@@ -1,5 +1,4 @@
 import { Component, OnInit, ViewEncapsulation, ElementRef, Input } from '@angular/core';
-import { DataService } from './../../data.service';
 
 import * as d3 from 'd3';
 import { HttpClient } from '@angular/common/http';
@@ -32,16 +31,11 @@ export class Zoom2ChildComponent implements OnInit {
   top_limit;
   bottom_limit;
 
-  constructor(private elRef: ElementRef,private http: HttpClient, private data_service : DataService) { 
+  constructor(private elRef: ElementRef,private http: HttpClient) { 
     this.hostElement = this.elRef.nativeElement;
   }
 
   ngOnInit(): void {
-
-    // Setup chart margins
-    this.margin = {top: 10, right:30, bottom:30, left: 60};
-    this.margin2 = 
-
     // Create chart once data has been loaded
     this.getData();
   }
@@ -190,7 +184,7 @@ private getData(){
   private setChart(){
     let viewBoxHeight = 500;
     let viewBoxWidth = 800;
-
+    this.margin = {top: 10, right:30, bottom:30, left: 60};
     this.height = viewBoxHeight - this.margin.top - this.margin.bottom;
     this.width = viewBoxWidth - this.margin.right - this.margin.left;
 
@@ -200,6 +194,8 @@ private getData(){
         .attr('viewBox', '0 0 ' + viewBoxWidth + ' ' + viewBoxHeight)
         .append('g')
         .attr("transform", "translate("+this.margin.left + this.margin.top +")");
+
+        this.svg.attr("transform", "translate(10,10)")
   }
 
   private processData(){
@@ -223,7 +219,7 @@ private getData(){
     });
 
     Zoom2ChildComponent.values = [gyro_0, gyro_1, gyro_2];
-    
+
     // do this using d3.extent(data, function(d) { return d.date; }));
     // and d3.max(data, function(d) { return d.price; })]);
     // Find top limit

@@ -1,15 +1,15 @@
-import { Component, OnInit, ViewEncapsulation, Input, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation, ElementRef, Input } from '@angular/core';
+
 import * as d3 from 'd3';
 import { HttpClient } from '@angular/common/http';
- 
-@Component({
-  selector: 'app-time-series-window',
-  encapsulation: ViewEncapsulation.None,
-  templateUrl: './time-series-window.component.html',
-  styleUrls: ['./time-series-window.component.scss']
-})
 
-export class TimeSeriesWindowComponent implements OnInit {
+@Component({
+  selector: 'app-focus-child',
+  encapsulation: ViewEncapsulation.None,
+  templateUrl: './focus-child.component.html',
+  styleUrls: ['./focus-child.component.scss']
+})
+export class FocusChildComponent implements OnInit {
   @Input() xmax = 200;
   @Input() ymax = 200;
   hostElement;
@@ -33,8 +33,8 @@ export class TimeSeriesWindowComponent implements OnInit {
   static focus;
   static context;
 
-    constructor(private elRef: ElementRef, private http: HttpClient) {
-      this.hostElement = this.elRef.nativeElement;
+  constructor(private elRef: ElementRef, private http: HttpClient) {
+    this.hostElement = this.elRef.nativeElement;
   }
 
   ngOnInit(): void {
@@ -56,11 +56,11 @@ export class TimeSeriesWindowComponent implements OnInit {
     this.setChart();
     
     // Set axis range and domain
-    TimeSeriesWindowComponent.x = d3.scaleTime().range([0, TimeSeriesWindowComponent.width]);
-    TimeSeriesWindowComponent.x.domain(d3.extent(data, (d:any)=> { return d.date; }));
+    FocusChildComponent.x = d3.scaleTime().range([0, FocusChildComponent.width]);
+    FocusChildComponent.x.domain(d3.extent(data, (d:any)=> { return d.date; }));
 
-    TimeSeriesWindowComponent.x2 = d3.scaleTime().range([0, TimeSeriesWindowComponent.width]);
-    TimeSeriesWindowComponent.x2.domain(TimeSeriesWindowComponent.x.domain());
+    FocusChildComponent.x2 = d3.scaleTime().range([0, FocusChildComponent.width]);
+    FocusChildComponent.x2.domain(FocusChildComponent.x.domain());
 
     this.y = d3.scaleLinear().range([this.height, 0]);
     this.y.domain([0, d3.max(data, function(d:any) { return d.price; })]);
@@ -69,96 +69,97 @@ export class TimeSeriesWindowComponent implements OnInit {
     this.y2.domain(this.y.domain());
 
     // Apply scales to axes
-    TimeSeriesWindowComponent.xAxis = d3.axisBottom(TimeSeriesWindowComponent.x);
-    this.xAxis2 = d3.axisBottom(TimeSeriesWindowComponent.x2);
+    FocusChildComponent.xAxis = d3.axisBottom(FocusChildComponent.x);
+    this.xAxis2 = d3.axisBottom(FocusChildComponent.x2);
     this.yAxis = d3.axisLeft(this.y);
     
-    TimeSeriesWindowComponent.brush = d3.brushX()
-        .extent([[0,0], [TimeSeriesWindowComponent.width, this.height2]])
+    FocusChildComponent.brush = d3.brushX()
+        .extent([[0,0], [FocusChildComponent.width, this.height2]])
         .on("brush end", this.brushed);
 
-    TimeSeriesWindowComponent.zoom = d3.zoom()
+    FocusChildComponent.zoom = d3.zoom()
         .scaleExtent([1, Infinity])
-        .translateExtent([[0, 0], [TimeSeriesWindowComponent.width, this.height]])
-        .extent([[0, 0], [TimeSeriesWindowComponent.width, this.height]])
+        .translateExtent([[0, 0], [FocusChildComponent.width, this.height]])
+        .extent([[0, 0], [FocusChildComponent.width, this.height]])
         .on("zoom", this.zoomed);
     
-    TimeSeriesWindowComponent.area = d3.area()
+    FocusChildComponent.area = d3.area()
         .curve(d3.curveMonotoneX)
-        .x((d:any) => { return TimeSeriesWindowComponent.x(d.date); })
+        .x((d:any) => { return FocusChildComponent.x(d.date); })
         .y0(this.height)
         .y1((d:any)=> {return this.y(d.price); });
 
     this.area2 = d3.area()
         .curve(d3.curveMonotoneX)
-        .x((d:any) => { return TimeSeriesWindowComponent.x2(d.date); })
+        .x((d:any) => { return FocusChildComponent.x2(d.date); })
         .y0(this.height2)
         .y1((d:any) => { return this.y2(d.price); });
 
-    TimeSeriesWindowComponent.svg.append("defs").append("clipPath")
+    FocusChildComponent.svg.append("defs").append("clipPath")
         .attr("id", "clip")
         .append("rect")
-        .attr("width", TimeSeriesWindowComponent.width)
+        .attr("width", FocusChildComponent.width)
         .attr("height", this.height);
 
-    TimeSeriesWindowComponent.focus = TimeSeriesWindowComponent.svg.append("g")
+    FocusChildComponent.focus = FocusChildComponent.svg.append("g")
         .attr("class", "focus")
         .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
 
-    TimeSeriesWindowComponent.context = TimeSeriesWindowComponent.svg.append("g")
+    FocusChildComponent.context = FocusChildComponent.svg.append("g")
         .attr("class", "context")
         .attr("transform", "translate(" + this.margin2.left + "," + this.margin2.top + ")");
 
     // appends area to focus
-    TimeSeriesWindowComponent.focus.append("path")
+    FocusChildComponent.focus.append("path")
         .datum(data)
         .attr("class", "area")
-        .attr("d", TimeSeriesWindowComponent.area);
+        .attr("d", FocusChildComponent.area);
 
     // appends x and y axis to focus
-    TimeSeriesWindowComponent.focus.append("g")
+    FocusChildComponent.focus.append("g")
         .attr("class", "axis axis--x")
         .attr("transform", "translate(0," + this.height + ")")
-        .call(TimeSeriesWindowComponent.xAxis);
-    TimeSeriesWindowComponent.focus.append("g")
+        .call(FocusChildComponent.xAxis);
+    FocusChildComponent.focus.append("g")
         .attr("class", "axis axis--y")
         .call(this.yAxis);
 
     // Appends area2 to Context
-    TimeSeriesWindowComponent.context.append("path")
+    FocusChildComponent.context.append("path")
         .datum(data)
         .attr("class", "area")
         .attr("d", this.area2);
 
     // Appends x axis to Context
-    TimeSeriesWindowComponent.context.append("g")
+    FocusChildComponent.context.append("g")
         .attr("class", "axis axis--x")
         .attr("transform", "translate(0," + this.height2 + ")")
         .call(this.xAxis2);
 
     // Appends brush to context
-    TimeSeriesWindowComponent.context.append("g")
+    FocusChildComponent.context.append("g")
         .attr("class", "brush")
-        .call(TimeSeriesWindowComponent.brush)
-        .call(TimeSeriesWindowComponent.brush.move, TimeSeriesWindowComponent.x.range());
+        .call(FocusChildComponent.brush)
+        .call(FocusChildComponent.brush.move, FocusChildComponent.x.range());
 
-    TimeSeriesWindowComponent.svg.append("rect")
+    FocusChildComponent.svg.append("rect")
         .attr("class", "zoom")
-        .attr("width", TimeSeriesWindowComponent.width)
+        .attr("width", FocusChildComponent.width)
         .attr("height", this.height)
         .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")")
-        .call(TimeSeriesWindowComponent.zoom);
+        .call(FocusChildComponent.zoom);
   }
 
   private brushed(){
-    if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom  
-
-    var s = d3.event.selection || TimeSeriesWindowComponent.x2.range();
-    TimeSeriesWindowComponent.x.domain(s.map(TimeSeriesWindowComponent.x2.invert, TimeSeriesWindowComponent.x2));
-    TimeSeriesWindowComponent.focus.select(".area").attr("d", TimeSeriesWindowComponent.area);
-    TimeSeriesWindowComponent.focus.select(".axis--x").call(TimeSeriesWindowComponent.xAxis);
-    TimeSeriesWindowComponent.svg.select(".zoom").call(TimeSeriesWindowComponent.zoom.transform, d3.zoomIdentity
-        .scale(TimeSeriesWindowComponent.width / (s[1] - s[0]))
+    if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
+    
+    var s = d3.event.selection || FocusChildComponent.x2.range();
+    FocusChildComponent.x.domain(s.map(FocusChildComponent.x2.invert, FocusChildComponent.x2));
+    FocusChildComponent.focus.select(".area").attr("d", FocusChildComponent.area);
+    FocusChildComponent.focus.select(".axis--x").call(FocusChildComponent.xAxis);
+    
+    FocusChildComponent.svg.select(".zoom").call(FocusChildComponent.zoom.transform, d3.zoomIdentity
+        .scale(FocusChildComponent.width / (s[1] - s[0]))
         .translate(-s[0], 0));
   }
 
@@ -166,10 +167,10 @@ export class TimeSeriesWindowComponent implements OnInit {
     if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return; // ignore zoom-by-brush
     
     var t = d3.event.transform;
-    TimeSeriesWindowComponent.x.domain(t.rescaleX(TimeSeriesWindowComponent.x2).domain());
-    TimeSeriesWindowComponent.focus.select(".area").attr("d", TimeSeriesWindowComponent.area);
-    TimeSeriesWindowComponent.focus.select(".axis--x").call(TimeSeriesWindowComponent.xAxis);
-    TimeSeriesWindowComponent.context.select(".brush").call(TimeSeriesWindowComponent.brush.move, TimeSeriesWindowComponent.x.range().map(t.invertX, t));
+    FocusChildComponent.x.domain(t.rescaleX(FocusChildComponent.x2).domain());
+    FocusChildComponent.focus.select(".area").attr("d", FocusChildComponent.area);
+    FocusChildComponent.focus.select(".axis--x").call(FocusChildComponent.xAxis);
+    FocusChildComponent.context.select(".brush").call(FocusChildComponent.brush.move, FocusChildComponent.x.range().map(t.invertX, t));
   }
 
   private setChart(){
@@ -182,17 +183,17 @@ export class TimeSeriesWindowComponent implements OnInit {
     
     this.height = viewBoxHeight - this.margin.top - this.margin.bottom;
     this.height2 = viewBoxHeight - this.margin2.top - this.margin2.bottom;
-    TimeSeriesWindowComponent.width = viewBoxWidth - this.margin.right - this.margin.left;
+    FocusChildComponent.width = viewBoxWidth - this.margin.right - this.margin.left;
 
-    TimeSeriesWindowComponent.svg = d3.select(this.hostElement).append('svg')
-        .attr('width', TimeSeriesWindowComponent.width + this.margin.left + this.margin.right)
+    FocusChildComponent.svg = d3.select(this.hostElement).append('svg')
+        .attr('width', FocusChildComponent.width + this.margin.left + this.margin.right)
         .attr('height', this.height + this.margin.top + this.margin.bottom)
         .attr('viewBox', '0 0 ' + viewBoxWidth + ' ' + viewBoxHeight)
         .append('g')    
         .attr("transform", "translate(0,0)");
 
         //Viewbox debug
-    TimeSeriesWindowComponent.svg.append('rect')
+    FocusChildComponent.svg.append('rect')
         .attr('x', 0)
         .attr('y', 0)
         .attr('width', '100%')
@@ -200,7 +201,5 @@ export class TimeSeriesWindowComponent implements OnInit {
         .attr('fill', 'white')
         .attr('stroke', 'black');
   }
+
 }
-
-
-

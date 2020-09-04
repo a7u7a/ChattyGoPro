@@ -27,11 +27,6 @@ export class AppComponent {
       link: '/d3-chart'
     },
     {
-      title: 'Dots + Axis',
-      icon: 'bar-chart-2-outline',
-      link: '/d3-time-series'
-    },
-    {
       title: 'Multi-line',
       icon: 'bar-chart-2-outline',
       link: '/multi-line'
@@ -45,6 +40,16 @@ export class AppComponent {
       title: 'Zoom2',
       icon: 'bar-chart-2-outline',
       link: '/zoom2'
+    },
+    {
+      title: 'Focus + Context Area',
+      icon: 'bar-chart-2-outline',
+      link: '/d3-time-series'
+    },
+    {
+      title: 'Focus + Context Multiline',
+      icon: 'bar-chart-2-outline',
+      link: '/focus1'
     }
   ];
 

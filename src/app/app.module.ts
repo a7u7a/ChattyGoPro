@@ -19,6 +19,8 @@ import { SimpleZoomParentComponent } from './simple-zoom/simple-zoom-parent/simp
 import { SimpleZoomChildComponent } from './simple-zoom/simple-zoom-child/simple-zoom-child.component';
 import { Zoom2ParentComponent } from './zoom2/zoom2-parent/zoom2-parent.component';
 import { Zoom2ChildComponent } from './zoom2/zoom2-child/zoom2-child.component';
+import { FocusParentComponent } from './focus-context-test/focus-parent/focus-parent.component';
+import { FocusChildComponent } from './focus-context-test/focus-child/focus-child.component';
 
 @NgModule({
   declarations: [
@@ -33,7 +35,9 @@ import { Zoom2ChildComponent } from './zoom2/zoom2-child/zoom2-child.component';
     SimpleZoomParentComponent,
     SimpleZoomChildComponent,
     Zoom2ParentComponent,
-    Zoom2ChildComponent
+    Zoom2ChildComponent,
+    FocusParentComponent,
+    FocusChildComponent
   ],
   imports: [
     BrowserModule,
