@@ -60,25 +60,24 @@ private getData(){
      
   this.createChart(objs);
   });
-
 }
 
   private createChart(objs){
     //console.log("gyro_0: ",objs[0].gyro_0);
     //console.log(objs);
   
-
-
     this.data = objs;
     this.setChart();
     this.processData();
     //console.log("values",Zoom2ChildComponent.values[0]);
     var test_data = Zoom2ChildComponent.values[0];
+
     // Create X axis
     Zoom2ChildComponent.x = d3.scaleTime()
         .domain(<[Date, Date]>d3.extent(test_data, (d:any) => {return d.date;}))
         .range([0, this.width]);
-        Zoom2ChildComponent.xAxis = this.svg.append("g")
+
+    Zoom2ChildComponent.xAxis = this.svg.append("g")
         .attr("transform", "translate(" + 0 + " " +  this.height +")")
         .attr("stroke-width", 0.5)
         .call(d3.axisBottom(Zoom2ChildComponent.x));
@@ -87,19 +86,20 @@ private getData(){
     Zoom2ChildComponent.y = d3.scaleLinear()
         .domain([this.bottom_limit+(this.bottom_limit*0.2), this.top_limit + (this.top_limit*0.2)])
         .range([this.height, 0]);
+
     this.yAxis = this.svg.append("g")
         .call(d3.axisLeft(Zoom2ChildComponent.y));
 
     // Add clip path
-    this.clip = this.svg.append("defs").append("svg:clipPath")
+    this.clip = this.svg.append("defs").append("clipPath")
         .attr("id", "clip")
         .append("svg:rect")
         .attr("width", this.width )
-        .attr("height", this.height )
-        .attr("x", 0)
-        .attr("y", 0);
+        .attr("height", this.height );
+        // .attr("x", 0)
+        // .attr("y", 0);
 
-    // Add brushing
+    // Add brush feature
     Zoom2ChildComponent.brush = d3.brushX()        // Add the brush feature using the d3.brush function
         .extent( [ [0,0], [this.width,this.height] ] )  // initialise the brush area: start at 0,0 and finishes at width,height: it means I select the whole graph area
         .on("end", this.updateChart)                    // Each time the brush selection changes, trigger the 'updateChart' function
@@ -127,7 +127,7 @@ private getData(){
       .attr("class", "brush")
       .call(Zoom2ChildComponent.brush);
 
-    //   // If user double click, reinitialize the chart
+    // If user double click, reinitialize the chart
     this.svg.on("dblclick",()=>{
       Zoom2ChildComponent.x.domain(d3.extent(this.data, (d:any) => { return d.date; }))
       Zoom2ChildComponent.xAxis.transition().call(d3.axisBottom(Zoom2ChildComponent.x))
@@ -165,21 +165,19 @@ private getData(){
       Zoom2ChildComponent.line.select(".brush").call(Zoom2ChildComponent.brush.move, null); // This remove the grey brush area as soon as the selection has been done
     }
 
-      // Update axis and line position
-      Zoom2ChildComponent.xAxis
-          .transition()
-          .duration(1000)
-          .call(d3.axisBottom(Zoom2ChildComponent.x));
+    // Update axis and line position
+    Zoom2ChildComponent.xAxis
+        .transition()
+        .duration(1000)
+        .call(d3.axisBottom(Zoom2ChildComponent.x));
 
-      Zoom2ChildComponent.line.selectAll('.line')
-          .transition()
-          .duration(1000)
-          .attr("d", Zoom2ChildComponent.setLine());
+    Zoom2ChildComponent.line.selectAll('.line')
+        .transition()
+        .duration(1000)
+        .attr("d", Zoom2ChildComponent.setLine());
 
     }
-  
 
- 
 
   private setChart(){
     let viewBoxHeight = 500;

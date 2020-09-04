@@ -32,12 +32,12 @@ export class AppComponent {
       link: '/multi-line'
     },
     {
-      title: 'Simple brush zoom',
+      title: 'Zoom Brush Gyro',
       icon: 'bar-chart-2-outline',
       link: '/simple-zoom'
     },
     {
-      title: 'Zoom2',
+      title: 'Zoom Brush GoPro',
       icon: 'bar-chart-2-outline',
       link: '/zoom2'
     },

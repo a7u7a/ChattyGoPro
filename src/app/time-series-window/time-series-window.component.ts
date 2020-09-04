@@ -10,8 +10,6 @@ import { HttpClient } from '@angular/common/http';
 })
 
 export class TimeSeriesWindowComponent implements OnInit {
-  @Input() xmax = 200;
-  @Input() ymax = 200;
   hostElement;
   static svg;
   static x;
@@ -33,8 +31,8 @@ export class TimeSeriesWindowComponent implements OnInit {
   static focus;
   static context;
 
-    constructor(private elRef: ElementRef, private http: HttpClient) {
-      this.hostElement = this.elRef.nativeElement;
+  constructor(private elRef: ElementRef, private http: HttpClient) {
+    this.hostElement = this.elRef.nativeElement;
   }
 
   ngOnInit(): void {
@@ -52,74 +50,95 @@ export class TimeSeriesWindowComponent implements OnInit {
   }
 
   private createChart(objs){
+
     var data = objs;
     this.setChart();
+
+    // Focus
+    // X time scale set range and domain
+    TimeSeriesWindowComponent.x = d3.scaleTime()
+        .domain(<[Date, Date]>d3.extent(data, (d:any)=> { return d.date; }))
+        .range([0, TimeSeriesWindowComponent.width]);
     
-    // Set axis range and domain
-    TimeSeriesWindowComponent.x = d3.scaleTime().range([0, TimeSeriesWindowComponent.width]);
-    TimeSeriesWindowComponent.x.domain(d3.extent(data, (d:any)=> { return d.date; }));
+    // Apply X axis (not sure why this step)
+    TimeSeriesWindowComponent.xAxis = d3.axisBottom(TimeSeriesWindowComponent.x);
 
-    TimeSeriesWindowComponent.x2 = d3.scaleTime().range([0, TimeSeriesWindowComponent.width]);
-    TimeSeriesWindowComponent.x2.domain(TimeSeriesWindowComponent.x.domain());
-
-    this.y = d3.scaleLinear().range([this.height, 0]);
+    // Y axis
+    this.y = d3.scaleLinear().range([this.height, 0])
     this.y.domain([0, d3.max(data, function(d:any) { return d.price; })]);
 
+    // Apply Y
+    this.yAxis = d3.axisLeft(this.y);
+
+    // Context
+    // X time scale set range and domain
+    TimeSeriesWindowComponent.x2 = d3.scaleTime()
+        .domain(TimeSeriesWindowComponent.x.domain()) // shared with x's
+        .range([0, TimeSeriesWindowComponent.width]);
+    
+    // Apply X2
+    this.xAxis2 = d3.axisBottom(TimeSeriesWindowComponent.x2);
+
+    // Y2
     this.y2 = d3.scaleLinear().range([this.height2, 0]);
     this.y2.domain(this.y.domain());
 
-    // Apply scales to axes
-    TimeSeriesWindowComponent.xAxis = d3.axisBottom(TimeSeriesWindowComponent.x);
-    this.xAxis2 = d3.axisBottom(TimeSeriesWindowComponent.x2);
-    this.yAxis = d3.axisLeft(this.y);
-    
-    TimeSeriesWindowComponent.brush = d3.brushX()
-        .extent([[0,0], [TimeSeriesWindowComponent.width, this.height2]])
-        .on("brush end", this.brushed);
-
-    TimeSeriesWindowComponent.zoom = d3.zoom()
-        .scaleExtent([1, Infinity])
-        .translateExtent([[0, 0], [TimeSeriesWindowComponent.width, this.height]])
-        .extent([[0, 0], [TimeSeriesWindowComponent.width, this.height]])
-        .on("zoom", this.zoomed);
-    
-    TimeSeriesWindowComponent.area = d3.area()
-        .curve(d3.curveMonotoneX)
-        .x((d:any) => { return TimeSeriesWindowComponent.x(d.date); })
-        .y0(this.height)
-        .y1((d:any)=> {return this.y(d.price); });
-
-    this.area2 = d3.area()
-        .curve(d3.curveMonotoneX)
-        .x((d:any) => { return TimeSeriesWindowComponent.x2(d.date); })
-        .y0(this.height2)
-        .y1((d:any) => { return this.y2(d.price); });
-
+    // Add clip path
     TimeSeriesWindowComponent.svg.append("defs").append("clipPath")
         .attr("id", "clip")
         .append("rect")
         .attr("width", TimeSeriesWindowComponent.width)
         .attr("height", this.height);
 
+    // Add brush feature
+    TimeSeriesWindowComponent.brush = d3.brushX()
+        .extent([[0,0], [TimeSeriesWindowComponent.width, this.height2]])
+        .on("brush end", this.brushed);
+
+    // Add zoom feature
+    TimeSeriesWindowComponent.zoom = d3.zoom()
+        .scaleExtent([1, Infinity])
+        .translateExtent([[0, 0], [TimeSeriesWindowComponent.width, this.height]])
+        .extent([[0, 0], [TimeSeriesWindowComponent.width, this.height]])
+        .on("zoom", this.zoomed);
+    
+    // Create focus area
+    TimeSeriesWindowComponent.area = d3.area()
+        .curve(d3.curveMonotoneX)
+        .x((d:any) => { return TimeSeriesWindowComponent.x(d.date); })
+        .y0(this.height)
+        .y1((d:any)=> {return this.y(d.price); });
+
+    // Create context area
+    this.area2 = d3.area()
+        .curve(d3.curveMonotoneX)
+        .x((d:any) => { return TimeSeriesWindowComponent.x2(d.date); })
+        .y0(this.height2)
+        .y1((d:any) => { return this.y2(d.price); });
+
+    // Create focus svg group and position
     TimeSeriesWindowComponent.focus = TimeSeriesWindowComponent.svg.append("g")
         .attr("class", "focus")
         .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
 
+    // Create context svg group and position
     TimeSeriesWindowComponent.context = TimeSeriesWindowComponent.svg.append("g")
         .attr("class", "context")
         .attr("transform", "translate(" + this.margin2.left + "," + this.margin2.top + ")");
 
-    // appends area to focus
+    // Appends area to focus
     TimeSeriesWindowComponent.focus.append("path")
         .datum(data)
         .attr("class", "area")
         .attr("d", TimeSeriesWindowComponent.area);
 
-    // appends x and y axis to focus
+    // Appends x to focus svg group
     TimeSeriesWindowComponent.focus.append("g")
         .attr("class", "axis axis--x")
         .attr("transform", "translate(0," + this.height + ")")
         .call(TimeSeriesWindowComponent.xAxis);
+
+    // Appends y to focus svg group
     TimeSeriesWindowComponent.focus.append("g")
         .attr("class", "axis axis--y")
         .call(this.yAxis);
@@ -136,12 +155,13 @@ export class TimeSeriesWindowComponent implements OnInit {
         .attr("transform", "translate(0," + this.height2 + ")")
         .call(this.xAxis2);
 
-    // Appends brush to context
+    // Appends brush to context, sets initial range
     TimeSeriesWindowComponent.context.append("g")
         .attr("class", "brush")
         .call(TimeSeriesWindowComponent.brush)
         .call(TimeSeriesWindowComponent.brush.move, TimeSeriesWindowComponent.x.range());
 
+    // Appends zoom to focus area
     TimeSeriesWindowComponent.svg.append("rect")
         .attr("class", "zoom")
         .attr("width", TimeSeriesWindowComponent.width)
@@ -151,12 +171,13 @@ export class TimeSeriesWindowComponent implements OnInit {
   }
 
   private brushed(){
-    if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom  
-
+    if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
+    
     var s = d3.event.selection || TimeSeriesWindowComponent.x2.range();
     TimeSeriesWindowComponent.x.domain(s.map(TimeSeriesWindowComponent.x2.invert, TimeSeriesWindowComponent.x2));
     TimeSeriesWindowComponent.focus.select(".area").attr("d", TimeSeriesWindowComponent.area);
     TimeSeriesWindowComponent.focus.select(".axis--x").call(TimeSeriesWindowComponent.xAxis);
+    
     TimeSeriesWindowComponent.svg.select(".zoom").call(TimeSeriesWindowComponent.zoom.transform, d3.zoomIdentity
         .scale(TimeSeriesWindowComponent.width / (s[1] - s[0]))
         .translate(-s[0], 0));
@@ -164,7 +185,7 @@ export class TimeSeriesWindowComponent implements OnInit {
 
   private zoomed() {
     if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return; // ignore zoom-by-brush
-    
+
     var t = d3.event.transform;
     TimeSeriesWindowComponent.x.domain(t.rescaleX(TimeSeriesWindowComponent.x2).domain());
     TimeSeriesWindowComponent.focus.select(".area").attr("d", TimeSeriesWindowComponent.area);
@@ -200,6 +221,7 @@ export class TimeSeriesWindowComponent implements OnInit {
         .attr('fill', 'white')
         .attr('stroke', 'black');
   }
+
 }
 
 
