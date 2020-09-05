@@ -30,6 +30,7 @@ export class Zoom2ChildComponent implements OnInit {
   static values;
   top_limit;
   bottom_limit;
+  gyro_domain;
 
   constructor(private elRef: ElementRef,private http: HttpClient) { 
     this.hostElement = this.elRef.nativeElement;
@@ -50,12 +51,12 @@ private getData(){
     return {
       // Pending: Dont parse to local time
       date: d3.timeParse("%Y-%m-%d %H:%M:%S.%f%Z")(d.date) || d3.timeParse("%Y-%m-%d %H:%M:%S%Z")(d.date), // Accounts for edge case
-      accl_0: d.ACCL_0,
-      accl_1: d.ACCL_1,
-      accl_2: d.ACCL_2, 
-      gyro_0: d.GYRO_0,
-      gyro_1: d.GYRO_1,
-      gyro_2: d.GYRO_2}
+      accl_0: parseFloat(d.ACCL_0),
+      accl_1: parseFloat(d.ACCL_1),
+      accl_2: parseFloat(d.ACCL_2), 
+      gyro_0: parseFloat(d.GYRO_0),
+      gyro_1: parseFloat(d.GYRO_1),
+      gyro_2: parseFloat(d.GYRO_2)}
      });
      
   this.createChart(objs);
@@ -84,7 +85,8 @@ private getData(){
 
     // Create Y axis
     Zoom2ChildComponent.y = d3.scaleLinear()
-        .domain([this.bottom_limit+(this.bottom_limit*0.2), this.top_limit + (this.top_limit*0.2)])
+    .domain(this.gyro_domain)
+        //.domain([this.bottom_limit+(this.bottom_limit*0.2), this.top_limit + (this.top_limit*0.2)])
         .range([this.height, 0]);
 
     this.yAxis = this.svg.append("g")
@@ -217,6 +219,10 @@ private getData(){
     });
 
     Zoom2ChildComponent.values = [gyro_0, gyro_1, gyro_2];
+    
+    this.gyro_domain = d3.extent(d3.extent(gyro_0, (d) => { return d.val }).concat(
+      d3.extent(gyro_1, (d) => { return d.val; }),
+      d3.extent(gyro_2, (d) => { return d.val; })));    
 
     // do this using d3.extent(data, function(d) { return d.date; }));
     // and d3.max(data, function(d) { return d.price; })]);
@@ -232,6 +238,10 @@ private getData(){
       Math.min.apply(null,y_range),
       Math.min.apply(null,z_range)
     ]);
+
+
   }
+
+  
 
 }

@@ -30,9 +30,14 @@ export class FocusChildComponent implements OnInit {
   static focus;
   static context;
   data;
-  static values;
+  static gyro_values;
+  static accl_values;
   top_limit;
   bottom_limit;
+  gyro_domain;
+  accl_domain;
+  date_domain;
+
 
   constructor(private elRef: ElementRef, private http: HttpClient) {
     this.hostElement = this.elRef.nativeElement;
@@ -43,16 +48,15 @@ export class FocusChildComponent implements OnInit {
     this.http.get("https://raw.githubusercontent.com/a7u7a/dummydata/master/other/accl_gyro_6204.csv",
   { responseType: 'text' }).subscribe(data => {
   var objs = d3.csvParse(data,   function(d:any) {
-    if (d.GYRO_0 == NaN){console.log("null", d.GYRO_0)}
     return {
       // Pending: Dont parse to local time 
       date: d3.timeParse("%Y-%m-%d %H:%M:%S.%f%Z")(d.date) || d3.timeParse("%Y-%m-%d %H:%M:%S%Z")(d.date), // Accounts for edge case
-      accl_0: d.ACCL_0,
-      accl_1: d.ACCL_1,
-      accl_2: d.ACCL_2, 
-      gyro_0: d.GYRO_0,
-      gyro_1: d.GYRO_1,
-      gyro_2: d.GYRO_2}
+      accl_0: parseFloat(d.ACCL_0), // using parsefloat to avoid issues with d3 down the line
+      accl_1: parseFloat(d.ACCL_1),
+      accl_2: parseFloat(d.ACCL_2), 
+      gyro_0: parseFloat(d.GYRO_0),
+      gyro_1: parseFloat(d.GYRO_1),
+      gyro_2: parseFloat(d.GYRO_2)}
      });
       this.createChart(objs);
    });
@@ -63,55 +67,55 @@ export class FocusChildComponent implements OnInit {
     this.data = objs;
     this.setChart();
     this.processData();
-    console.log(FocusChildComponent.values[0]);
+    //console.log(FocusChildComponent.values[0]);
 
-    // // Focus
-    // // X time scale set range and domain
-    // FocusChildComponent.x = d3.scaleTime()
-    //     .domain(<[Date, Date]>d3.extent(data, (d:any)=> { return d.date; }))
-    //     .range([0, FocusChildComponent.width]);
+    // Focus
+    // X time scale set range and domain
+    FocusChildComponent.x = d3.scaleTime()
+        .domain(this.date_domain)
+        .range([0, FocusChildComponent.width]);
     
-    // // Apply X axis (not sure why this step)
-    // FocusChildComponent.xAxis = d3.axisBottom(FocusChildComponent.x);
+    // Apply X axis (not sure why this step)
+    FocusChildComponent.xAxis = d3.axisBottom(FocusChildComponent.x);
 
     // // Y axis
-    // this.y = d3.scaleLinear().range([this.height, 0])
-    // this.y.domain([0, d3.max(data, function(d:any) { return d.price; })]);
+    this.y = d3.scaleLinear().range([this.height, 0])
+    this.y.domain(this.gyro_domain);
 
-    // // Apply Y
-    // this.yAxis = d3.axisLeft(this.y);
+    // Apply Y
+    this.yAxis = d3.axisLeft(this.y);
 
-    // // Context
-    // // X time scale set range and domain
-    // FocusChildComponent.x2 = d3.scaleTime()
-    //     .domain(FocusChildComponent.x.domain()) // shared with x's
-    //     .range([0, FocusChildComponent.width]);
+    // Context
+    // X time scale set range and domain
+    FocusChildComponent.x2 = d3.scaleTime()
+        .domain(FocusChildComponent.x.domain()) // shared with x's
+        .range([0, FocusChildComponent.width]);
     
     // // Apply X2
-    // this.xAxis2 = d3.axisBottom(FocusChildComponent.x2);
+    this.xAxis2 = d3.axisBottom(FocusChildComponent.x2);
 
     // // Y2
-    // this.y2 = d3.scaleLinear().range([this.height2, 0]);
-    // this.y2.domain(this.y.domain());
+    this.y2 = d3.scaleLinear().range([this.height2, 0]);
+    this.y2.domain(this.y.domain());
 
-    // // Add clip path
-    // FocusChildComponent.svg.append("defs").append("clipPath")
-    //     .attr("id", "clip")
-    //     .append("rect")
-    //     .attr("width", FocusChildComponent.width)
-    //     .attr("height", this.height);
+    // Add clip path
+    FocusChildComponent.svg.append("defs").append("clipPath")
+        .attr("id", "clip")
+        .append("rect")
+        .attr("width", FocusChildComponent.width)
+        .attr("height", this.height);
 
-    // // Add brush feature
-    // FocusChildComponent.brush = d3.brushX()
-    //     .extent([[0,0], [FocusChildComponent.width, this.height2]])
-    //     .on("brush end", this.brushed);
+    // Add brush feature
+    FocusChildComponent.brush = d3.brushX()
+        .extent([[0,0], [FocusChildComponent.width, this.height2]])
+        .on("brush end", this.brushed);
 
-    // // Add zoom feature
-    // FocusChildComponent.zoom = d3.zoom()
-    //     .scaleExtent([1, Infinity])
-    //     .translateExtent([[0, 0], [FocusChildComponent.width, this.height]])
-    //     .extent([[0, 0], [FocusChildComponent.width, this.height]])
-    //     .on("zoom", this.zoomed);
+    // Add zoom feature
+    FocusChildComponent.zoom = d3.zoom()
+        .scaleExtent([1, Infinity])
+        .translateExtent([[0, 0], [FocusChildComponent.width, this.height]])
+        .extent([[0, 0], [FocusChildComponent.width, this.height]])
+        .on("zoom", this.zoomed);
     
     // // Create focus area
     // FocusChildComponent.area = d3.area()
@@ -127,15 +131,15 @@ export class FocusChildComponent implements OnInit {
     //     .y0(this.height2)
     //     .y1((d:any) => { return this.y2(d.price); });
 
-    // // Create focus svg group and position
-    // FocusChildComponent.focus = FocusChildComponent.svg.append("g")
-    //     .attr("class", "focus")
-    //     .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
+    // Create focus svg group and position
+    FocusChildComponent.focus = FocusChildComponent.svg.append("g")
+        .attr("class", "focus")
+        .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
 
-    // // Create context svg group and position
-    // FocusChildComponent.context = FocusChildComponent.svg.append("g")
-    //     .attr("class", "context")
-    //     .attr("transform", "translate(" + this.margin2.left + "," + this.margin2.top + ")");
+    // Create context svg group and position
+    FocusChildComponent.context = FocusChildComponent.svg.append("g")
+        .attr("class", "context")
+        .attr("transform", "translate(" + this.margin2.left + "," + this.margin2.top + ")");
 
     // // Appends area to focus
     // FocusChildComponent.focus.append("path")
@@ -143,16 +147,16 @@ export class FocusChildComponent implements OnInit {
     //     .attr("class", "area")
     //     .attr("d", FocusChildComponent.area);
 
-    // // Appends x to focus svg group
-    // FocusChildComponent.focus.append("g")
-    //     .attr("class", "axis axis--x")
-    //     .attr("transform", "translate(0," + this.height + ")")
-    //     .call(FocusChildComponent.xAxis);
+    // Appends x to focus svg group
+    FocusChildComponent.focus.append("g")
+        .attr("class", "axis axis--x")
+        .attr("transform", "translate(0," + this.height + ")")
+        .call(FocusChildComponent.xAxis);
 
-    // // Appends y to focus svg group
-    // FocusChildComponent.focus.append("g")
-    //     .attr("class", "axis axis--y")
-    //     .call(this.yAxis);
+    // Appends y to focus svg group
+    FocusChildComponent.focus.append("g")
+        .attr("class", "axis axis--y")
+        .call(this.yAxis);
 
     // // Appends area2 to Context
     // FocusChildComponent.context.append("path")
@@ -160,11 +164,11 @@ export class FocusChildComponent implements OnInit {
     //     .attr("class", "area")
     //     .attr("d", this.area2);
 
-    // // Appends x axis to Context
-    // FocusChildComponent.context.append("g")
-    //     .attr("class", "axis axis--x")
-    //     .attr("transform", "translate(0," + this.height2 + ")")
-    //     .call(this.xAxis2);
+    // Appends x axis to Context
+    FocusChildComponent.context.append("g")
+        .attr("class", "axis axis--x")
+        .attr("transform", "translate(0," + this.height2 + ")")
+        .call(this.xAxis2);
 
     // // Appends brush to context, sets initial range
     // FocusChildComponent.context.append("g")
@@ -234,43 +238,40 @@ export class FocusChildComponent implements OnInit {
   }
 
   private processData(){
-    /*  */
+    /* Format data into suitable shape. Finds domains */
 
     // Split and find max min values
-    var gyro_0 = [];
-    var gyro_1 = [];
-    var gyro_2 = [];
-    var x_range = [];
-    var y_range = [];
-    var z_range = [];
+    var gyro_0 = [],
+        gyro_1 = [],
+        gyro_2 = [],
+        accl_0 = [],
+        accl_1 = [],
+        accl_2 = [];
 
     this.data.forEach((d) => { 
       gyro_0.push({"date": d.date, "val": d.gyro_0});
       gyro_1.push({"date": d.date, "val": d.gyro_1});
       gyro_2.push({"date": d.date, "val": d.gyro_2});
-
-      //dont like this
-      x_range.push(d.gyro_0);
-      y_range.push(d.gyro_1);
-      z_range.push(d.gyro_2);
+      accl_0.push({"date": d.date, "val": d.accl_0});
+      accl_1.push({"date": d.date, "val": d.accl_1});
+      accl_2.push({"date": d.date, "val": d.accl_2});
     });
 
-    FocusChildComponent.values = [gyro_0, gyro_1, gyro_2];
+    // Assemble streams into arrays
+    // Had to use array because I couldnt get .enter to work with a dictionary
+    FocusChildComponent.gyro_values = [gyro_0, gyro_1, gyro_2];
+    FocusChildComponent.accl_values = [accl_0, accl_1, accl_2];
 
-    // do this using d3.extent(data, function(d) { return d.date; }));
-    // and d3.max(data, function(d) { return d.price; })]);
-    // Find top limit
-    this.top_limit = Math.max.apply(null,[
-      Math.max.apply(null,x_range),
-      Math.max.apply(null,y_range),
-      Math.max.apply(null,z_range)
-    ]);
-    // Find bottom limit
-    this.bottom_limit =  Math.min.apply(null,[
-      Math.min.apply(null,x_range),
-      Math.min.apply(null,y_range),
-      Math.min.apply(null,z_range)
-    ]);
+    this.gyro_domain = d3.extent(d3.extent(gyro_0, (d) => { return d.val }).concat(
+                        d3.extent(gyro_1, (d) => { return d.val; }),
+                        d3.extent(gyro_2, (d) => { return d.val; })));
+
+    this.accl_domain = d3.extent(d3.extent(accl_0, (d) => { return d.val }).concat(
+                        d3.extent(accl_1, (d) => { return d.val }),
+                        d3.extent(accl_2, (d) => { return d.val })));
+
+    // Any of the streams should do
+    this.date_domain = d3.extent(gyro_0, d => { return d.date });
+    
   }
-
 }
