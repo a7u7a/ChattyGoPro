@@ -83,31 +83,28 @@ export class TimeSeriesWindowComponent implements OnInit {
     this.y2 = d3.scaleLinear().range([this.height2, 0]);
     this.y2.domain(this.y.domain());
 
-    // Add clip path
+    // Add clip path to svg
     TimeSeriesWindowComponent.svg.append("defs").append("clipPath")
         .attr("id", "clip")
         .append("rect")
         .attr("width", TimeSeriesWindowComponent.width)
         .attr("height", this.height);
 
-    // Add brush feature
+
+        
+    // Create brush feature
     TimeSeriesWindowComponent.brush = d3.brushX()
         .extent([[0,0], [TimeSeriesWindowComponent.width, this.height2]])
         .on("brush end", this.brushed);
 
-    // Add zoom feature
+    // Create zoom feature
     TimeSeriesWindowComponent.zoom = d3.zoom()
         .scaleExtent([1, Infinity])
         .translateExtent([[0, 0], [TimeSeriesWindowComponent.width, this.height]])
         .extent([[0, 0], [TimeSeriesWindowComponent.width, this.height]])
         .on("zoom", this.zoomed);
-    
-    // Create focus area
-    TimeSeriesWindowComponent.area = d3.area()
-        .curve(d3.curveMonotoneX)
-        .x((d:any) => { return TimeSeriesWindowComponent.x(d.date); })
-        .y0(this.height)
-        .y1((d:any)=> {return this.y(d.price); });
+
+
 
     // Create context area
     this.area2 = d3.area()
@@ -126,11 +123,20 @@ export class TimeSeriesWindowComponent implements OnInit {
         .attr("class", "context")
         .attr("transform", "translate(" + this.margin2.left + "," + this.margin2.top + ")");
 
+
+    // Create focus area
+    TimeSeriesWindowComponent.area = d3.area()
+        .curve(d3.curveMonotoneX)
+        .x((d:any) => { return TimeSeriesWindowComponent.x(d.date); })
+        .y0(this.height)
+        .y1((d:any)=> {return this.y(d.price); });
+
     // Appends area to focus
     TimeSeriesWindowComponent.focus.append("path")
         .datum(data)
         .attr("class", "area")
         .attr("d", TimeSeriesWindowComponent.area);
+
 
     // Appends x to focus svg group
     TimeSeriesWindowComponent.focus.append("g")

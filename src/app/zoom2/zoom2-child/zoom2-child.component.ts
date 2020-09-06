@@ -106,23 +106,23 @@ private getData(){
         .extent( [ [0,0], [this.width,this.height] ] )  // initialise the brush area: start at 0,0 and finishes at width,height: it means I select the whole graph area
         .on("end", this.updateChart)                    // Each time the brush selection changes, trigger the 'updateChart' function
 
-    // Create the line variable: where both the line and the brush take place
-    Zoom2ChildComponent.line = this.svg.append('g')
-          .attr("clip-path", "url(#clip)")
-    
     // Color palette
     var color = ['#e41a1c','#377eb8','#4daf4a', '#FFFF00', '#FF00FF', '#000000'];
 
-    // Add the line
+    // Create the line variable: where both the line and the brush take place
+    Zoom2ChildComponent.line = this.svg.append('g')
+          .attr("clip-path", "url(#clip)")
+
+    // Create lines
     Zoom2ChildComponent.line.selectAll(".line")
       .data(Zoom2ChildComponent.values)
       .enter()
-      .append("path")
-      .attr("class", "line")  // I add the class line to be able to modify this line later on.
-      .attr("fill", "none")
-      .attr("stroke", d => {return color[Zoom2ChildComponent.values.indexOf(d)]})
-      .attr("stroke-width", 1.5)
-      .attr("d", Zoom2ChildComponent.setLine());
+        .append("path")
+        .attr("class", "line")  // I add the class line to be able to modify this line later on.
+        .attr("fill", "none")
+        .attr("stroke", d => {return color[Zoom2ChildComponent.values.indexOf(d)]})
+        .attr("stroke-width", 1.5)
+        .attr("d", Zoom2ChildComponent.setLine());
       
     // Add the brushing to the line
     Zoom2ChildComponent.line.append("g")
@@ -130,7 +130,7 @@ private getData(){
       .call(Zoom2ChildComponent.brush);
 
     // If user double click, reinitialize the chart
-    this.svg.on("dblclick",()=>{
+    this.svg.on("dblclick",() => {
       Zoom2ChildComponent.x.domain(d3.extent(this.data, (d:any) => { return d.date; }))
       Zoom2ChildComponent.xAxis.transition().call(d3.axisBottom(Zoom2ChildComponent.x))
       Zoom2ChildComponent.line.selectAll('.line')
@@ -219,7 +219,7 @@ private getData(){
     });
 
     Zoom2ChildComponent.values = [gyro_0, gyro_1, gyro_2];
-    
+
     this.gyro_domain = d3.extent(d3.extent(gyro_0, (d) => { return d.val }).concat(
       d3.extent(gyro_1, (d) => { return d.val; }),
       d3.extent(gyro_2, (d) => { return d.val; })));    
