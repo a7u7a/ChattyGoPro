@@ -117,7 +117,8 @@ export class FocusChildComponent implements OnInit {
         .translateExtent([[0, 0], [FocusChildComponent.width, this.height]])
         .extent([[0, 0], [FocusChildComponent.width, this.height]])
         .on("zoom", this.zoomed);
-    
+  
+
     // Create context area
     this.area2 = d3.area()
         .curve(d3.curveMonotoneX)
@@ -154,11 +155,6 @@ export class FocusChildComponent implements OnInit {
       .attr("stroke-width", 1.5)
       .attr("d", FocusChildComponent.setLine());
 
-    // Append line group to focus (appends empty)
-    // FocusChildComponent.focus.append("g")
-    //     .attr("class", "line")
-    //     .attr("d", FocusChildComponent.line);
-
     // Appends x to focus svg group
     FocusChildComponent.focus.append("g")
         .attr("class", "axis axis--x")
@@ -172,8 +168,9 @@ export class FocusChildComponent implements OnInit {
 
     // // Appends area2 to Context
     FocusChildComponent.context.append("path")
-        .datum(FocusChildComponent.gyro_values[1])
+        .datum(FocusChildComponent.gyro_values[2])
         .attr("class", "area")
+        //.attr("fill", "#ebca5e")
         .attr("d", this.area2);
 
     // Appends x axis to Context
@@ -235,8 +232,8 @@ export class FocusChildComponent implements OnInit {
     var viewBoxHeight = 500;
     var viewBoxWidth = 960;
 
-    this.margin = {top: 20, right:20, bottom:110, left: 40};
-    this.margin2 = {top: 430, right:20, bottom:30, left: 40};
+    this.margin = {top: 150, right:20, bottom:30, left: 40};
+    this.margin2 = {top: 20, right:20, bottom:400, left: 40};
     
     this.height = viewBoxHeight - this.margin.top - this.margin.bottom;
     this.height2 = viewBoxHeight - this.margin2.top - this.margin2.bottom;
