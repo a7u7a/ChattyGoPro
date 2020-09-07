@@ -18,12 +18,14 @@ export class FocusChildComponent implements OnInit {
   static xAxis;
   xAxis2;
   public yAxis;
-  margin;
+  public yAxisRight;
+  static margin;
   margin2;
-  height;
+  static height;
   height2;
   static width;
   static brush;
+  static annotationBrush;
   static zoom;
   static area;
   area2;
@@ -80,11 +82,12 @@ export class FocusChildComponent implements OnInit {
     FocusChildComponent.xAxis = d3.axisBottom(FocusChildComponent.x);
 
     // // Y axis
-    FocusChildComponent.y = d3.scaleLinear().range([this.height, 0])
-    FocusChildComponent.y.domain(this.gyro_domain);
+    FocusChildComponent.y = d3.scaleLinear().range([FocusChildComponent.height, 0])
+    FocusChildComponent.y.domain([this.gyro_domain[0] * 1.05,this.gyro_domain[1] * 1.05]); // Add a bit of margin
 
     // Apply Y
     this.yAxis = d3.axisLeft(FocusChildComponent.y);
+    this.yAxisRight = d3.axisRight(FocusChildComponent.y);
 
     // Context
     // X time scale set range and domain
@@ -104,18 +107,24 @@ export class FocusChildComponent implements OnInit {
         .attr("id", "clip")
         .append("rect")
         .attr("width", FocusChildComponent.width)
-        .attr("height", this.height);
+        .attr("height", FocusChildComponent.height);
 
-    // Create brush feature
+    // Create context brush feature
     FocusChildComponent.brush = d3.brushX()
         .extent([[0,0], [FocusChildComponent.width, this.height2]])
         .on("brush end", this.brushed);
 
+    // Create annotation brush
+    FocusChildComponent.annotationBrush = d3.brushX()
+        .extent([[0,0], [FocusChildComponent.width, FocusChildComponent.height]])
+        .on("brush", this.annotationBrushed);
+
+
     // Create zoom feature
     FocusChildComponent.zoom = d3.zoom()
         .scaleExtent([1, Infinity])
-        .translateExtent([[0, 0], [FocusChildComponent.width, this.height]])
-        .extent([[0, 0], [FocusChildComponent.width, this.height]])
+        .translateExtent([[0, 0], [FocusChildComponent.width, FocusChildComponent.height]])
+        .extent([[0, 0], [FocusChildComponent.width, FocusChildComponent.height]])
         .on("zoom", this.zoomed);
   
 
@@ -129,7 +138,7 @@ export class FocusChildComponent implements OnInit {
     // Create focus svg group and position
     FocusChildComponent.focus = FocusChildComponent.svg.append("g")
         .attr("class", "focus")
-        .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
+        .attr("transform", "translate(" + FocusChildComponent.margin.left + "," + FocusChildComponent.margin.top + ")");
 
     // Create context svg group and position
     FocusChildComponent.context = FocusChildComponent.svg.append("g")
@@ -158,7 +167,7 @@ export class FocusChildComponent implements OnInit {
     // Appends x to focus svg group
     FocusChildComponent.focus.append("g")
         .attr("class", "axis axis--x")
-        .attr("transform", "translate(0," + this.height + ")")
+        .attr("transform", "translate(0," + FocusChildComponent.height + ")")
         .call(FocusChildComponent.xAxis);
 
     // Appends y to focus svg group
@@ -166,11 +175,16 @@ export class FocusChildComponent implements OnInit {
         .attr("class", "axis axis--y")
         .call(this.yAxis);
 
+    FocusChildComponent.focus.append("g")
+        .attr("class", "axis axis--yL")
+        .attr("transform", "translate(" + FocusChildComponent.width + ",0)")
+        .call(this.yAxisRight)
+
     // // Appends area2 to Context
     FocusChildComponent.context.append("path")
-        .datum(FocusChildComponent.gyro_values[2])
+        .datum(FocusChildComponent.gyro_values[0])
         .attr("class", "area")
-        .attr("fill", "#ebca5e")
+        .attr("fill", "#e41a1c")
         .attr("d", this.area2);
 
     // Appends x axis to Context
@@ -183,18 +197,30 @@ export class FocusChildComponent implements OnInit {
     FocusChildComponent.context.append("g")
         .attr("class", "brush")
         .call(FocusChildComponent.brush)
-        .call(FocusChildComponent.brush.move, FocusChildComponent.x.range());
+        .call(FocusChildComponent.brush.move, FocusChildComponent.x.range()); // sets initial brush state
+
+        FocusChildComponent.svg.append("g")
+        .attr("class", "annotationBrush")
+        .attr("transform", "translate(" + FocusChildComponent.margin.left + "," + FocusChildComponent.margin.top + ")")
+        .call(FocusChildComponent.annotationBrush);
 
     // Appends zoom to focus area
     FocusChildComponent.svg.append("rect")
         .attr("class", "zoom")
         .attr("width", FocusChildComponent.width)
-        .attr("height", this.height)
+        .attr("height", FocusChildComponent.height)
         .attr("fill-opacity", "0%")
-        .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")")
+        .attr("transform", "translate(" + FocusChildComponent.margin.left + "," + FocusChildComponent.margin.top + ")")
         .call(FocusChildComponent.zoom);
 
-        console.log("test", FocusChildComponent.focus.selectAll(".line"));
+        d3.select(window).on("click", function() {
+          if (d3.event.shiftKey) {
+              d3.select(".zoom").remove();
+              console.log("Mouse + Ctrl pressed");
+          }
+      });
+
+console.log(d3.select(".zoom"));
   }
 
   static setLine(){
@@ -205,6 +231,9 @@ export class FocusChildComponent implements OnInit {
 
 
   private brushed(){
+
+    //console.log(d3.event.sourceEvent.shiftKey);
+    if(d3.event.sourceEvent && !d3.event.sourceEvent.shiftKey){
     if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
     
     var s = d3.event.selection || FocusChildComponent.x2.range();
@@ -215,10 +244,18 @@ export class FocusChildComponent implements OnInit {
     FocusChildComponent.svg.select(".zoom").call(FocusChildComponent.zoom.transform, d3.zoomIdentity
         .scale(FocusChildComponent.width / (s[1] - s[0]))
         .translate(-s[0], 0));
+    }
   }
 
+private annotationBrushed(){
+  if(d3.event.sourceEvent && d3.event.sourceEvent.shiftKey){
+  console.log("shift"); 
+  }
+}
+
   private zoomed() {
-    console.log("heya");
+
+    if(d3.event.sourceEvent && !d3.event.sourceEvent.shiftKey){
     if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return; // ignore zoom-by-brush
 
     var t = d3.event.transform;
@@ -226,6 +263,7 @@ export class FocusChildComponent implements OnInit {
     FocusChildComponent.focus.selectAll(".line").attr("d", FocusChildComponent.setLine());
     FocusChildComponent.focus.select(".axis--x").call(FocusChildComponent.xAxis);
     FocusChildComponent.context.select(".brush").call(FocusChildComponent.brush.move, FocusChildComponent.x.range().map(t.invertX, t));
+    }
   }
 
   private setChart(){
@@ -233,16 +271,16 @@ export class FocusChildComponent implements OnInit {
     var viewBoxHeight = 500;
     var viewBoxWidth = 960;
 
-    this.margin = {top: 150, right:20, bottom:30, left: 40};
-    this.margin2 = {top: 20, right:20, bottom:400, left: 40};
+    FocusChildComponent.margin = {top: 130, right:40, bottom:30, left: 40}; // focus
+    this.margin2 = {top: 20, right:40, bottom:400, left: 40}; // context
     
-    this.height = viewBoxHeight - this.margin.top - this.margin.bottom;
+    FocusChildComponent.height = viewBoxHeight - FocusChildComponent.margin.top - FocusChildComponent.margin.bottom;
     this.height2 = viewBoxHeight - this.margin2.top - this.margin2.bottom;
-    FocusChildComponent.width = viewBoxWidth - this.margin.right - this.margin.left;
+    FocusChildComponent.width = viewBoxWidth - FocusChildComponent.margin.right - FocusChildComponent.margin.left;
 
     FocusChildComponent.svg = d3.select(this.hostElement).append('svg')
-        .attr('width', FocusChildComponent.width + this.margin.left + this.margin.right)
-        .attr('height', this.height + this.margin.top + this.margin.bottom)
+        .attr('width', FocusChildComponent.width + FocusChildComponent.margin.left + FocusChildComponent.margin.right)
+        .attr('height', FocusChildComponent.height + FocusChildComponent.margin.top + FocusChildComponent.margin.bottom)
         .attr('viewBox', '0 0 ' + viewBoxWidth + ' ' + viewBoxHeight)
         .append('g')    
         .attr("transform", "translate(0,0)");
