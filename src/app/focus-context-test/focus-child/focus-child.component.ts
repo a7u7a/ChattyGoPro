@@ -170,7 +170,7 @@ export class FocusChildComponent implements OnInit {
     FocusChildComponent.context.append("path")
         .datum(FocusChildComponent.gyro_values[2])
         .attr("class", "area")
-        //.attr("fill", "#ebca5e")
+        .attr("fill", "#ebca5e")
         .attr("d", this.area2);
 
     // Appends x axis to Context
@@ -190,6 +190,7 @@ export class FocusChildComponent implements OnInit {
         .attr("class", "zoom")
         .attr("width", FocusChildComponent.width)
         .attr("height", this.height)
+        .attr("fill-opacity", "0%")
         .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")")
         .call(FocusChildComponent.zoom);
 

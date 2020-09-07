@@ -10,8 +10,8 @@ import { NbMenuModule, NbSidebarModule, NbIconModule } from '@nebular/theme';
 import { HomeComponent } from './home/home.component';
 import { D3ChartComponent } from './d3-chart/d3-chart.component';
 import { AreaChartComponent } from './area-chart/area-chart.component';
-import { D3TimeSeriesComponent } from './d3-time-series/d3-time-series.component';
-import { TimeSeriesWindowComponent } from './time-series-window/time-series-window.component';
+//import { D3TimeSeriesComponent } from './d3-time-series/d3-time-series.component';
+//import { TimeSeriesWindowComponent } from './time-series-window/time-series-window.component';
 import { HttpClientModule } from '@angular/common/http';
 import { LineContainerComponent } from './line-container/line-container.component';
 import { LineChildComponent } from './line-child/line-child.component';
@@ -28,8 +28,8 @@ import { FocusChildComponent } from './focus-context-test/focus-child/focus-chil
     HomeComponent,
     D3ChartComponent,
     AreaChartComponent,
-    D3TimeSeriesComponent,
-    TimeSeriesWindowComponent,
+    //D3TimeSeriesComponent,
+    //TimeSeriesWindowComponent,
     LineContainerComponent,
     LineChildComponent,
     SimpleZoomParentComponent,
