@@ -13,6 +13,7 @@ export class FocusChildComponent implements OnInit {
   static svg;
   static x;
   static x2;
+  static zoomEnabled = true;
   static y;
   y2;
   static xAxis;
@@ -125,7 +126,7 @@ export class FocusChildComponent implements OnInit {
         .scaleExtent([1, Infinity])
         .translateExtent([[0, 0], [FocusChildComponent.width, FocusChildComponent.height]])
         .extent([[0, 0], [FocusChildComponent.width, FocusChildComponent.height]])
-        .on("zoom", this.zoomed);
+        .on("zoom", FocusChildComponent.zoomed);
   
 
     // Create context area
@@ -213,14 +214,50 @@ export class FocusChildComponent implements OnInit {
         .attr("transform", "translate(" + FocusChildComponent.margin.left + "," + FocusChildComponent.margin.top + ")")
         .call(FocusChildComponent.zoom);
 
-        d3.select(window).on("click", function() {
-          if (d3.event.shiftKey) {
-              d3.select(".zoom").remove();
-              console.log("Mouse + Ctrl pressed");
-          }
+
+        // toggle zoom
+        d3.select(window)
+        .on("click", function() {
+          console.log("Toggling zoom");
+          FocusChildComponent.zoomEnabled = !FocusChildComponent.zoomEnabled;
+
+          // Right way
+          if (FocusChildComponent.zoomEnabled){
+            console.log("on");
+            FocusChildComponent.svg.select(".zoom")
+                .call(FocusChildComponent.zoom);
+              } else {
+                console.log("off");
+                FocusChildComponent.svg.select(".zoom")
+                    .on('zoom', null);
+              }
+
+
+          // Too hacky
+          if (FocusChildComponent.zoomEnabled){
+          FocusChildComponent.svg.select(".zoom")
+              .attr("fill", "none");
+            } else {
+              FocusChildComponent.svg.select(".zoom")
+              .attr("fill", "white");
+            }
+
+          // This keeps tracking zoom even if its not showing
+          // if (FocusChildComponent.zoomEnabled){
+          //   console.log("on");
+          //   FocusChildComponent.zoom.on('zoom', FocusChildComponent.zoomed);
+          // } else {
+          //   console.log("off");
+          //   FocusChildComponent.zoom.on('zoom', null);
+          // }
+          //console.log(FocusChildComponent.zoom)
+          // if (d3.event.shiftKey) {
+          //     d3.select(".zoom").remove();
+          //     console.log("Mouse + Ctrl pressed");
+          // }
       });
 
-console.log(d3.select(".zoom"));
+  
   }
 
   static setLine(){
@@ -231,7 +268,6 @@ console.log(d3.select(".zoom"));
 
 
   private brushed(){
-
     //console.log(d3.event.sourceEvent.shiftKey);
     if(d3.event.sourceEvent && !d3.event.sourceEvent.shiftKey){
     if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
@@ -253,7 +289,7 @@ private annotationBrushed(){
   }
 }
 
-  private zoomed() {
+  static zoomed() {
 
     if(d3.event.sourceEvent && !d3.event.sourceEvent.shiftKey){
     if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return; // ignore zoom-by-brush
