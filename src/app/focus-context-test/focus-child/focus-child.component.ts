@@ -91,7 +91,6 @@ export class FocusChildComponent implements OnInit {
     this.createZoom(); // Includes zoom toggle
 
     this.addElements();
-  
   }
 
   private setAxis(){
@@ -278,47 +277,6 @@ export class FocusChildComponent implements OnInit {
         .call(FocusChildComponent.zoom);
   }
 
-  static setLine(){
-    return d3.line()
-              .x((d:any) => { return FocusChildComponent.x(d.date) })
-              .y((d:any) => { return FocusChildComponent.y(d.val) })
-  }
-
-  private brushed(){
-    //console.log(d3.event.sourceEvent.shiftKey);
-    if(d3.event.sourceEvent && !d3.event.sourceEvent.shiftKey){
-    if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
-    
-    var s = d3.event.selection || FocusChildComponent.x2.range();
-    FocusChildComponent.x.domain(s.map(FocusChildComponent.x2.invert, FocusChildComponent.x2));
-    FocusChildComponent.acclFocus.selectAll(".line").attr("d", FocusChildComponent.setLine());
-    FocusChildComponent.acclFocus.select(".axis--x").call(FocusChildComponent.xAxis);
-    
-    FocusChildComponent.svg.select(".zoom").call(FocusChildComponent.zoom.transform, d3.zoomIdentity
-        .scale(FocusChildComponent.width / (s[1] - s[0]))
-        .translate(-s[0], 0));
-    }
-  }
-
-  private annotationBrushed(){
-    if(d3.event.sourceEvent && d3.event.sourceEvent.shiftKey){
-    console.log("shift"); 
-    }
-  }
-
-  static zoomed() {
-
-    if(d3.event.sourceEvent && !d3.event.sourceEvent.shiftKey){
-    if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return; // ignore zoom-by-brush
-
-    var t = d3.event.transform;
-    FocusChildComponent.x.domain(t.rescaleX(FocusChildComponent.x2).domain());
-    FocusChildComponent.acclFocus.selectAll(".line").attr("d", FocusChildComponent.setLine());
-    FocusChildComponent.acclFocus.select(".axis--x").call(FocusChildComponent.xAxis);
-    FocusChildComponent.context.select(".brush").call(FocusChildComponent.mainBrush.move, FocusChildComponent.x.range().map(t.invertX, t));
-    }
-  }
-
   private setChartDimensions(){
     // max units of the viewbox
     var viewBoxHeight = 500;
@@ -382,7 +340,42 @@ export class FocusChildComponent implements OnInit {
                         d3.extent(accl_2, (d) => { return d.val })));
 
     // Any of the streams should do
-    this.date_domain = d3.extent(gyro_0, d => { return d.date });
-    
+    this.date_domain = d3.extent(gyro_0, d => { return d.date }); 
   }
+
+  static setLine(){
+    return d3.line()
+              .x((d:any) => { return FocusChildComponent.x(d.date) })
+              .y((d:any) => { return FocusChildComponent.y(d.val) })
+  }
+
+  private brushed(){ // Brush event handler
+    if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
+    var s = d3.event.selection || FocusChildComponent.x2.range();
+    FocusChildComponent.x.domain(s.map(FocusChildComponent.x2.invert, FocusChildComponent.x2));
+    FocusChildComponent.acclFocus.selectAll(".line").attr("d", FocusChildComponent.setLine());
+    FocusChildComponent.acclFocus.select(".axis--x").call(FocusChildComponent.xAxis);
+    
+    FocusChildComponent.svg.select(".zoom").call(FocusChildComponent.zoom.transform, d3.zoomIdentity
+        .scale(FocusChildComponent.width / (s[1] - s[0]))
+        .translate(-s[0], 0));
+  }
+
+  private annotationBrushed(){
+    if(d3.event.sourceEvent && d3.event.sourceEvent.shiftKey){
+    console.log("shift"); 
+    }
+  }
+
+  static zoomed() { // Zoom event handler
+    
+    if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return; // ignore zoom-by-brush
+    var t = d3.event.transform;
+    FocusChildComponent.x.domain(t.rescaleX(FocusChildComponent.x2).domain());
+    FocusChildComponent.acclFocus.selectAll(".line").attr("d", FocusChildComponent.setLine());
+    FocusChildComponent.acclFocus.select(".axis--x").call(FocusChildComponent.xAxis);
+    FocusChildComponent.context.select(".brush").call(FocusChildComponent.mainBrush.move, FocusChildComponent.x.range().map(t.invertX, t));
+  
+  }
+
 }
