@@ -40,7 +40,7 @@ export class AreaChartComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges) {
       if (changes.data) {
           this.updateChart(changes.data.currentValue);
-          console.log(this.data);
+          //console.log(this.data);
       }
   }
 
@@ -164,6 +164,7 @@ export class AreaChartComponent implements OnInit, OnChanges {
   }
 
   public updateChart(data: number[]) {
+    console.log(this.xmax,this.ymax);
       if (!this.svg) {
           this.createChart(data);
           return;
