@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewEncapsulation, ElementRef, Input } from '@angular/core';
 import * as d3 from 'd3';
 import { HttpClient } from '@angular/common/http';
+import { ThrowStmt } from '@angular/compiler';
 
 @Component({
   selector: 'app-focus-child',
@@ -60,6 +61,13 @@ export class FocusChildComponent implements OnInit {
   static focus2Height;
   static focus3Height;
   strokeWidth = "0.5";
+  zoomToggle;
+  annotationBrushHeight;
+  annotateButton;
+  annotateButtonHeight;
+  annotateButtonWidth;
+  annotateButtonMargin;
+  annotationEditor;
 
   constructor(private elRef: ElementRef, private http: HttpClient) {
     this.hostElement = this.elRef.nativeElement;
@@ -109,6 +117,8 @@ export class FocusChildComponent implements OnInit {
 
     this.createZoom(); // Includes zoom toggle
 
+    this.createAnnotationEditor();
+
     this.addElements();
   }
 
@@ -129,6 +139,11 @@ export class FocusChildComponent implements OnInit {
     FocusChildComponent.focus1Height = viewBoxHeight - FocusChildComponent.focus1Margin.top - FocusChildComponent.focus1Margin.bottom;
     FocusChildComponent.focus2Height = viewBoxHeight - FocusChildComponent.focus2Margin.top - FocusChildComponent.focus2Margin.bottom;
     FocusChildComponent.focus3Height = viewBoxHeight - FocusChildComponent.focus3Margin.top - FocusChildComponent.focus3Margin.bottom;
+    this.annotationBrushHeight = viewBoxHeight - FocusChildComponent.focus1Margin.top - FocusChildComponent.focus3Margin.bottom;
+
+    this.annotateButtonMargin = {top: 330, right:600, bottom: 310, left:40}
+    this.annotateButtonHeight = viewBoxHeight - this.annotateButtonMargin.top - this.annotateButtonMargin.bottom;
+    this.annotateButtonWidth = viewBoxHeight - this.annotateButtonMargin.left - this.annotateButtonMargin.right;
 
     FocusChildComponent.svg = d3.select(this.hostElement).append('svg')
         .attr('width', '100%')
@@ -331,7 +346,7 @@ export class FocusChildComponent implements OnInit {
   private createAnnotationBrush(){
     // Create annotation brush 
     FocusChildComponent.annotationBrush = d3.brushX()
-        .extent([[0,0], [FocusChildComponent.width, FocusChildComponent.height]])
+        .extent([[0,0], [FocusChildComponent.width, this.annotationBrushHeight]])
         .on("brush", this.annotationBrushed);
   }
 
@@ -342,32 +357,6 @@ export class FocusChildComponent implements OnInit {
     .translateExtent([[0, 0], [FocusChildComponent.width, FocusChildComponent.height]])
     .extent([[0, 0], [FocusChildComponent.width, FocusChildComponent.height]])
     .on("zoom", FocusChildComponent.zoomed);
-
-    // toggle zoom on/off
-    d3.select(window).on("click", function() {  // Should be a button instead of whole window
-
-      console.log("Toggling zoom");
-      FocusChildComponent.zoomEnabled = !FocusChildComponent.zoomEnabled;
-
-      // if (FocusChildComponent.zoomEnabled){   // Should work, but doesnt
-      //   console.log("on");
-      //   FocusChildComponent.svg.select(".zoom")
-      //       .call(FocusChildComponent.zoom);
-      // } else {
-      //   console.log("off");
-      //   FocusChildComponent.svg.select(".zoom")
-      //       .on('zoom', null);
-      // }
-
-      // Too hacky
-      if (FocusChildComponent.zoomEnabled){
-      FocusChildComponent.svg.select(".zoom")
-          .attr("fill", "none");
-      } else {
-          FocusChildComponent.svg.select(".zoom")
-          .attr("fill", "white");
-      }
-    });
   }
 
   private addElements(){
@@ -446,9 +435,6 @@ export class FocusChildComponent implements OnInit {
         .attr("transform", "translate(" + FocusChildComponent.width + ",0)")
         .call(this.yAxisRight_f3)
 
-     
-
-
     // Append annotation brush
     FocusChildComponent.svg.append("g")
         .attr("class", "annotationBrush")
@@ -459,13 +445,71 @@ export class FocusChildComponent implements OnInit {
     FocusChildComponent.svg.append("rect")
         .attr("class", "zoom")
         .attr("width", FocusChildComponent.width)
-        .attr("height", FocusChildComponent.height)
+        .attr("height", this.annotationBrushHeight)
         .attr("fill-opacity", "0%")
         .attr("transform", "translate(" + FocusChildComponent.focus1Margin.left + "," + FocusChildComponent.focus1Margin.top + ")")
         .call(FocusChildComponent.zoom);
 
+    // this.zoomToggle = d3.select(".zoomToggle")
+    //     .attr("transform", "translate(" + 100 + "," + 100 + ")")
+    //     .on('click', this.toggleZoom);
+
+        
+    
+
   }
 
+  private createAnnotationEditor(){
+    this.annotationEditor = FocusChildComponent.svg.append("g")
+        .attr("id", "annotation_editor")
+        .attr("transform", "translate(40,730)")
+
+    this.annotateButton = this.annotationEditor.append("g")
+        .attr("class", "annotate_button")
+        .attr("transform", "translate(0,0)")
+        .on("click", this.toggleZoom)
+
+        this.annotateButton.append("rect")
+            .attr("width", 80)
+            .attr("height", 40)
+            .attr("fill", "gray");
+            
+        this.annotateButton.append("text")
+            .attr("dy", (40/2 + 5))
+            .attr("dx", 80/2)
+            .style("text-anchor", "middle")
+            .text("Annotate");
+  }
+
+  private toggleZoom(){
+    // toggle zoom on/off
+   // d3.select(window).on("click", function() {  // Should be a button instead of whole window
+
+      console.log("Toggling zoom");
+      FocusChildComponent.zoomEnabled = !FocusChildComponent.zoomEnabled;
+
+       // Too hacky
+       if (FocusChildComponent.zoomEnabled){
+        FocusChildComponent.svg.select(".zoom")
+            .attr("fill", "none");
+        } else {
+            FocusChildComponent.svg.select(".zoom")
+            .attr("fill", "white");
+        }
+
+      // if (FocusChildComponent.zoomEnabled){   // Should work, but doesnt
+      //   console.log("on");
+      //   FocusChildComponent.svg.select(".zoom")
+      //       .call(FocusChildComponent.zoom);
+      // } else {
+      //   console.log("off");
+      //   FocusChildComponent.svg.select(".zoom")
+      //       .on('zoom', null);
+      // }
+
+     
+    //}
+  }
   
 
   private processData(){
@@ -541,6 +585,7 @@ export class FocusChildComponent implements OnInit {
   }
 
   private annotationBrushed(){
+    // Handler for annotation brush
     if(d3.event.sourceEvent && d3.event.sourceEvent.shiftKey){
     console.log("shift"); 
     }
