@@ -8,17 +8,7 @@ import { NbThemeModule, NbLayoutModule } from '@nebular/theme';
 import { NbEvaIconsModule } from '@nebular/eva-icons';
 import { NbMenuModule, NbSidebarModule, NbIconModule } from '@nebular/theme';
 import { HomeComponent } from './home/home.component';
-import { D3ChartComponent } from './d3-chart/d3-chart.component';
-import { AreaChartComponent } from './area-chart/area-chart.component';
-//import { D3TimeSeriesComponent } from './d3-time-series/d3-time-series.component';
-//import { TimeSeriesWindowComponent } from './time-series-window/time-series-window.component';
 import { HttpClientModule } from '@angular/common/http';
-import { LineContainerComponent } from './line-container/line-container.component';
-import { LineChildComponent } from './line-child/line-child.component';
-import { SimpleZoomParentComponent } from './simple-zoom/simple-zoom-parent/simple-zoom-parent.component';
-import { SimpleZoomChildComponent } from './simple-zoom/simple-zoom-child/simple-zoom-child.component';
-import { Zoom2ParentComponent } from './zoom2/zoom2-parent/zoom2-parent.component';
-import { Zoom2ChildComponent } from './zoom2/zoom2-child/zoom2-child.component';
 import { FocusParentComponent } from './focus-context-test/focus-parent/focus-parent.component';
 import { FocusChildComponent } from './focus-context-test/focus-child/focus-child.component';
 
@@ -26,16 +16,6 @@ import { FocusChildComponent } from './focus-context-test/focus-child/focus-chil
   declarations: [
     AppComponent,
     HomeComponent,
-    D3ChartComponent,
-    AreaChartComponent,
-    //D3TimeSeriesComponent,
-    //TimeSeriesWindowComponent,
-    LineContainerComponent,
-    LineChildComponent,
-    SimpleZoomParentComponent,
-    SimpleZoomChildComponent,
-    Zoom2ParentComponent,
-    Zoom2ChildComponent,
     FocusParentComponent,
     FocusChildComponent
   ],

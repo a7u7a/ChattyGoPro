@@ -17,37 +17,12 @@ export class AppComponent {
       home: true
     },
     {
-      title: 'Users',
+      title: 'Users', 
       icon: 'people-outline',
-      link: '/users'
+      link: '/users' 
     },
     {
-      title: 'Base example',
-      icon: 'bar-chart-outline',
-      link: '/d3-chart'
-    },
-    {
-      title: 'Multi-line',
-      icon: 'bar-chart-2-outline',
-      link: '/multi-line'
-    },
-    {
-      title: 'Zoom Brush Gyro',
-      icon: 'bar-chart-2-outline',
-      link: '/simple-zoom'
-    },
-    {
-      title: 'Zoom Brush GoPro',
-      icon: 'bar-chart-2-outline',
-      link: '/zoom2'
-    },
-    {
-      title: 'Focus + Context Area',
-      icon: 'bar-chart-2-outline',
-      link: '/d3-time-series'
-    },
-    {
-      title: 'Focus + Context Multiline',
+      title: 'GoPro Explorer',
       icon: 'bar-chart-2-outline',
       link: '/focus1'
     }
