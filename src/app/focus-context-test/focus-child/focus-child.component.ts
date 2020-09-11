@@ -50,6 +50,8 @@ export class FocusChildComponent implements OnInit {
   static lines_f1;
   static lines_f2;
   contextLine;
+  static focus1Height;
+  static focus2Height;
 
   constructor(private elRef: ElementRef, private http: HttpClient) {
     this.hostElement = this.elRef.nativeElement;
@@ -88,7 +90,7 @@ export class FocusChildComponent implements OnInit {
 
     this.createContextChart();
 
-    this.createFocusCharts(); // Includes: Accl, Gyro
+    this.createFocusCharts(); // Includes: Gyro, Accl, Elevation
 
     this.createContextLine();
 
@@ -113,7 +115,7 @@ export class FocusChildComponent implements OnInit {
     this.y_context = d3.scaleLinear().range([this.contextHeight, 0]);
     this.y_context.domain([this.gyro_domain[0] * 1.05,this.gyro_domain[1] * 1.05]);
 
-    // Apply X2 (no yAxis for this one..yet)
+    // Apply X2 (no yAxis on context..yet)
     this.xAxis_context = d3.axisBottom(FocusChildComponent.x_context);
 
     // Focus1
@@ -122,9 +124,11 @@ export class FocusChildComponent implements OnInit {
         .domain(FocusChildComponent.x_context.domain()) // shared with context X 
         .range([0, FocusChildComponent.width]);
     
+    var plotMarginFactor = 1.05;
+
     // Set Y scale
-    FocusChildComponent.y_f1 = d3.scaleLinear().range([FocusChildComponent.height, 0]);
-    FocusChildComponent.y_f1.domain([this.gyro_domain[0] * 1.05,this.gyro_domain[1] * 1.05]); // Add a bit of margin
+    FocusChildComponent.y_f1 = d3.scaleLinear().range([FocusChildComponent.focus1Height, 0]);
+    FocusChildComponent.y_f1.domain([this.gyro_domain[0] * plotMarginFactor,this.gyro_domain[1] * plotMarginFactor]); // Add a bit of margin
 
     // Apply X scale to axis
     FocusChildComponent.xAxis_f1 = d3.axisBottom(FocusChildComponent.x);
@@ -134,9 +138,8 @@ export class FocusChildComponent implements OnInit {
 
     // Focus2 (x scale same as focus1)
     // Set Y scale
-    FocusChildComponent.y_f2 = d3.scaleLinear().range([FocusChildComponent.height, 0]);
-    FocusChildComponent.y_f2.domain([this.accl_domain[0] * 1.05,this.accl_domain[1] * 1.05]); // Add a bit of margin
-
+    FocusChildComponent.y_f2 = d3.scaleLinear().range([FocusChildComponent.focus2Height, 0]);
+    FocusChildComponent.y_f2.domain([this.accl_domain[0] * plotMarginFactor,this.accl_domain[1] * plotMarginFactor]); // Add a bit of margin
     FocusChildComponent.xAxis_f2 = d3.axisBottom(FocusChildComponent.x);
     this.yAxisLeft_f2 = d3.axisLeft(FocusChildComponent.y_f2);
     this.yAxisRight_f2 = d3.axisRight(FocusChildComponent.y_f2);
@@ -165,23 +168,22 @@ export class FocusChildComponent implements OnInit {
 
     // Add clip path to svg
     FocusChildComponent.focus1.append("defs").append("clipPath")
-        .attr("id", "clip")
+        .attr("id", "clip1")
         .append("rect")
         .attr("width", FocusChildComponent.width)
-        .attr("height", FocusChildComponent.height);
-
+        .attr("height", FocusChildComponent.focus1Height);
 
     // Focus2
     FocusChildComponent.focus2 = FocusChildComponent.svg.append("g")
-        .attr("class", "focus1")
+        .attr("class", "focus2")
         .attr("transform", "translate(" + FocusChildComponent.focus2Margin.left + "," + FocusChildComponent.focus2Margin.top + ")");
 
         // Add clip path to svg
     FocusChildComponent.focus2.append("defs").append("clipPath")
-        .attr("id", "clip")
+        .attr("id", "clip2")
         .append("rect")
         .attr("width", FocusChildComponent.width)
-        .attr("height", FocusChildComponent.height);
+        .attr("height", FocusChildComponent.focus2Height);
   }
 
   private createContextLine(){
@@ -198,9 +200,9 @@ export class FocusChildComponent implements OnInit {
 
     // Assign line group to variable `line`
     FocusChildComponent.lines_f1 = FocusChildComponent.focus1.append('g')
-        .attr("clip-path", "url(#clip)");
+        .attr("clip-path", "url(#clip1)");
 
-    // Create accl plot lines
+    // Create gyro plot lines
     FocusChildComponent.lines_f1.selectAll(".line")
         .data(FocusChildComponent.gyro_values)
         .enter()
@@ -209,7 +211,7 @@ export class FocusChildComponent implements OnInit {
           .attr("fill", "none")
           .attr("stroke", d => { return colors_f1[FocusChildComponent.gyro_values.indexOf(d)]})
           .attr("stroke-width", 1)
-          .attr("d", FocusChildComponent.setLine());
+          .attr("d", FocusChildComponent.setLine_f1());
 
     //Focus2
     // Color palette
@@ -217,7 +219,7 @@ export class FocusChildComponent implements OnInit {
 
     // Assign line group to variable `line`
     FocusChildComponent.lines_f2 = FocusChildComponent.focus2.append('g')
-        .attr("clip-path", "url(#clip)");
+        .attr("clip-path", "url(#clip2)");
 
     // Create accl plot lines
     FocusChildComponent.lines_f2.selectAll(".line")
@@ -228,8 +230,7 @@ export class FocusChildComponent implements OnInit {
           .attr("fill", "none")
           .attr("stroke", d => { return colors_f2[FocusChildComponent.accl_values.indexOf(d)]})
           .attr("stroke-width", 1)
-          .attr("d", FocusChildComponent.setLine());
-
+          .attr("d",FocusChildComponent.setLine_f2());
   }
 
   private createAnnotationBrush(){
@@ -302,7 +303,7 @@ export class FocusChildComponent implements OnInit {
     // Appends X to focus svg group
     FocusChildComponent.focus1.append("g")
         .attr("class", "axis axis--x")
-        .attr("transform", "translate(0," + FocusChildComponent.height + ")")
+        .attr("transform", "translate(0," + FocusChildComponent.focus1Height + ")")
         .call(FocusChildComponent.xAxis_f1);
 
     // Appends Y to focus svg group
@@ -319,7 +320,7 @@ export class FocusChildComponent implements OnInit {
     // Focus2
     FocusChildComponent.focus2.append("g")
         .attr("class", "axis axis--x")
-        .attr("transform", "translate(0," + FocusChildComponent.height + ")")
+        .attr("transform", "translate(0," + FocusChildComponent.focus2Height + ")")
         .call(FocusChildComponent.xAxis_f2);
 
     // Appends Y to focus svg group
@@ -340,7 +341,7 @@ export class FocusChildComponent implements OnInit {
         .attr("transform", "translate(" + FocusChildComponent.focus1Margin.left + "," + FocusChildComponent.focus1Margin.top + ")")
         .call(FocusChildComponent.annotationBrush);
 
-    // Appends zoom to focus area
+    // Appends zoom to svg over focus1 area
     FocusChildComponent.svg.append("rect")
         .attr("class", "zoom")
         .attr("width", FocusChildComponent.width)
@@ -348,6 +349,7 @@ export class FocusChildComponent implements OnInit {
         .attr("fill-opacity", "0%")
         .attr("transform", "translate(" + FocusChildComponent.focus1Margin.left + "," + FocusChildComponent.focus1Margin.top + ")")
         .call(FocusChildComponent.zoom);
+
   }
 
   private setChartDimensions(){
@@ -357,11 +359,13 @@ export class FocusChildComponent implements OnInit {
 
     this.contextMargin = {top: 20, right:40, bottom:900, left: 40};
     FocusChildComponent.focus1Margin = {top: 130, right:40, bottom:700, left: 40};
-    FocusChildComponent.focus2Margin = {top: 330, right:40, bottom:30, left: 40};
+    FocusChildComponent.focus2Margin = {top: 330, right:40, bottom:400, left: 40};
     FocusChildComponent.focus3Margin = {top: 130, right:40, bottom:30, left: 40};
     
-    FocusChildComponent.height = viewBoxHeight - FocusChildComponent.focus1Margin.top - FocusChildComponent.focus1Margin.bottom;
+    FocusChildComponent.height = viewBoxHeight - this.contextMargin.top - 20; // (placeholder value)
     this.contextHeight = viewBoxHeight - this.contextMargin.top - this.contextMargin.bottom;
+    FocusChildComponent.focus1Height = viewBoxHeight - FocusChildComponent.focus1Margin.top - FocusChildComponent.focus1Margin.bottom;
+    FocusChildComponent.focus2Height = viewBoxHeight - FocusChildComponent.focus2Margin.top - FocusChildComponent.focus2Margin.bottom;
     FocusChildComponent.width = viewBoxWidth - FocusChildComponent.focus1Margin.right - FocusChildComponent.focus1Margin.left;
 
     FocusChildComponent.svg = d3.select(this.hostElement).append('svg')
@@ -434,18 +438,28 @@ export class FocusChildComponent implements OnInit {
     this.date_domain = d3.extent(gyro_0, d => { return d.date }); 
   }
 
-  static setLine(){
+  static setLine_f1(){
     return d3.line()
               .x((d:any) => { return FocusChildComponent.x(d.date) })
               .y((d:any) => { return FocusChildComponent.y_f1(d.val) })
   }
 
+  static setLine_f2(){
+    return d3.line()
+              .x((d:any) => { return FocusChildComponent.x(d.date) })
+              .y((d:any) => { return FocusChildComponent.y_f2(d.val) })
+  }
+
+  
+
   private brushed(){ // Brush event handler
     if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
     var s = d3.event.selection || FocusChildComponent.x_context.range();
     FocusChildComponent.x.domain(s.map(FocusChildComponent.x_context.invert, FocusChildComponent.x_context));
-    FocusChildComponent.focus1.selectAll(".line").attr("d", FocusChildComponent.setLine());
+    FocusChildComponent.focus1.selectAll(".line").attr("d", FocusChildComponent.setLine_f1());
     FocusChildComponent.focus1.select(".axis--x").call(FocusChildComponent.xAxis_f1);
+    FocusChildComponent.focus2.selectAll(".line").attr("d", FocusChildComponent.setLine_f2());
+    FocusChildComponent.focus2.select(".axis--x").call(FocusChildComponent.xAxis_f2);
     
     FocusChildComponent.svg.select(".zoom").call(FocusChildComponent.zoom.transform, d3.zoomIdentity
         .scale(FocusChildComponent.width / (s[1] - s[0]))
@@ -463,8 +477,10 @@ export class FocusChildComponent implements OnInit {
     if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return; // ignore zoom-by-brush
     var t = d3.event.transform;
     FocusChildComponent.x.domain(t.rescaleX(FocusChildComponent.x_context).domain());
-    FocusChildComponent.focus1.selectAll(".line").attr("d", FocusChildComponent.setLine());
+    FocusChildComponent.focus1.selectAll(".line").attr("d", FocusChildComponent.setLine_f1());
     FocusChildComponent.focus1.select(".axis--x").call(FocusChildComponent.xAxis_f1);
+    FocusChildComponent.focus2.selectAll(".line").attr("d", FocusChildComponent.setLine_f2());
+    FocusChildComponent.focus2.select(".axis--x").call(FocusChildComponent.xAxis_f2);
     FocusChildComponent.context.select(".brush").call(FocusChildComponent.mainBrush.move, FocusChildComponent.x.range().map(t.invertX, t));
   
   }
