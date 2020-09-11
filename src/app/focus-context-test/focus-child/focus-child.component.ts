@@ -59,6 +59,7 @@ export class FocusChildComponent implements OnInit {
   static focus1Height;
   static focus2Height;
   static focus3Height;
+  strokeWidth = "0.5";
 
   constructor(private elRef: ElementRef, private http: HttpClient) {
     this.hostElement = this.elRef.nativeElement;
@@ -288,7 +289,7 @@ export class FocusChildComponent implements OnInit {
           .attr("class", "line")  // I add the class line to be able to modify this line later on.
           .attr("fill", "none")
           .attr("stroke", d => { return colors_f1[FocusChildComponent.gyro_values.indexOf(d)]})
-          .attr("stroke-width", 1)
+          .attr("stroke-width", this.strokeWidth)
           .attr("d", FocusChildComponent.setLine_f1());
 
     //Focus2
@@ -307,14 +308,24 @@ export class FocusChildComponent implements OnInit {
           .attr("class", "line")  // I add the class line to be able to modify this line later on.
           .attr("fill", "none")
           .attr("stroke", d => { return colors_f2[FocusChildComponent.accl_values.indexOf(d)]})
-          .attr("stroke-width", 1)
+          .attr("stroke-width", this.strokeWidth)
           .attr("d",FocusChildComponent.setLine_f2());
 
      //Focus3
-
-    // Assign line group to variable `line`
+    // Create line variable
     FocusChildComponent.line_f3 = FocusChildComponent.focus3.append('g')
         .attr("clip-path", "url(#clip3)");
+
+        // Append single plot line
+    FocusChildComponent.line_f3.append("path")
+        .datum(FocusChildComponent.alt_values)
+        .attr("class", "line_f3")
+        .attr("stroke", "magenta")
+        .attr("fill-opacity", "0%")
+        .attr("fill", "none")
+        .attr("stroke-width", this.strokeWidth)
+        //.attr("transform", "translate(0," + -55 + ")")
+        .attr("d", FocusChildComponent.setLine_f3());  
   }
 
   private createAnnotationBrush(){
@@ -368,6 +379,7 @@ export class FocusChildComponent implements OnInit {
         .attr("class", "contextLine")
         .attr("stroke", "#e41a1c")
         .attr("fill-opacity", "0%")
+        .attr("stroke-width", this.strokeWidth)
         .attr("d", this.contextLine);
 
     // Appends x axis to Context
@@ -434,14 +446,7 @@ export class FocusChildComponent implements OnInit {
         .attr("transform", "translate(" + FocusChildComponent.width + ",0)")
         .call(this.yAxisRight_f3)
 
-    // Append single plot line
-    FocusChildComponent.line_f3.append("path")
-        .datum(FocusChildComponent.alt_values)
-        .attr("class", "line")
-        .attr("stroke", "#e41a1c")
-        .attr("fill-opacity", "0%")
-        //.attr("transform", "translate(0," + -55 + ")")
-        .attr("d", FocusChildComponent.setLine_f3());   
+     
 
 
     // Append annotation brush
@@ -505,15 +510,14 @@ export class FocusChildComponent implements OnInit {
 
     this.alt_domain = d3.extent(FocusChildComponent.alt_values, d => { return d.val; });
 
-    console.log(this.alt_domain);
-// console.log(FocusChildComponent.alt_values);
+    // console.log(FocusChildComponent.alt_values);
 
-  // console.log("max accl0",Math.max.apply(null, test0));
-  // console.log("max accl1",Math.max.apply(null, test1));
-  // console.log("max accl2",Math.max.apply(null, test2));
-  // console.log("min accl0",Math.min.apply(null, test0));
-  // console.log("min accl1",Math.min.apply(null, test1));
-  // console.log("min accl2",Math.min.apply(null, test2));
+    // console.log("max accl0",Math.max.apply(null, test0));
+    // console.log("max accl1",Math.max.apply(null, test1));
+    // console.log("max accl2",Math.max.apply(null, test2));
+    // console.log("min accl0",Math.min.apply(null, test0));
+    // console.log("min accl1",Math.min.apply(null, test1));
+    // console.log("min accl2",Math.min.apply(null, test2));
 
     // Any of the streams should do
     this.date_domain = d3.extent(gyro_0, d => { return d.date }); 
@@ -528,7 +532,7 @@ export class FocusChildComponent implements OnInit {
     FocusChildComponent.focus1.select(".axis--x").call(FocusChildComponent.xAxis_f1);
     FocusChildComponent.focus2.selectAll(".line").attr("d", FocusChildComponent.setLine_f2());
     FocusChildComponent.focus2.select(".axis--x").call(FocusChildComponent.xAxis_f2);
-    FocusChildComponent.focus3.select(".line").attr("d", FocusChildComponent.setLine_f3());
+    FocusChildComponent.focus3.select(".line_f3").attr("d", FocusChildComponent.setLine_f3());
     FocusChildComponent.focus3.select(".axis--x").call(FocusChildComponent.xAxis_f3);
     
     FocusChildComponent.svg.select(".zoom").call(FocusChildComponent.zoom.transform, d3.zoomIdentity
@@ -551,7 +555,7 @@ export class FocusChildComponent implements OnInit {
     FocusChildComponent.focus1.select(".axis--x").call(FocusChildComponent.xAxis_f1);
     FocusChildComponent.focus2.selectAll(".line").attr("d", FocusChildComponent.setLine_f2());
     FocusChildComponent.focus2.select(".axis--x").call(FocusChildComponent.xAxis_f2);
-    FocusChildComponent.focus3.select(".line").attr("d", FocusChildComponent.setLine_f3());
+    FocusChildComponent.focus3.select(".line_f3").attr("d", FocusChildComponent.setLine_f3());
     FocusChildComponent.focus3.select(".axis--x").call(FocusChildComponent.xAxis_f3);
     FocusChildComponent.context.select(".brush").call(FocusChildComponent.mainBrush.move, FocusChildComponent.x.range().map(t.invertX, t));
   
