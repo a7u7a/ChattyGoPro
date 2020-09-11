@@ -68,6 +68,7 @@ export class FocusChildComponent implements OnInit {
   annotateButtonWidth;
   annotateButtonMargin;
   annotationEditor;
+  saveAnnotationButton;
 
   constructor(private elRef: ElementRef, private http: HttpClient) {
     this.hostElement = this.elRef.nativeElement;
@@ -455,8 +456,6 @@ export class FocusChildComponent implements OnInit {
     //     .on('click', this.toggleZoom);
 
         
-    
-
   }
 
   private createAnnotationEditor(){
@@ -469,18 +468,33 @@ export class FocusChildComponent implements OnInit {
         .attr("transform", "translate(0,0)")
         .on("click", this.toggleZoom)
 
-        this.annotateButton.append("rect")
-            .attr("width", 80)
-            .attr("height", 40)
-            .attr("fill", "gray");
-            
-        this.annotateButton.append("text")
-            .attr("dy", (40/2 + 5))
-            .attr("dx", 80/2)
-            .style("text-anchor", "middle")
-            .text("Annotate");
-  }
+    this.annotateButton.append("rect")
+        .attr("width", 80)
+        .attr("height", 40)
+        .attr("fill", "gray");
+        
+    this.annotateButton.append("text")
+        .attr("dy", (40/2 + 5))
+        .attr("dx", 80/2)
+        .style("text-anchor", "middle")
+        .text("Annotate");
 
+    this.saveAnnotationButton = this.annotationEditor.append("g")
+        .attr("class", "save_button")
+        .attr("transform", "translate(90,0)")
+        .on("click", this.saveAnnotation)
+
+    this.saveAnnotationButton.append("rect")
+        .attr("width", 80)
+        .attr("height", 40)
+        .attr("fill", "gray");
+
+    this.saveAnnotationButton.append("text")
+        .attr("dy", (40/2 + 5))
+        .attr("dx", 80/2)
+        .style("text-anchor", "middle")
+        .text("Save");
+  }
   private toggleZoom(){
     // toggle zoom on/off
    // d3.select(window).on("click", function() {  // Should be a button instead of whole window
@@ -511,6 +525,9 @@ export class FocusChildComponent implements OnInit {
     //}
   }
   
+  private saveAnnotation(){
+
+  }
 
   private processData(){
     /* Format data into suitable shape. Finds domains */
