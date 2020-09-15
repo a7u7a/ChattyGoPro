@@ -87,6 +87,9 @@
           "configurations": {
             "production": {
               "browserTarget": "nebulartest:build:production"
+            },
+            "lancs": {
+              "browserTarget": "chattyapp:build:lancs"
             }
           }
         },
