@@ -1,8 +1,7 @@
 import { Component, OnInit, ViewEncapsulation, ElementRef, Input } from '@angular/core';
 import * as d3 from 'd3';
 import { HttpClient } from '@angular/common/http';
-import { ThrowStmt } from '@angular/compiler';
-import { svg, brush } from 'd3';
+import { DataService} from '../../data.service'
 
 @Component({
   selector: 'app-focus-child',
@@ -81,7 +80,10 @@ export class FocusChildComponent implements OnInit {
   static annotBrushesGroup; // SVG group where annot brushes go
   static annotBrushOverlayHeight;
 
-  constructor(private elRef: ElementRef, private http: HttpClient) {
+  constructor(
+    private elRef: ElementRef, 
+    private http: HttpClient,
+    private data_service : DataService) {
     this.hostElement = this.elRef.nativeElement;
   }
 
@@ -105,7 +107,34 @@ export class FocusChildComponent implements OnInit {
    });
   }
 
+private getData(){
+  var startDate: string = "1563992772861";
+  var endDate: string = "1593028468667";
+  var selectedObj = "5e9064411b806200123de098";
+  var selectedVis = ["acceleration","gyroscope","gps"];
+  var all_data: any;
+  this.data_service.getGoProData(startDate,endDate, selectedObj, selectedVis, 1).subscribe((response)=>{
+    all_data = response.data;
+    console.log("getData:", all_data);
+  });
+}
+
+private getAnnotations(){
+  var startDate: string = "1563992772861";
+  var endDate: string = "1593028468667";
+  var selectedObj = "5e9064411b806200123de098";
+  var annot_data: any;
+  this.data_service.getAnnotations(selectedObj,startDate, endDate).subscribe((response) => {
+    console.log("getAnnotations",response);
+  })
+
+}
+
   private createChart(objs){
+
+    this.getData();
+    this.getAnnotations();
+
 
     this.data = objs;
 
@@ -639,18 +668,6 @@ private toggleAnnotationMode(){
             .attr("fill", "white");
         }
 
-      // if (FocusChildComponent.zoomEnabled){   // Should work, but doesnt
-      //   console.log("on");
-      //   FocusChildComponent.svg.select(".zoom")
-      //       .call(FocusChildComponent.zoom);
-      // } else {
-      //   console.log("off");
-      //   FocusChildComponent.svg.select(".zoom")
-      //       .on('zoom', null);
-      // }
-
-     
-    //}
   }
   
   private saveAnnotation(){
@@ -699,15 +716,6 @@ private toggleAnnotationMode(){
 
     this.alt_domain = d3.extent(FocusChildComponent.alt_values, d => { return d.val; });
 
-    // console.log(FocusChildComponent.alt_values);
-
-    // console.log("max accl0",Math.max.apply(null, test0));
-    // console.log("max accl1",Math.max.apply(null, test1));
-    // console.log("max accl2",Math.max.apply(null, test2));
-    // console.log("min accl0",Math.min.apply(null, test0));
-    // console.log("min accl1",Math.min.apply(null, test1));
-    // console.log("min accl2",Math.min.apply(null, test2));
-
     // Any of the streams should do
     this.date_domain = d3.extent(gyro_0, d => { return d.date }); 
   }
@@ -729,33 +737,18 @@ private toggleAnnotationMode(){
     FocusChildComponent.focus3.select(".axis--x").call(FocusChildComponent.xAxis_f3);
     FocusChildComponent.annotChart1.select(".axis--x").call(FocusChildComponent.xAxis_f1);
 
-    //console.log("sel",d3.event.selection);
-    var t = {k: Math.abs(FocusChildComponent.width/(s[0]-s[1])), x:-s[0], y: FocusChildComponent.width-s[1]};
-    //console.log("tbrush",t)
-    function applyX(x, t) {
-      return x * t.k + t.x;
-    }
+    // not really working/really buggy
+    // var t = {k: Math.abs(FocusChildComponent.width/(s[0]-s[1])), x:-s[0], y: FocusChildComponent.width-s[1]};
+    // function applyX(x, t) {
+    //   return x * t.k + t.x;
+    // }
+
     //console.log([applyX(FocusChildComponent.lastSelection[0],t),applyX(FocusChildComponent.lastSelection[0],t)]);
     // if(FocusChildComponent.lastSelection){
     //   FocusChildComponent.annotChart1.select("#brush-0").call(FocusChildComponent.annotBrushes[0].brush.move, [applyX(FocusChildComponent.lastSelection[0],t),applyX(FocusChildComponent.lastSelection[1],t)]);
     // }
 
   
-
-    
-    // console.log("tbrush:", t);
-    //console.log("s0", s[0])
-
-    
-
-    // if(FocusChildComponent.lastSelection){
-    //   FocusChildComponent.annotChart1.select("#brush-0").call(FocusChildComponent.annotBrushes[0].brush.move, FocusChildComponent.lastSelection.map(t.applyX, t));
-    // }
-    
-
-    
-    //console.log("smap",s.map(FocusChildComponent.x_context.invert, FocusChildComponent.x_context));
-
     FocusChildComponent.svg.select(".zoom").call(FocusChildComponent.zoom.transform, d3.zoomIdentity
         .scale(FocusChildComponent.width / (s[1] - s[0]))
         .translate(-s[0], 0));
