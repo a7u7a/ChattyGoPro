@@ -1,7 +1,8 @@
 import { Component, OnInit, ViewEncapsulation, ElementRef, Input } from '@angular/core';
 import * as d3 from 'd3';
 import { HttpClient } from '@angular/common/http';
-import { DataService} from '../../data.service'
+import { DataService } from '../../data.service'
+import { DataParserService } from '../../data-parser.service'
 
 @Component({
   selector: 'app-focus-child',
@@ -83,28 +84,31 @@ export class FocusChildComponent implements OnInit {
   constructor(
     private elRef: ElementRef, 
     private http: HttpClient,
-    private data_service : DataService) {
+    private data_service : DataService,
+    private data_parser : DataParserService) {
     this.hostElement = this.elRef.nativeElement;
   }
 
   ngOnInit(): void {
     // Create chart once data has been loaded
-    this.http.get("https://raw.githubusercontent.com/a7u7a/dummydata/master/other/accl_gyro_alt_6204.csv",
-  { responseType: 'text' }).subscribe(data => {
-  var objs = d3.csvParse(data, function(d:any) {
-    return {
-      // Pending: Dont parse to local time 
-      date: d3.timeParse("%Y-%m-%d %H:%M:%S.%f%Z")(d.date) || d3.timeParse("%Y-%m-%d %H:%M:%S%Z")(d.date), // Accounts for edge case
-      accl_0: parseFloat(d.ACCL_0), // using parsefloat to avoid issues with d3 down the line
-      accl_1: parseFloat(d.ACCL_1),
-      accl_2: parseFloat(d.ACCL_2),
-      gyro_0: parseFloat(d.GYRO_0),
-      gyro_1: parseFloat(d.GYRO_1),
-      gyro_2: parseFloat(d.GYRO_2),
-      alt: parseFloat(d.GPS5_2)
-  }});
-      this.createChart(objs);
-   });
+  //   this.http.get("https://raw.githubusercontent.com/a7u7a/dummydata/master/other/accl_gyro_alt_6204.csv",
+  // { responseType: 'text' }).subscribe(data => {
+  // var objs = d3.csvParse(data, function(d:any) {
+  //   return {
+  //     // Pending: Dont parse to local time 
+  //     date: d3.timeParse("%Y-%m-%d %H:%M:%S.%f%Z")(d.date) || d3.timeParse("%Y-%m-%d %H:%M:%S%Z")(d.date), // Accounts for edge case
+  //     accl_0: parseFloat(d.ACCL_0), // using parsefloat to avoid issues with d3 down the line
+  //     accl_1: parseFloat(d.ACCL_1),
+  //     accl_2: parseFloat(d.ACCL_2),
+  //     gyro_0: parseFloat(d.GYRO_0),
+  //     gyro_1: parseFloat(d.GYRO_1),
+  //     gyro_2: parseFloat(d.GYRO_2),
+  //     alt: parseFloat(d.GPS5_2)
+  // }});
+  //     this.createChart(objs);
+  //  });
+    this.getData();
+
   }
 
 private getData(){
@@ -113,9 +117,11 @@ private getData(){
   var selectedObj = "5e9064411b806200123de098";
   var selectedVis = ["acceleration","gyroscope","gps"];
   var all_data: any;
-  this.data_service.getGoProData(startDate,endDate, selectedObj, selectedVis, 1).subscribe((response)=>{
-    all_data = response.data;
-    console.log("getData:", all_data);
+  this.data_service.getGoProData(startDate,endDate, selectedObj, ["acceleration","gyroscope","gps"], 1).subscribe((response)=>{
+    
+    //console.log("parser", this.data_parser.parseGoProData(response.data));
+    this.createChart(this.data_parser.parseGoProData(response.data));
+  
   });
 }
 
@@ -132,13 +138,19 @@ private getAnnotations(){
 
   private createChart(objs){
 
-    this.getData();
-    this.getAnnotations();
+    FocusChildComponent.gyro_values = objs.gyro;
+    FocusChildComponent.accl_values = objs.accl;
+    FocusChildComponent.alt_values = objs.gps_alt;
+    this.gyro_domain = objs.gyro_domain;
+    this.accl_domain = objs.accl_domain;
+    this.alt_domain = objs.alt_domain;
+    this.date_domain = objs.date_domain;
 
+    //this.getAnnotations();
 
     this.data = objs;
 
-    this.processData();
+    //this.processData();
 
     this.setChartDimensions();
 
