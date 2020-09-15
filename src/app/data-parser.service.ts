@@ -10,7 +10,7 @@ export class DataParserService {
 
 
   public parseGoProData(data){
-
+    console.log(data);
     var gyro_x = [],
         gyro_y = [],
         gyro_z = [],

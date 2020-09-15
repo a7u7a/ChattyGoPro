@@ -89,7 +89,7 @@
               "browserTarget": "nebulartest:build:production"
             },
             "lancs": {
-              "browserTarget": "chattyapp:build:lancs"
+              "browserTarget": "nebulartest:build:lancs"
             }
           }
         },
