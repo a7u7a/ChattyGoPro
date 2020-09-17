@@ -32,7 +32,7 @@ export class DataParserService {
     });
 
     // Downsample streams
-    var downsampleThres = 6000;
+    var downsampleThres = 5000;
     gyro_x = this.largestTriangleThreeBucket(gyro_x, downsampleThres, "date", "val");
     gyro_y = this.largestTriangleThreeBucket(gyro_y, downsampleThres, "date", "val");
     gyro_z = this.largestTriangleThreeBucket(gyro_z, downsampleThres, "date", "val");
@@ -71,13 +71,13 @@ export class DataParserService {
     var annotations = {};
     rawAnnotations.forEach(annotation => {
       annotations[annotation._id] = {startDateEpoch: annotation.startDate,
-                                          startDate: d3.timeParse("%Q")(annotation.startDate),
-                                          endDateEpoch: annotation.endDate,
-                                          endDate: d3.timeParse("%Q")(annotation.endDate),
-                                          subtheme: annotation.subtheme,
-                                          notes: annotation.notes,
-                                          object: annotation.object,
-                                          theme: annotation.theme};
+                                      startDate: d3.timeParse("%Q")(annotation.startDate),
+                                      endDateEpoch: annotation.endDate,
+                                      endDate: d3.timeParse("%Q")(annotation.endDate),
+                                      subtheme: annotation.subtheme,
+                                      notes: annotation.notes,
+                                      object: annotation.object,
+                                      theme: annotation.theme};
       });
     return annotations;
   }
