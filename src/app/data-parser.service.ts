@@ -8,9 +8,8 @@ export class DataParserService {
 
   constructor() { }
 
+  public parseData(data){
 
-  public parseGoProData(data){
-    console.log(data);
     var gyro_x = [],
         gyro_y = [],
         gyro_z = [],
@@ -18,11 +17,11 @@ export class DataParserService {
         accl_y = [],
         accl_z = [],
         gps_alt= [];
-
+    
     data.forEach((d:any) => {
       var date = d3.timeParse("%Q")(d.sensorData.sensor_data.time.timestamp);
       var sensorData = d.sensorData.sensor_data;
-
+      
       gyro_x.push({date: date, val: sensorData.gyroscope.x});
       gyro_y.push({date: date, val: sensorData.gyroscope.y});
       gyro_z.push({date: date, val: sensorData.gyroscope.z});
@@ -55,7 +54,8 @@ export class DataParserService {
 
     // Any stream should do (not entirely sure tho!)
     var date_domain = d3.extent(gyro_x, d => { return d.date; });
-    console.log("date domain", date_domain);
+
+    //console.log("Current date domain",date_domain);
 
     return {gyro:[gyro_x, gyro_y, gyro_z],
             accl:[accl_x, accl_y, accl_z],
@@ -64,6 +64,22 @@ export class DataParserService {
             accl_domain: accl_domain,
             alt_domain: alt_domain,
             date_domain: date_domain};    
+  }
+
+  public parseAnnotations(rawAnnotations){
+    
+    var annotations = {};
+    rawAnnotations.forEach(annotation => {
+      annotations[annotation._id] = {startDateEpoch: annotation.startDate,
+                                          startDate: d3.timeParse("%Q")(annotation.startDate),
+                                          endDateEpoch: annotation.endDate,
+                                          endDate: d3.timeParse("%Q")(annotation.endDate),
+                                          subtheme: annotation.subtheme,
+                                          notes: annotation.notes,
+                                          object: annotation.object,
+                                          theme: annotation.theme};
+      });
+    return annotations;
   }
 
   private largestTriangleThreeBucket(data, threshold, xProperty, yProperty) {

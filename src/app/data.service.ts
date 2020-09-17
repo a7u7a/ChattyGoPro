@@ -1,8 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
-import * as d3 from 'd3';
-import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -22,10 +20,14 @@ export class DataService {
   }
 
   public getAnnotations(object, start, end){
-    return this.httpClient.post(environment.apiUrl + "/admin/annotations/range", {object: object, startDate: start,endDate:end})
+    return this.httpClient.post<any>(environment.apiUrl + "/admin/annotations/range", {object: object, startDate: start,endDate:end})
   }
 
-  public postAnnotation(){
+  public addAnnotation(annotation, object){
+    return this.httpClient.post<any>(environment.apiUrl + '/admin/annotations/add', {annotation:annotation, object:object});
+  }
+
+  public deleteAnnotation(){
 
   }
 }

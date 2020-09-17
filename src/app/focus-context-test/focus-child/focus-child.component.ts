@@ -1,6 +1,5 @@
 import { Component, OnInit, ViewEncapsulation, ElementRef, Input } from '@angular/core';
 import * as d3 from 'd3';
-import { HttpClient } from '@angular/common/http';
 import { DataService } from '../../data.service'
 import { DataParserService } from '../../data-parser.service'
 
@@ -75,6 +74,11 @@ export class FocusChildComponent implements OnInit {
   annotEditor;
   annotSaveBtn;
 
+  startDate;
+  endDate;
+  selectedObj;
+static annotations;
+
   // Annotations1
   static annotChart1;
   static annotBrushes = []; // Keep track of annot brushes
@@ -83,61 +87,59 @@ export class FocusChildComponent implements OnInit {
 
   constructor(
     private elRef: ElementRef, 
-    private http: HttpClient,
     private data_service : DataService,
     private data_parser : DataParserService) {
     this.hostElement = this.elRef.nativeElement;
   }
 
   ngOnInit(): void {
-    // Create chart once data has been loaded
-  //   this.http.get("https://raw.githubusercontent.com/a7u7a/dummydata/master/other/accl_gyro_alt_6204.csv",
-  // { responseType: 'text' }).subscribe(data => {
-  // var objs = d3.csvParse(data, function(d:any) {
-  //   return {
-  //     // Pending: Dont parse to local time 
-  //     date: d3.timeParse("%Y-%m-%d %H:%M:%S.%f%Z")(d.date) || d3.timeParse("%Y-%m-%d %H:%M:%S%Z")(d.date), // Accounts for edge case
-  //     accl_0: parseFloat(d.ACCL_0), // using parsefloat to avoid issues with d3 down the line
-  //     accl_1: parseFloat(d.ACCL_1),
-  //     accl_2: parseFloat(d.ACCL_2),
-  //     gyro_0: parseFloat(d.GYRO_0),
-  //     gyro_1: parseFloat(d.GYRO_1),
-  //     gyro_2: parseFloat(d.GYRO_2),
-  //     alt: parseFloat(d.GPS5_2)
-  // }});
-  //     this.createChart(objs);
-  //  });
-    this.getData();
+    // These variables should be set using date/object selector menu
+    this.startDate = "1593028342060";
+    this.endDate = "1593028405691";
+    this.selectedObj= "5e9064411b806200123de098";
 
+    this.getData();
+    
   }
 
 private getData(){
-  var startDate: string = "1563992772861";
-  var endDate: string = "1593028468667";
-  var selectedObj = "5e9064411b806200123de098";
+  // Create chart once data has been loaded
   var selectedVis = ["acceleration","gyroscope","gps"];
-  var all_data: any;
-  this.data_service.getGoProData(startDate,endDate, selectedObj, ["acceleration","gyroscope","gps"], 1).subscribe((response)=>{
-    
-    //console.log("parser", this.data_parser.parseGoProData(response.data));
-    this.createChart(this.data_parser.parseGoProData(response.data));
-  
+  this.data_service.getGoProData(this.startDate,this.endDate, this.selectedObj, selectedVis, 1).subscribe((response)=>{
+    this.createChart(this.data_parser.parseData(response.data));
   });
 }
 
 private getAnnotations(){
-  var startDate: string = "1563992772861";
-  var endDate: string = "1593028468667";
-  var selectedObj = "5e9064411b806200123de098";
-  var annot_data: any;
-  this.data_service.getAnnotations(selectedObj,startDate, endDate).subscribe((response) => {
-    console.log("getAnnotations",response);
-  })
+  this.data_service.getAnnotations(this.selectedObj,this.startDate, this.endDate).subscribe((response) => {
+    FocusChildComponent.annotations = this.data_parser.parseAnnotations(response.data);
+    console.log("Annotations found:", Object.keys(FocusChildComponent.annotations).length);
+    //this.data_parser.parseAnnotations(response.data);
+    //this.annotations = response.data;
+    // Draw annotations once received from server
+    this.createAnnotBrushGroup();
+    FocusChildComponent.newAnnotBrush();
+    this.drawAnnotFromData();
+  });
+}
 
+private addAnnotations(theme, subtheme, startDate, endDate, notes){
+  //Posting: {'object': '5e9064411b806200123de098', 'annotation': {'theme': 'help1', 'subtheme': 'goprotest sub', 'startDate': 1593028354786, 'endDate': 1593028367512, 'notes': 'Just testing some stuff'}}
+  
+  var annotation = {theme: theme,
+                      subtheme: subtheme, 
+                      startDate: startDate, 
+                      endDate: endDate, 
+                      notes: notes};
+  this.data_service.addAnnotation(annotation, this.selectedObj).subscribe(response=> {
+  return response;
+  });
 }
 
   private createChart(objs){
 
+    //console.log(this.addAnnotations("henlo", "pollo", 1593028351150, 1593028369330, "algunas notas locas"));
+    
     FocusChildComponent.gyro_values = objs.gyro;
     FocusChildComponent.accl_values = objs.accl;
     FocusChildComponent.alt_values = objs.gps_alt;
@@ -145,12 +147,6 @@ private getAnnotations(){
     this.accl_domain = objs.accl_domain;
     this.alt_domain = objs.alt_domain;
     this.date_domain = objs.date_domain;
-
-    //this.getAnnotations();
-
-    this.data = objs;
-
-    //this.processData();
 
     this.setChartDimensions();
 
@@ -168,11 +164,11 @@ private getAnnotations(){
 
     this.createPlotLines();
 
-    this.createAnnotBrushGroup();
-
-    FocusChildComponent.newAnnotBrush();
+    this.getAnnotations();
 
     //FocusChildComponent.drawAnnotBrushes();
+    
+    
 
     this.createZoom(); // Includes zoom toggle
 
@@ -358,7 +354,7 @@ private getAnnotations(){
     FocusChildComponent.lines_f1 = FocusChildComponent.focus1.append('g')
         .attr("clip-path", "url(#clip1)");
 
-    // Create gyro plot lines
+    // Create gyro plot lines on focus1
     FocusChildComponent.lines_f1.selectAll(".line")
         .data(FocusChildComponent.gyro_values)
         .enter()
@@ -409,22 +405,56 @@ private getAnnotations(){
     FocusChildComponent.annotBrushesGroup = FocusChildComponent.annotChart1.append('g')
         .attr("class", "annot_brushes")
         .attr("transform", "translate(" + 0 + "," + 0 + ")")
- 
+    
+
   //   // Create annotation brush  // OLD one
   //   FocusChildComponent.annotationBrush = d3.brushX()
   //       .extent([[0,0], [FocusChildComponent.width, this.annotationBrushHeight]])
   //       .on("brush", this.annotationBrushed);
    }
 
+   private drawAnnotFromData(){
+    // Use id from annotation to make brush
+    for(var key in FocusChildComponent.annotations){
+        FocusChildComponent.makeBrush(key);
+    }
+
+     var brushSelection = FocusChildComponent.annotBrushesGroup.selectAll('.brush')
+    .data(FocusChildComponent.annotBrushes, d => {return d.id});
+    
+    // Iterate over annotations and draw corresponding brushes
+    brushSelection.enter()
+      .insert('g', '.brush')
+      .attr('class','brush')
+      .attr('id', d => `brush-${d.id}`)
+      .each( function(brushObj) {
+        // this init's the brush
+        brushObj.brush(d3.select(this));
+        // Move brush in place
+          brushObj.brush.move(d3.select(this), [
+            FocusChildComponent.x(FocusChildComponent.annotations[brushObj.id].startDate),
+            FocusChildComponent.x(FocusChildComponent.annotations[brushObj.id].endDate)
+          ]);
+      })
+   }
+
+static makeBrush(brushID?){
+  var brush = d3.brushX()
+        .extent([[0,0], [FocusChildComponent.width, FocusChildComponent.annotBrushOverlayHeight]])
+        .on("start", FocusChildComponent.annotBrushStart)
+        .on("brush", FocusChildComponent.annotBrushed)
+        .on("end", FocusChildComponent.annotBrushEnd);
+
+  // Transfer annotation ID to brush ID
+  if(brushID){
+    FocusChildComponent.annotBrushes.push({id: brushID, brush: brush});
+  } else{
+    FocusChildComponent.annotBrushes.push({id: FocusChildComponent.annotBrushes.length, brush: brush});
+  }
+}
 
   static newAnnotBrush(){
-    var brush = d3.brushX()
-        .extent([[0,0], [FocusChildComponent.width, this.annotBrushOverlayHeight]])
-        .on("start", this.annotBrushStart)
-        .on("brush", this.annotBrushed)
-        .on("end", this.annotBrushEnd);
-
-    FocusChildComponent.annotBrushes.push({id: FocusChildComponent.annotBrushes.length, brush: brush});
+    FocusChildComponent.makeBrush()
 
     this.annotBrushStart();
     this.annotBrushed();
@@ -464,7 +494,7 @@ private getAnnotations(){
 
   static drawAnnotBrushes(){
     var brushSelection = FocusChildComponent.annotBrushesGroup.selectAll('.brush')
-    .data(FocusChildComponent.annotBrushes, function (d){return d.id});
+    .data(FocusChildComponent.annotBrushes, d => {return d.id});
 
     // Set up new brushes
     brushSelection.enter()
@@ -683,56 +713,6 @@ private toggleAnnotationMode(){
   }
   
   private saveAnnotation(){
-
-  }
-
-  private processData(){
-    /* Format data into suitable shape. Finds domains */
-
-    // Split and find max min values
-    var gyro_0 = [],
-        gyro_1 = [],
-        gyro_2 = [],
-        accl_0 = [],
-        accl_1 = [],
-        accl_2 = [];
-        // test0 =[],
-        // test1 =[],
-        // test2 =[];
-
-    this.data.forEach((d) => { 
-      gyro_0.push({"date": d.date, "val": d.gyro_0});
-      gyro_1.push({"date": d.date, "val": d.gyro_1});
-      gyro_2.push({"date": d.date, "val": d.gyro_2});
-      accl_0.push({"date": d.date, "val": d.accl_0});
-      accl_1.push({"date": d.date, "val": d.accl_1});
-      accl_2.push({"date": d.date, "val": d.accl_2});
-      FocusChildComponent.alt_values.push({"date": d.date, "val": d.alt});
-      // test0.push(d.accl_0);
-      // test1.push(d.accl_1);
-      // test2.push(d.accl_2);
-    });
-
-    // Assemble streams into arrays
-    // Had to use array because I couldnt get .enter to work with a dictionary
-    FocusChildComponent.gyro_values = [gyro_0, gyro_1, gyro_2];
-    FocusChildComponent.accl_values = [accl_0, accl_1, accl_2];
-
-    this.gyro_domain = d3.extent(d3.extent(gyro_0, (d) => { return d.val }).concat(
-                        d3.extent(gyro_1, (d) => { return d.val; }),
-                        d3.extent(gyro_2, (d) => { return d.val; })));
-
-    this.accl_domain = d3.extent(d3.extent(accl_0, (d) => { return d.val }).concat(
-                        d3.extent(accl_1, (d) => { return d.val }),
-                        d3.extent(accl_2, (d) => { return d.val })));
-
-    this.alt_domain = d3.extent(FocusChildComponent.alt_values, d => { return d.val; });
-
-    // Any of the streams should do
-    this.date_domain = d3.extent(gyro_0, d => { return d.date }); 
-  }
-
-  private getTransform(){
 
   }
 
