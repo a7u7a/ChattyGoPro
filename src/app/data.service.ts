@@ -27,7 +27,7 @@ export class DataService {
     return this.httpClient.post<any>(environment.apiUrl + '/admin/annotations/add', {annotation:annotation, object:object});
   }
 
-  public deleteAnnotation(){
-
+  public deleteAnnotation(annotation_id){
+    return this.httpClient.post<any>(environment.apiUrl + '/admin/annotations/delete', {annotation_id: annotation_id});
   }
 }

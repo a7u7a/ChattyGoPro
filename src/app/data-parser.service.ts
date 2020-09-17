@@ -55,7 +55,7 @@ export class DataParserService {
     // Any stream should do (not entirely sure tho!)
     var date_domain = d3.extent(gyro_x, d => { return d.date; });
 
-    //console.log("Current date domain",date_domain);
+    console.log("Current date domain",date_domain);
 
     return {gyro:[gyro_x, gyro_y, gyro_z],
             accl:[accl_x, accl_y, accl_z],

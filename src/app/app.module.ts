@@ -11,6 +11,7 @@ import { HomeComponent } from './home/home.component';
 import { HttpClientModule } from '@angular/common/http';
 import { FocusParentComponent } from './focus-context-test/focus-parent/focus-parent.component';
 import { FocusChildComponent } from './focus-context-test/focus-child/focus-child.component';
+import { DataService } from './data.service'
 
 @NgModule({
   declarations: [
@@ -31,7 +32,7 @@ import { FocusChildComponent } from './focus-context-test/focus-child/focus-chil
     NbIconModule,
     HttpClientModule
   ],
-  providers: [],
+  providers: [DataService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
