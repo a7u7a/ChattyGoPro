@@ -1,4 +1,24 @@
-<app-focus-child #focus1> 
+<nb-card>
+    <nb-card-header>Data Annotator Tool</nb-card-header>
 
+    <nb-card-body>
+        Select date and device: <br>
+        <input nbInput placeholder="Pick Date" [nbDatepicker]="dateTimePicker">
+        <nb-datepicker #dateTimePicker ></nb-datepicker>
 
-</app-focus-child>
+        <nb-select placeholder= "Pick a Camera" >
+            <nb-option value="Cam1">Cam1</nb-option>
+            <nb-option value="Cam2">Cam2</nb-option>
+            <nb-option value="Cam3">Cam3</nb-option>
+        </nb-select>    
+
+        <button nbButton >Load Data</button>
+    </nb-card-body>
+
+    <nb-card-body>
+        
+        <app-focus-child #focus1> 
+        </app-focus-child>
+      
+    </nb-card-body>
+  </nb-card>

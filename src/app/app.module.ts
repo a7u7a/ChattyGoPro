@@ -4,7 +4,8 @@ import { NgModule } from '@angular/core';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { NbThemeModule, NbLayoutModule } from '@nebular/theme';
+import { NbThemeModule, NbLayoutModule, NbInputModule, NbCardModule,NbDatepickerModule,NbSelectModule,NbButtonModule } from '@nebular/theme';
+//import { NbTimepickerModule } from '@nebular/theme';
 import { NbEvaIconsModule } from '@nebular/eva-icons';
 import { NbMenuModule, NbSidebarModule, NbIconModule } from '@nebular/theme';
 import { HomeComponent } from './home/home.component';
@@ -26,11 +27,17 @@ import { DataService } from './data.service'
     BrowserAnimationsModule,
     NbThemeModule.forRoot({ name: 'default' }),
     NbLayoutModule,
+    NbButtonModule,
     NbEvaIconsModule,
     NbSidebarModule.forRoot(),
     NbMenuModule.forRoot(),
     NbIconModule,
-    HttpClientModule
+    HttpClientModule,
+    NbDatepickerModule.forRoot(),
+    //NbTimepickerModule.forRoot(),
+    NbSelectModule,
+    NbInputModule,
+    NbCardModule,
   ],
   providers: [DataService],
   bootstrap: [AppComponent]

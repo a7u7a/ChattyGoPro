@@ -1,20 +1,22 @@
-import { Component, OnInit, ViewEncapsulation, ElementRef, Input } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation, ElementRef, Input, NgModule, } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import * as d3 from 'd3';
 import { DataService } from '../../data.service'
 import { DataParserService } from '../../data-parser.service'
+import { NbInputModule} from '@nebular/theme';
 
 @Component({
   selector: 'app-focus-child',
   encapsulation: ViewEncapsulation.None,
   templateUrl: './focus-child.component.html',
-  styleUrls: ['./focus-child.component.scss']
+  styleUrls: ['./focus-child.component.scss'],
 })
+
 export class FocusChildComponent implements OnInit {
   hostElement;
   static svg;
   static x;
   static x_context;
-
   static focus1Margin;
   static focus2Margin;
   static focus3Margin;
@@ -72,19 +74,14 @@ export class FocusChildComponent implements OnInit {
   spacer2;
   margin;
   static lastSelection;
-
   static brushSelection;
-
   annotBtn;
-  annotBtnHeight;
-  annotBtnWidth;
-  annotBtnMargin;
   annotEditor;
   annotSaveBtn;
+  deleteBtn;
   annotModeEnabled = false;
   static highlighterBrush;
   highlighterBrushOverlayHeight;
-
   startDate;
   endDate;
   selectedObj;
@@ -93,15 +90,11 @@ export class FocusChildComponent implements OnInit {
   subThemeField;
   notesField;
   newAnnotation;
-
-  // Annotations1
   static annotChart1;
   static annotBrushes = []; // Keep track of annot brushes
   static annotBrushesGroup; // SVG group where annot brushes go
   static annotBrushOverlayHeight;
   toEpoch = d3.timeFormat("%Q");
-
-  
 
   constructor(
     private elRef: ElementRef,
@@ -115,10 +108,10 @@ export class FocusChildComponent implements OnInit {
     this.startDate = "1593028342060";
     this.endDate = "1593028405691";
     this.selectedObj = "5e9064411b806200123de098";
-
     this.getData();
-
   }
+
+
 
   private getData() {
     // Create chart once data has been loaded
@@ -209,18 +202,19 @@ export class FocusChildComponent implements OnInit {
     FocusChildComponent.focus1Height = 170;
     FocusChildComponent.focus2Height = 170;
     FocusChildComponent.focus3Height = 170;
-    this.margin = { top: 20, right: 20, bottom: 20, left: 50 };
+    this.margin = { top: 20, right: 20, bottom: 45, left: 50 };
     this.marginTop_f1 = this.margin.top + this.contextHeight + this.spacer1;
     this.marginTop_f2 = this.marginTop_f1 + FocusChildComponent.focus1Height + this.spacer2; 
     this.marginTop_f3 = this.marginTop_f2 + FocusChildComponent.focus2Height + this.spacer2; 
     this.marginTop_annotChart1 = this.marginTop_f3 + FocusChildComponent.focus3Height + this.spacer1;
     this.martinTop_annotEditor = this.marginTop_annotChart1 + FocusChildComponent.annotChart1Height + this.spacer1;
     this.zoomHeight = FocusChildComponent.focus1Height + FocusChildComponent.focus1Height + FocusChildComponent.focus1Height + this.spacer2 * 2;
-    this.stackedHeight = this.annotEditorHeight + this.martinTop_annotEditor + this.margin.bottom;
+    // this.stackedHeight = this.annotEditorHeight + this.martinTop_annotEditor + this.margin.bottom;
+    this.stackedHeight =  this.martinTop_annotEditor + this.margin.bottom;
     FocusChildComponent.width = viewBoxWidth - this.margin.right - this.margin.left;
     this.highlighterBrushOverlayHeight = FocusChildComponent.focus1Height + FocusChildComponent.focus1Height + FocusChildComponent.focus3Height + this.spacer2 *2;
     
-
+    //this.hostElement = document.getElementById("chartView");
     FocusChildComponent.svg = d3.select(this.hostElement).append('svg')
       .attr('width', "100%")
       .attr('height', "100%")
@@ -849,8 +843,53 @@ export class FocusChildComponent implements OnInit {
       .style("font-weight", "bold")
       .style("cursor","pointer");
 
-    this.themeField = d3.select("app-focus-child").append("g").append('input').attr('type','text').attr('name','textInput').attr('value','Text goes here');
+      this.deleteBtn = this.annotEditor.append("g")
+      .attr("class", "editor_button")
+      .attr("transform", "translate(180,0)")
+    this.deleteBtn.append("rect")
+      .attr("width", 80)
+      .attr("height", 40)
+      .style("fill", "white")
+      .style("stroke", "#bfbfbf")
+      .style("cursor","pointer");
+    this.deleteBtn.append("text")
+      .attr("dy", (40 / 2 + 5))
+      .attr("dx", 80 / 2)
+      .style("text-anchor", "middle")
+      .style("fill", "#bfbfbf")
+      .text("Delete")
+      .style("font-weight", "bold")
+      .style("cursor","pointer");
 
+
+// ANNOTATOR EDITOR
+// NEW WAY OF DEALING WITH BUTTONS
+    var test = d3.select("app-focus-child")
+        .append("g")
+        .append("button")
+        .text("Annotate")
+
+    var test2 = d3.select("app-focus-child")
+        .append("g")
+        .append("button")
+        .attr("disabled", "true")
+        .text("Save")
+
+    var test3 = d3.select("app-focus-child")
+        .append("g")
+        .append("button")
+        .attr("disabled", "true")
+        .text("Delete")
+
+        this.themeField = d3.select("app-focus-child")
+        .append("g")
+        .append('input')
+        .attr('type','text')
+        .attr('name','textInput').attr('value','Theme');
+
+    this.subThemeField = d3.select("app-focus-child").append("g").append('input').attr('type','text').attr('name','textInput').attr('value','Subtheme');
+
+    this.notesField = d3.select("app-focus-child").append("g").append('input').attr('type','text').attr('name','textInput').attr('value','Notes');
   }
 
   private toggleAnnotationMode() {
