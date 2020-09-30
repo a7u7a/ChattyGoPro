@@ -1,1 +1,6 @@
-<p>users works!</p>
+<div>
+    <input [value]="foo" (change)="changeFn($event)">
+    <p>{{ foo }}</p>
+    <input [ngModel]="bar" (ngModelChange)="modelChangeFn($event)">
+    <p>{{ bar }}</p>
+  </div>

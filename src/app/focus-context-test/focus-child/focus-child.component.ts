@@ -105,15 +105,16 @@ export class FocusChildComponent implements OnInit {
 
   ngOnInit(): void {
     // These variables should be set using date/object selector menu
-    this.startDate = "1593028342060";
-    this.endDate = "1593028405691";
-    this.selectedObj = "5e9064411b806200123de098";
-    this.getData();
+    // this.startDate = "1593028342060";
+    // this.endDate = "1593028405691";
+    // this.selectedObj = "5e9064411b806200123de098";
+    // this.getData();
   }
 
-
-
-  private getData() {
+  public getData(startDate, endDate, selectedObj) {
+    this.startDate = startDate;
+    this.endDate = endDate;
+    this.selectedObj = selectedObj;
     // Create chart once data has been loaded
     var selectedVis = ["acceleration", "gyroscope", "gps"];
     this.data_service.getGoProData(this.startDate, this.endDate, this.selectedObj, selectedVis, 1).subscribe((response) => {
@@ -202,7 +203,7 @@ export class FocusChildComponent implements OnInit {
     FocusChildComponent.focus1Height = 170;
     FocusChildComponent.focus2Height = 170;
     FocusChildComponent.focus3Height = 170;
-    this.margin = { top: 20, right: 20, bottom: 45, left: 50 };
+    this.margin = { top: 45, right: 0, bottom: 45, left: 50 };
     this.marginTop_f1 = this.margin.top + this.contextHeight + this.spacer1;
     this.marginTop_f2 = this.marginTop_f1 + FocusChildComponent.focus1Height + this.spacer2; 
     this.marginTop_f3 = this.marginTop_f2 + FocusChildComponent.focus2Height + this.spacer2; 
@@ -572,6 +573,7 @@ export class FocusChildComponent implements OnInit {
   }
 
   static drawAnnotBrushes() {
+  
     var brushSelection = FocusChildComponent.annotBrushesGroup.selectAll('.brush')
       .data(FocusChildComponent.annotBrushes, d => { return d.id });
 
@@ -604,9 +606,6 @@ export class FocusChildComponent implements OnInit {
     brushSelection.exit()
       .remove();
   }
-
-  
-
 
 
   private saveAnnotations() { // To be called by save button in UI
@@ -701,7 +700,6 @@ export class FocusChildComponent implements OnInit {
   }
 
   private addElements() {
-
     // Context
     // Appends line to Context
     FocusChildComponent.context.append("path")
@@ -824,6 +822,24 @@ export class FocusChildComponent implements OnInit {
       .text("Annotate")
       .style("font-weight", "bold")
       .style("cursor","pointer");
+
+      
+    var displayDateFrom = this.date_domain[0].toLocaleDateString("en-GB", {weekday: 'long'}) + " " + this.date_domain[0].toLocaleString();
+    var displayDateTo = this.date_domain[1].toLocaleDateString("en-GB", {weekday: 'long'}) + " " + this.date_domain[1].toLocaleString();
+    FocusChildComponent.svg.append("text")
+      .attr("dy", 15)
+      .attr("dx", this.margin.left)
+      .attr("text-anchor", "left")
+      .style("fill", "#616161")
+      .text("Displaying from: " + displayDateFrom + " to " + displayDateTo)
+
+      var displayRideMinutes = Math.round(((this.date_domain[1].getTime() - this.date_domain[0].getTime()) / 60000) * 10)/10;
+      FocusChildComponent.svg.append("text")
+      .attr("dy", 35)
+      .attr("dx", this.margin.left)
+      .attr("text-anchor", "left")
+      .style("fill", "#616161")
+      .text("Total time: " + displayRideMinutes + (displayRideMinutes > 1 ? " minutes" : " minute"));
 
     this.annotSaveBtn = this.annotEditor.append("g")
       .attr("class", "editor_button")
@@ -987,8 +1003,8 @@ export class FocusChildComponent implements OnInit {
     FocusChildComponent.annotChart1.select(".axis--x").call(FocusChildComponent.xAxis_f1);
 
     // WORKS: just a single brush 
-    //FocusChildComponent.annotChart1.select("#brush-0").call(FocusChildComponent.annotBrushes[0].brush.move, FocusChildComponent.lastSelection.map(t.applyX, t));
-    //console.log("single",FocusChildComponent.annotChart1.select("#brush-0"));
+    FocusChildComponent.annotChart1.select("#brush-0").call(FocusChildComponent.annotBrushes[0].brush.move, FocusChildComponent.lastSelection.map(t.applyX, t));
+    console.log("single",FocusChildComponent.annotChart1.select("#brush-0"));
 
     // TESTING
     // console.log("lastSel:", FocusChildComponent.lastSelection)
@@ -1005,8 +1021,7 @@ export class FocusChildComponent implements OnInit {
     //   }
     // }
 
-
-    // BUGGY: Update all brushes when zooming
+    // // BUGGY: Update all brushes when zooming
     FocusChildComponent.annotBrushes.forEach((brushObject: any) => {
       var brush = document.getElementById('brush-' + brushObject.id);
 

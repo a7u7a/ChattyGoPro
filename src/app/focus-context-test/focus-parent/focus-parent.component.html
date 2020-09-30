@@ -1,8 +1,18 @@
+<div>
+    <input [value]="foo" (change)="changeFn($event)">
+    <p></p>
+    <input [(ngModel)]="bar" (ngModelChange)="modelChangeFn($event)">
+    <p></p>
+  </div>
+
 <nb-card>
+    
     <nb-card-header>Data Annotator Tool</nb-card-header>
 
     <nb-card-body>
+        
         Select date and device: <br>
+        
         <input nbInput placeholder="Pick Date" [nbDatepicker]="dateTimePicker">
         <nb-datepicker #dateTimePicker ></nb-datepicker>
 
@@ -12,7 +22,7 @@
             <nb-option value="Cam3">Cam3</nb-option>
         </nb-select>    
 
-        <button nbButton >Load Data</button>
+        <button disabled nbButton >Load Data</button>
     </nb-card-body>
 
     <nb-card-body>

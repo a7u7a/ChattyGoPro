@@ -1,27 +1,20 @@
-import { Component, OnInit } from '@angular/core';
-
+import { Component } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 @Component({
   selector: 'app-users',
   templateUrl: './users.component.html',
-  styleUrls: ['./users.component.scss'],
-  template: `
-
-    <nb-layout>
-      <nb-layout-header fixed>Company Name</nb-layout-header>
-
-      <nb-sidebar>Sidebar Content</nb-sidebar>
-
-      <nb-layout-column>
-        Page Content <button nbButton>Hello World</button>
-      </nb-layout-column>
-    </nb-layout>
-  `
+  styleUrls: ['./users.component.scss']
 })
-export class UsersComponent implements OnInit {
 
-  constructor() { }
-
-  ngOnInit(): void {
+export class UsersComponent {
+  foo = 'Hello';
+  bar = 'World';
+  
+  changeFn(e) {
+    this.foo = e.target.value;
+  }
+  modelChangeFn(e) {
+    this.bar = e;
   }
 
 }
