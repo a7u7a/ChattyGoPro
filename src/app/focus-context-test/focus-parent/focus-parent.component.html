@@ -1,10 +1,3 @@
-<div>
-    <input [value]="foo" (change)="changeFn($event)">
-    <p></p>
-    <input [(ngModel)]="bar" (ngModelChange)="modelChangeFn($event)">
-    <p></p>
-  </div>
-
 <nb-card>
     
     <nb-card-header>Data Annotator Tool</nb-card-header>
@@ -13,7 +6,7 @@
         
         Select date and device: <br>
         
-        <input nbInput placeholder="Pick Date" [nbDatepicker]="dateTimePicker">
+        <input nbInput placeholder="Pick Date" [ngModel]="testDate" [nbDatepicker]="dateTimePicker" (ngModelChange)="setPickerDate($event)" >
         <nb-datepicker #dateTimePicker ></nb-datepicker>
 
         <nb-select placeholder= "Pick a Camera" >

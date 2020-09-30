@@ -14,8 +14,8 @@ export class FocusParentComponent implements OnInit {
   selectedObj = "5e9064411b806200123de098";
   loadDataBtn;
   dateTimePicker;
-  foo = 'Hello';
-  public bar = 'World';
+  testDate
+  
 
   @ViewChild('focus1', {static: true}) chart: FocusChildComponent;
 
@@ -25,20 +25,10 @@ export class FocusParentComponent implements OnInit {
     this.chart.getData(this.startDate,this.endDate,this.selectedObj);
 
     this.loadDataBtn = document.getElementsByTagName("button")
-    console.log("btns",this.loadDataBtn[1]);
-    console.log("dateTimePicker",this.dateTimePicker);
-    console.log("zet", this.bar);
   }
 
-  changeFn(e) {
-    this.foo = e.target.value;
-    console.log(this.foo);
-    console.log("zet",this.bar);
-  }
-
-  modelChangeFn(value) {
-    this.bar = value;
-    console.log(this.bar);
+  setPickerDate(value) {    
+    console.log(value);
   }
 
   private makeChart(){
