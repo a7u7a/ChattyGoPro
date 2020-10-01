@@ -6,35 +6,38 @@
     <nb-card-header>Data Annotator Tool</nb-card-header>
 
     <nb-card-body>
-        
+
+        Select date and device: <br>
 
         <form [formGroup]="form" (ngSubmit)="submit()">
-            <label for="orders">Order</label>
+            
             <nb-select formControlName="orders" id="orders">
               <nb-option *ngFor="let order of orders; let i = index" [value]="orders[i].id">
                 {{orders[i].name}}
               </nb-option>
             </nb-select>
-          
-            <button nbButton>submit</button>
-          </form>
-
-
-        Select date and device: <br>
         
-        <input nbInput placeholder="Pick Date" [ngModel]="testDate" [nbDatepicker]="dateTimePicker" (ngModelChange)="setPickerDate($event)" >
-        <nb-datepicker #dateTimePicker ></nb-datepicker>
+            <input nbInput placeholder="Pick Date" [ngModel]="testDate" [nbDatepicker]="dateTimePicker" (ngModelChange)="setPickerDate($event)"[ngModelOptions]="{standalone: true}" >
+            <nb-datepicker #dateTimePicker ></nb-datepicker>
+
+
+
+            
+            <button nbButton>Submit</button>
+          </form>
+        
+        
 
         <!-- <input nbInput [nbTimepicker]="timepicker">
         <nb-timepicker #timepicker></nb-timepicker> -->
 
-        <nb-select id="testSel" placeholder= "Pick a Camera" >
+        <!-- <nb-select id="testSel" placeholder= "Pick a Camera" >
             <nb-option value="Cam1">Cam1</nb-option>
             <nb-option value="Cam2">Cam2</nb-option>
             <nb-option value="Cam3">Cam3</nb-option>
-        </nb-select>    
+        </nb-select>     -->
 
-        <button disabled nbButton >Load Data</button>
+        <!-- <button disabled nbButton >Load Data</button> -->
     </nb-card-body>
 
     <nb-card-body>

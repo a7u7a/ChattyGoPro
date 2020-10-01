@@ -26,25 +26,20 @@ export class FocusParentComponent implements OnInit {
     private formBuilder: FormBuilder, 
     private data_service: DataService) {
     this.form = this.formBuilder.group({
-      orders: ['']
+      orders: [''],
+      testDate: String,
+      
     });}
 
   ngOnInit(): void {
+    // Init chart(tbd: once user has selected time range and camID)
     this.chart.getData(this.startDate,this.endDate,this.selectedObj);
 
-    this.loadDataBtn = document.getElementsByTagName("button")
+    // this.loadDataBtn = document.getElementsByTagName("button")
+
     this.data_service.listSensors().subscribe((response)=> {
       console.log("sensor list:",response);
     })
-
-    var sel = document.getElementById("testSel");
-    //sel.add(new Option(items[i].text, items[i].value));
-    var opt = <HTMLInputElement>document.createElement('nb-option');
-    opt.appendChild( document.createTextNode('New Option Text'));
-    // set value property of opt
-    opt.value = 'option value'; 
-    // add opt to end of select box (sel)
-    sel.appendChild(opt); 
 
     // async orders
     of(this.getOrders()).subscribe(orders => {
@@ -55,10 +50,11 @@ export class FocusParentComponent implements OnInit {
 
   getOrders() {
     return [
-      { id: '1', name: 'order 1' },
-      { id: '2', name: 'order 2' },
-      { id: '3', name: 'order 3' },
-      { id: '4', name: 'order 4' }
+      { id: '1', name: 'cam1' },
+      { id: '2', name: 'cam2' },
+      { id: '3', name: 'cam3' },
+      { id: '4', name: 'cam4' },
+      { id: '5', name: 'cam5' }
     ];
   }
 
@@ -72,7 +68,7 @@ export class FocusParentComponent implements OnInit {
   }
 
 
-  
+
 
   private makeChart(){
     // Create data selection objects
