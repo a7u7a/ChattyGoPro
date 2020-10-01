@@ -5,11 +5,12 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NbThemeModule, NbLayoutModule, NbInputModule, NbCardModule,NbDatepickerModule,NbSelectModule,NbButtonModule } from '@nebular/theme';
-//import { NbTimepickerModule } from '@nebular/theme';
+import { NbTimepickerModule } from '@nebular/theme';
 import { NbEvaIconsModule } from '@nebular/eva-icons';
 import { NbMenuModule, NbSidebarModule, NbIconModule } from '@nebular/theme';
-import { HomeComponent } from './home/home.component';
 import { HttpClientModule } from '@angular/common/http';
+import { ReactiveFormsModule } from '@angular/forms';
+import { HomeComponent } from './home/home.component';
 import { FocusParentComponent } from './focus-context-test/focus-parent/focus-parent.component';
 import { FocusChildComponent } from './focus-context-test/focus-child/focus-child.component';
 import { DataService } from './data.service'
@@ -35,10 +36,11 @@ import { DataService } from './data.service'
     NbIconModule,
     HttpClientModule,
     NbDatepickerModule.forRoot(),
-    //NbTimepickerModule.forRoot(),
+    NbTimepickerModule.forRoot(),
     NbSelectModule,
     NbInputModule,
     NbCardModule,
+    ReactiveFormsModule,
   ],
   providers: [DataService],
   bootstrap: [AppComponent]

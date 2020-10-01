@@ -1004,7 +1004,7 @@ export class FocusChildComponent implements OnInit {
 
     // WORKS: just a single brush 
     FocusChildComponent.annotChart1.select("#brush-0").call(FocusChildComponent.annotBrushes[0].brush.move, FocusChildComponent.lastSelection.map(t.applyX, t));
-    console.log("single",FocusChildComponent.annotChart1.select("#brush-0"));
+    //console.log("single",FocusChildComponent.annotChart1.select("#brush-0"));
 
     // TESTING
     // console.log("lastSel:", FocusChildComponent.lastSelection)
