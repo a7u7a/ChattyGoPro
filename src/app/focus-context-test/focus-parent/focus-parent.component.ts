@@ -68,7 +68,7 @@ export class FocusParentComponent implements OnInit {
 
       console.log("selected date range from: ", this.startDate, "to:", this.endDate);
       console.log("selected device:", this.selectedObj);
-      
+      this.chart.displayForm = true;
       this.makeChart();
     }
     else{

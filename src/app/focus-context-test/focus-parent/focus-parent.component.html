@@ -1,46 +1,45 @@
-
-
 <nb-card>
-    
-    
-    <nb-card-header>Data Annotator Tool</nb-card-header>
 
-    <nb-card-body>
 
-        Select date and device: <br>
+  <nb-card-header>Data Annotator Tool</nb-card-header>
 
-        <form [formGroup]="form" (ngSubmit)="submit()">
-            
-            <nb-select formControlName="devices" id="devices" placeholder="Pick device">
-              <nb-option *ngFor="let camera of cameras; let i = index" [value]="cameras[i].id">
-                {{cameras[i].name}}
-              </nb-option>
-            </nb-select>
-        
-            <input nbInput placeholder="Pick Date" [ngModel]="pickedDate" [nbDatepicker]="dateTimePicker" (ngModelChange)="setPickerDate($event)"[ngModelOptions]="{standalone: true}" >
-            <nb-datepicker #dateTimePicker ></nb-datepicker>
-            
-            <button nbButton>Submit</button>
-          </form>
-        
-        
+  <nb-card-body>
 
-        <!-- <input nbInput [nbTimepicker]="timepicker">
+    Select date and device: <br>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+
+      <nb-select formControlName="devices" id="devices" placeholder="Pick device">
+        <nb-option *ngFor="let camera of cameras; let i = index" [value]="cameras[i].id">
+          {{cameras[i].name}}
+        </nb-option>
+      </nb-select>
+
+      <input nbInput placeholder="Pick Date" [ngModel]="pickedDate" [nbDatepicker]="dateTimePicker"
+        (ngModelChange)="setPickerDate($event)" [ngModelOptions]="{standalone: true}">
+      <nb-datepicker #dateTimePicker></nb-datepicker>
+
+      <button nbButton>Submit</button>
+    </form>
+
+
+
+    <!-- <input nbInput [nbTimepicker]="timepicker">
         <nb-timepicker #timepicker></nb-timepicker> -->
 
-        <!-- <nb-select id="testSel" placeholder= "Pick a Camera" >
+    <!-- <nb-select id="testSel" placeholder= "Pick a Camera" >
             <nb-option value="Cam1">Cam1</nb-option>
             <nb-option value="Cam2">Cam2</nb-option>
             <nb-option value="Cam3">Cam3</nb-option>
         </nb-select>     -->
 
-        <!-- <button disabled nbButton >Load Data</button> -->
-    </nb-card-body>
+    <!-- <button disabled nbButton >Load Data</button> -->
+  </nb-card-body>
 
-    <nb-card-body>
-        
-        <app-focus-child #focus1> 
-        </app-focus-child>
-      
-    </nb-card-body>
-  </nb-card>
+  <nb-card-body>
+
+    <app-focus-child #focus1>
+    </app-focus-child>
+
+  </nb-card-body>
+</nb-card>

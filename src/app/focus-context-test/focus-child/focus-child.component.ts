@@ -23,7 +23,7 @@ export class FocusChildComponent implements OnInit {
   static y_f1;
   static y_f2;
   static y_f3;
-  y_context;
+  y_context; 
   static xAxis_context;
   static xAxis_f1;
   static xAxis_f2;
@@ -94,6 +94,7 @@ export class FocusChildComponent implements OnInit {
   static annotBrushes = []; // Keep track of annot brushes
   static annotBrushesGroup; // SVG group where annot brushes go
   static annotBrushOverlayHeight;
+  public displayForm = false;
   toEpoch = d3.timeFormat("%Q");
 
   constructor(
@@ -171,6 +172,8 @@ export class FocusChildComponent implements OnInit {
 
     this.setChartDimensions();
 
+    this.makeTimeRangeDisplay();
+
     this.setAxis();
 
     this.setContextBrush();
@@ -223,7 +226,7 @@ export class FocusChildComponent implements OnInit {
     this.highlighterBrushOverlayHeight = FocusChildComponent.focus1Height + FocusChildComponent.focus1Height + FocusChildComponent.focus3Height + this.spacer2 *2;
     
     //this.hostElement = document.getElementById("chartView");
-    FocusChildComponent.svg = d3.select(this.hostElement).append('svg')
+    FocusChildComponent.svg = d3.select("#mainChart").append('svg')
       .attr('width', "100%")
       .attr('height', "100%")
       .attr('viewBox', '0 0 ' + viewBoxWidth + ' ' + this.stackedHeight)
@@ -834,73 +837,21 @@ export class FocusChildComponent implements OnInit {
 
     // Set initial states for editor buttons
     this.annotBtn = d3.select("app-focus-child")
-    .append("button")
-    .text("Annotate")
-    .on("click", this.toggleAnnotationMode.bind(this));
+      .append("button")
+      .text("Annotate")
+      .on("click", this.toggleAnnotationMode.bind(this));
 
     this.annotSaveBtn = d3.select("app-focus-child")
       .append("button")
       .attr("disabled", "true")
       .text("Save");
 
-    // this.annotSaveBtn = this.annotEditor.append("g")
-    //   .attr("class", "editor_button")
-    //   .attr("transform", "translate(90,0)")
-    // this.annotSaveBtn.append("rect")
-    //   .attr("width", 80)
-    //   .attr("height", 40)
-    //   .style("fill", "white")
-    //   .style("stroke", "#bfbfbf")
-    //   .style("cursor","pointer");
-    // this.annotSaveBtn.append("text")
-    //   .attr("dy", (40 / 2 + 5))
-    //   .attr("dx", 80 / 2)
-    //   .style("text-anchor", "middle")
-    //   .style("fill", "#bfbfbf")
-    //   .text("Save")
-    //   .style("font-weight", "bold")
-    //   .style("cursor","pointer");
+    this.deleteBtn = d3.select("app-focus-child")
+      .append("button")
+      .attr("disabled", "true")
+      .text("Delete");
 
-    this.deleteBtn = this.annotEditor.append("g")
-      .attr("class", "editor_button")
-      .attr("transform", "translate(180,0)")
-    this.deleteBtn.append("rect")
-      .attr("width", 80)
-      .attr("height", 40)
-      .style("fill", "white")
-      .style("stroke", "#bfbfbf")
-      .style("cursor","pointer");
-    this.deleteBtn.append("text")
-      .attr("dy", (40 / 2 + 5))
-      .attr("dx", 80 / 2)
-      .style("text-anchor", "middle")
-      .style("fill", "#bfbfbf")
-      .text("Delete")
-      .style("font-weight", "bold")
-      .style("cursor","pointer");
-
-
-// ANNOTATOR EDITOR
-// NEW WAY OF DEALING WITH BUTTONS
     
-
-
-
-    var test3 = d3.select("app-focus-child")
-        .append("g")
-        .append("button")
-        .attr("disabled", "true")
-        .text("Delete")
-
-        this.themeField = d3.select("app-focus-child")
-        .append("g")
-        .append('input')
-        .attr('type','text')
-        .attr('name','textInput').attr('value','Theme');
-
-    this.subThemeField = d3.select("app-focus-child").append("g").append('input').attr('type','text').attr('name','textInput').attr('value','Subtheme');
-
-    this.notesField = d3.select("app-focus-child").append("g").append('input').attr('type','text').attr('name','textInput').attr('value','Notes');
   }
 
   private toggleAnnotationMode() {
@@ -928,10 +879,6 @@ export class FocusChildComponent implements OnInit {
 
       // Enable save button
       this.annotSaveBtn.attr("disabled", null).on("click", this.saveAnnotations.bind(this));
-      
-      // this.annotSaveBtn.select('text').style("fill", "#616161")
-      // this.annotSaveBtn.select('rect').style("stroke", "#616161")
-      // this.annotSaveBtn.on("click", this.saveAnnotations.bind(this));
 
     }else{
 
@@ -946,8 +893,6 @@ export class FocusChildComponent implements OnInit {
       
       // Disable save button
       this.annotSaveBtn.attr("disabled", "true").on("click", null);
-      // this.annotSaveBtn.select('text').style("fill", "#bfbfbf")
-      // this.annotSaveBtn.select('rect').style("stroke", "#bfbfbf")
       
     }
   }

@@ -15,21 +15,15 @@ app-focus-child {
     stroke: #000;
   }
 
-  // .editor_button {
-  //   cursor: pointer;
-  // }
-
-  // .editor_button rect{
-  //   fill:#a3a3a3;
-  //   border-radius: 10%;
-  //   border: 2px solid #73AD21;
-  // }
-
-  // .editor_button text {
-  //   fill:#ebebeb;
-  // }
-
-  // .editor_button:hover text {
-  //   fill: #417DD6;
-	//   transition: all 0.1s cubic-bezier(.25,.8,.25,1);
-  // }
+.annotations{
+  .inputs{
+    display: flex;
+    margin-bottom: 15px;
+    :first-child{
+      margin-right: 15px;
+    }
+  }
+  .textarea{
+    width: 100%;
+  }
+}
