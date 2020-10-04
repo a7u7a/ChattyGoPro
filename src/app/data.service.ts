@@ -34,4 +34,9 @@ export class DataService {
   public listSensors(){
     return this.httpClient.post<any>(environment.apiUrl + '/admin/objects/list', {});
   }
+
+  public addObject(object) {
+    return this.httpClient.post<any>(environment.apiUrl + '/admin/objects/add', {object:object});
+  }
+
 }

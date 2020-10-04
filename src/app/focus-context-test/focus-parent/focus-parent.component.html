@@ -11,17 +11,14 @@
 
         <form [formGroup]="form" (ngSubmit)="submit()">
             
-            <nb-select formControlName="orders" id="orders">
-              <nb-option *ngFor="let order of orders; let i = index" [value]="orders[i].id">
-                {{orders[i].name}}
+            <nb-select formControlName="devices" id="devices" placeholder="Pick device">
+              <nb-option *ngFor="let camera of cameras; let i = index" [value]="cameras[i].id">
+                {{cameras[i].name}}
               </nb-option>
             </nb-select>
         
-            <input nbInput placeholder="Pick Date" [ngModel]="testDate" [nbDatepicker]="dateTimePicker" (ngModelChange)="setPickerDate($event)"[ngModelOptions]="{standalone: true}" >
+            <input nbInput placeholder="Pick Date" [ngModel]="pickedDate" [nbDatepicker]="dateTimePicker" (ngModelChange)="setPickerDate($event)"[ngModelOptions]="{standalone: true}" >
             <nb-datepicker #dateTimePicker ></nb-datepicker>
-
-
-
             
             <button nbButton>Submit</button>
           </form>

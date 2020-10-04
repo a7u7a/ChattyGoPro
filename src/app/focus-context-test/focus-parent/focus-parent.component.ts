@@ -2,7 +2,8 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { FocusChildComponent } from './../focus-child/focus-child.component';
 import { DataService } from '../../data.service';
 import { FormBuilder,FormGroup,FormArray,FormControl, ValidatorFn } from '@angular/forms';
-import { of } from 'rxjs';
+import * as d3 from 'd3';
+import { ElementSchemaRegistry } from '@angular/compiler';
 
 @Component({
   selector: 'app-focus-parent',
@@ -11,14 +12,17 @@ import { of } from 'rxjs';
 })
 
 export class FocusParentComponent implements OnInit {
-  startDate = "1593028342060";
-  endDate = "1593028405691";
-  selectedObj = "5e9064411b806200123de098";
-  loadDataBtn;
+  // startDate = "1593028342060";
+  // endDate = "1593028405691";
+
+  startDate;
+  endDate;
+  selectedObj;
   dateTimePicker;
-  testDate;
   form: FormGroup;
-  orders = [];  
+  cameras = [];
+  pickedDate;
+  toEpoch = d3.timeFormat("%Q");
 
   @ViewChild('focus1', {static: true}) chart: FocusChildComponent;
 
@@ -26,54 +30,58 @@ export class FocusParentComponent implements OnInit {
     private formBuilder: FormBuilder, 
     private data_service: DataService) {
     this.form = this.formBuilder.group({
-      orders: [''],
-      testDate: String,
-      
+      devices: [''], // formControlName!
     });}
 
   ngOnInit(): void {
-    // Init chart(tbd: once user has selected time range and camID)
-    this.chart.getData(this.startDate,this.endDate,this.selectedObj);
+    this.getDevices();
 
-    // this.loadDataBtn = document.getElementsByTagName("button")
+    // Create new object(temporary hack because I couldnt create an object using the python interface)
+    // var object:any={ name:"5e9064411b806200123de098", components:[{name:""}]};
+    // this.data_service.addObject(object).subscribe(response =>{
+    //   console.log("addobject",response);
+    // });
+  }
 
+  private getDevices() {
+    // Fetches list of objects from database and builds dropdown selection array
+    // Will only use entries containing a top level name field
     this.data_service.listSensors().subscribe((response)=> {
-      console.log("sensor list:",response);
-    })
-
-    // async orders
-    of(this.getOrders()).subscribe(orders => {
-      this.orders = orders;
-      this.form.controls.orders.patchValue(this.orders[0].id);
+      var counter = 0
+      response.data.forEach((element, index) => {
+        if(element.name){
+          this.cameras.push({id: counter, name: element.name})
+          counter ++;
+        }
+      });
     });
   }
 
-  getOrders() {
-    return [
-      { id: '1', name: 'cam1' },
-      { id: '2', name: 'cam2' },
-      { id: '3', name: 'cam3' },
-      { id: '4', name: 'cam4' },
-      { id: '5', name: 'cam5' }
-    ];
-  }
-
   submit() {
-    console.log(this.form.value);
+    // Init chart(tbd: once user has selected time range and camID)
+    // Currently only works for 24 hour intervals
+    if(typeof(this.form.value.devices) === 'number' && !isNaN(this.pickedDate)){
+      this.startDate = this.toEpoch(this.pickedDate);
+      var dayShift = this.pickedDate; // so as not to modify 'pickeDate'
+      this.endDate = dayShift.setHours(dayShift.getHours()+24).toString();
+      this.selectedObj = this.cameras[this.form.value.devices].name
+
+      console.log("selected date range from: ", this.startDate, "to:", this.endDate);
+      console.log("selected device:", this.selectedObj);
+      
+      this.makeChart();
+    }
+    else{
+      console.log("Please select date and device!");
+    }
   }
 
-  setPickerDate(value) {    
-    console.log(value);
-    
+setPickerDate(value) {  
+  // Used by datePicker to set user defined date selection
+    this.pickedDate = value;
   }
-
-
-
 
   private makeChart(){
-    // Create data selection objects
-    // this.startDate = "1593028342060";
-    // this.endDate = "1593028405691";
-    // this.selectedObj = "5e9064411b806200123de098";
+    this.chart.getData(this.startDate,this.endDate,this.selectedObj);
   }
 }
