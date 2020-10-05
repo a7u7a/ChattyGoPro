@@ -75,10 +75,7 @@ export class FocusChildComponent implements OnInit {
   margin;
   static lastSelection;
   static brushSelection;
-  annotBtn;
   annotEditor;
-  annotSaveBtn;
-  deleteBtn;
   annotModeEnabled = false;
   static highlighterBrush;
   highlighterBrushOverlayHeight;
@@ -101,6 +98,10 @@ export class FocusChildComponent implements OnInit {
   displayDateFrom;
   displayDateTo;
   displayRideMinutes;
+  annotateBtnText = "Annotate";
+  disableSave = true;
+  enableAnnotFields = false;
+
 
   toEpoch = d3.timeFormat("%Q");
 
@@ -213,13 +214,10 @@ export class FocusChildComponent implements OnInit {
 
     this.createZoom(); // Includes zoom toggle
 
-    this.createAnnotationEditor();
-
     this.addElements();
 
     this.displayAnnotationForm = true;
     this.showChartInfo = true;
-    
   }
 
   private setChartDimensions() {
@@ -546,6 +544,7 @@ export class FocusChildComponent implements OnInit {
   }
 
   private highlightBrushed(){
+    this.enableAnnotFields = false;
     // Creates a new annotation-like object that we can later write to the server
     // Get higlighter brush selection
     var higlighterEl = document.getElementById('highlighterBrush');
@@ -636,76 +635,6 @@ export class FocusChildComponent implements OnInit {
 
     brushSelection.exit()
       .remove();
-  }
-
-
-  private saveAnnotations() { // To be called by save button in UI
-    console.log("in annotBrushes", FocusChildComponent.annotBrushes.length)
-
-
-    // Compute changes: which annotations have changed and need to be updated? (replaced)
-    FocusChildComponent.annotBrushes.forEach((brushObject: any) => {
-      // Get brush
-      var brush = document.getElementById('brush-' + brushObject.id);
-      if (brush instanceof SVGGElement) {
-        // Get selection
-        var selection = d3.brushSelection(brush);
-
-        if (selection) {
-          // console.log("current brushObject:",brushObject);
-          var brushTheme = brushObject.theme,
-              brushSubtheme = brushObject.subtheme,
-              brushNotes = brushObject.notes,
-              brushStartEpoch = Number(this.toEpoch(FocusChildComponent.x.invert(selection[0]))),
-              brushEndEpoch = Number(this.toEpoch(FocusChildComponent.x.invert(selection[1])));
-
-          // Filter brushes that contain edits
-          if (Object.keys(FocusChildComponent.annotations).includes(brushObject.id)) {
-            // There is probably a simpler way to compare dicts but I needed to convert timescale values to epoch
-            var annotStartEpoch = FocusChildComponent.annotations[brushObject.id].startDateEpoch,
-                annotEndEpoch = FocusChildComponent.annotations[brushObject.id].endDateEpoch,
-                annotTheme = FocusChildComponent.annotations[brushObject.id].theme,
-                annotSubtheme = FocusChildComponent.annotations[brushObject.id].subtheme,
-                annotNotes = FocusChildComponent.annotations[brushObject.id].notes;
-
-            // Check for changes on any of the fields
-            if (brushStartEpoch != annotStartEpoch ||
-              brushEndEpoch != annotEndEpoch ||
-              brushTheme != annotTheme ||
-              brushSubtheme != annotSubtheme ||
-              brushNotes != annotNotes) {
-
-              // Delete old annotation
-              console.group("is contained",Object.keys(FocusChildComponent.annotations))
-              console.log("Change detected replacing", brushObject.id);
-              this.deleteAnnotation(brushObject.id)
-
-              // Save new one
-              // I am doing it like this because brushobject also stores the d3.brush which we dont need on the server
-              this.addAnnotation(brushTheme, brushSubtheme, brushStartEpoch, brushEndEpoch, brushNotes);
-            }
-          }
-          else {
-            console.log("New brush detected:", brushObject.id);
-            // Add new brush-annotations to server
-            this.addAnnotation(brushTheme, brushSubtheme, brushStartEpoch, brushEndEpoch, brushNotes);
-          }
-        }
-      }
-    });
-
-    if(this.newAnnotation){
-      console.log("new brush annotatition");
-      this.addAnnotation(this.newAnnotation.theme, this.newAnnotation.subtheme, this.newAnnotation.startEpoch, this.newAnnotation.endEpoch, this.newAnnotation.notes )
-      this.newAnnotation = null;
-    }
-    else{
-      console.log("no new annotations");
-    }
-    
-    this.resetBrushes();
-    this.toggleAnnotationMode();
-
   }
 
   private resetBrushes(){
@@ -835,71 +764,123 @@ export class FocusChildComponent implements OnInit {
   }
 
 
-  private createAnnotationEditor() {
+// ANNOTATION CONTROL HANDLERS
 
-    this.annotEditor = FocusChildComponent.svg.append("g")
-      .attr("id", "annotation_editor")
-      .attr("transform", "translate(" + this.margin.left +","+ this.martinTop_annotEditor + ")")
+toggleAnnotationMode(){  
 
-    // Set initial states for editor buttons
-    this.annotBtn = d3.select("app-focus-child")
-      .append("button")
-      .text("Annotate")
-      .on("click", this.toggleAnnotationMode.bind(this));
+  this.annotModeEnabled = ! this.annotModeEnabled;
+  if(this.annotModeEnabled){
+    console.log("annot mode ON");
 
-    this.annotSaveBtn = d3.select("app-focus-child")
-      .append("button")
-      .attr("disabled", "true")
-      .text("Save");
+    this.annotateBtnText = "Discard";
 
-    this.deleteBtn = d3.select("app-focus-child")
-      .append("button")
-      .attr("disabled", "true")
-      .text("Delete");
-  }
-
-  private toggleAnnotationMode() {
-    this.annotModeEnabled = ! this.annotModeEnabled;
-    if(this.annotModeEnabled){
-      console.log("annot mode ON");
-
-      this.annotBtn.text('Discard')
-
-      // Enable dragging brushes
-      for(var key in FocusChildComponent.annotations){
-        FocusChildComponent.annotChart1.select('#brush-' + key).style('pointer-events', 'all');
-      }
-
-      // Re-enable highlighter
-      if(d3.select('#highlighterBrush').empty()){
-      FocusChildComponent.svg.append("g")
-        .attr("id", "highlighterBrush")
-        .attr("transform", "translate(" + this.margin.left + "," + this.marginTop_f1 + ")")
-        .call(FocusChildComponent.highlighterBrush);}
-
-      // Disable zoom
-      FocusChildComponent.svg.select(".zoom")
-        .attr("fill", "none");
-
-      // Enable save button
-      this.annotSaveBtn.attr("disabled", null).on("click", this.saveAnnotations.bind(this));
-
-    }else{
-
-      console.log("annot mode OFF");
-      
-      // Update button text
-      this.annotBtn.text('Annotate')
-
-      // Disable zoom
-      FocusChildComponent.svg.select(".zoom")
-        .attr("fill", "white");
-      
-      // Disable save button
-      this.annotSaveBtn.attr("disabled", "true").on("click", null);
-      
+    // Enable dragging brushes
+    for(var key in FocusChildComponent.annotations){
+      FocusChildComponent.annotChart1.select('#brush-' + key).style('pointer-events', 'all');
     }
+
+    // Re-enable highlighter
+    if(d3.select('#highlighterBrush').empty()){
+    FocusChildComponent.svg.append("g")
+      .attr("id", "highlighterBrush")
+      .attr("transform", "translate(" + this.margin.left + "," + this.marginTop_f1 + ")")
+      .call(FocusChildComponent.highlighterBrush);}
+
+    // Disable zoom
+    FocusChildComponent.svg.select(".zoom")
+      .attr("fill", "none");
+
+    // Enable save button
+    this.disableSave = false;
+
+  }else{
+    d3.select('#highlighterBrush').remove();
+
+    console.log("annot mode OFF");
+    
+    // Update button text
+    this.annotateBtnText = "Annotate";
+
+    // Disable zoom
+    FocusChildComponent.svg.select(".zoom")
+      .attr("fill", "white");
+    
+    // Disable save button
+    this.disableSave = true;
+    this.resetBrushes();
+
+    this.enableAnnotFields = true;
   }
+}
+
+saveAnnotations() { // To be called by save button in UI
+  console.log("in annotBrushes", FocusChildComponent.annotBrushes.length)
+
+
+  // Compute changes: which annotations have changed and need to be updated? (replaced)
+  FocusChildComponent.annotBrushes.forEach((brushObject: any) => {
+    // Get brush
+    var brush = document.getElementById('brush-' + brushObject.id);
+    if (brush instanceof SVGGElement) {
+      // Get selection
+      var selection = d3.brushSelection(brush);
+
+      if (selection) {
+        // console.log("current brushObject:",brushObject);
+        var brushTheme = brushObject.theme,
+            brushSubtheme = brushObject.subtheme,
+            brushNotes = brushObject.notes,
+            brushStartEpoch = Number(this.toEpoch(FocusChildComponent.x.invert(selection[0]))),
+            brushEndEpoch = Number(this.toEpoch(FocusChildComponent.x.invert(selection[1])));
+
+        // Filter brushes that contain edits
+        if (Object.keys(FocusChildComponent.annotations).includes(brushObject.id)) {
+          // There is probably a simpler way to compare dicts but I needed to convert timescale values to epoch
+          var annotStartEpoch = FocusChildComponent.annotations[brushObject.id].startDateEpoch,
+              annotEndEpoch = FocusChildComponent.annotations[brushObject.id].endDateEpoch,
+              annotTheme = FocusChildComponent.annotations[brushObject.id].theme,
+              annotSubtheme = FocusChildComponent.annotations[brushObject.id].subtheme,
+              annotNotes = FocusChildComponent.annotations[brushObject.id].notes;
+
+          // Check for changes on any of the fields
+          if (brushStartEpoch != annotStartEpoch ||
+            brushEndEpoch != annotEndEpoch ||
+            brushTheme != annotTheme ||
+            brushSubtheme != annotSubtheme ||
+            brushNotes != annotNotes) {
+
+            // Delete old annotation
+            console.group("is contained",Object.keys(FocusChildComponent.annotations))
+            console.log("Change detected replacing", brushObject.id);
+            this.deleteAnnotation(brushObject.id)
+
+            // Save new one
+            // I am doing it like this because brushobject also stores the d3.brush which we dont need on the server
+            this.addAnnotation(brushTheme, brushSubtheme, brushStartEpoch, brushEndEpoch, brushNotes);
+          }
+        }
+        else {
+          console.log("New brush detected:", brushObject.id);
+          // Add new brush-annotations to server
+          this.addAnnotation(brushTheme, brushSubtheme, brushStartEpoch, brushEndEpoch, brushNotes);
+        }
+      }
+    }
+  });
+
+  if(this.newAnnotation){
+    console.log("new brush annotatition");
+    this.addAnnotation(this.newAnnotation.theme, this.newAnnotation.subtheme, this.newAnnotation.startEpoch, this.newAnnotation.endEpoch, this.newAnnotation.notes )
+    this.newAnnotation = null;
+  }
+  else{
+    console.log("no new annotations");
+  }
+  
+  this.toggleAnnotationMode();
+}
+
+
 
   static brushed() { // Brush event handler
     // if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom

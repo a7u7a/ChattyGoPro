@@ -12,14 +12,12 @@
 <div class="annotation-controls" *ngIf="displayAnnotationForm">
 
     <div class="inputs">
-        <button nbButton size="small" class="annotation-button">Annotate</button>
-        <button nbButton size="small" class="save-button">Save</button>
-        <button nbButton size="small" class="delete-button">Delete</button>
+        <button id="annotation-btn" nbButton size="small" class="annotation-button" (click)="toggleAnnotationMode()" > {{ annotateBtnText }}</button>
+        <button nbButton size="small" id="save-button" class="save-button" [disabled]="disableSave" (click)="saveAnnotations()" >Save</button>
+        <button nbButton size="small" id="delete-button" class="delete-button" [disabled]="true" >Delete</button>
 
-        <input nbInput type="text" class="theme-field" placeholder="Theme" fieldSize="small" style="font-weight:normal;">
-        <input nbInput type="text" class="subtheme-field" placeholder="Subtheme" fieldSize="small"
-            style="font-weight:normal;">
+        <input nbInput type="text" class="theme-field" placeholder="Theme" fieldSize="small" [disabled]="enableAnnotFields" style="font-weight:normal;">
+        <input nbInput type="text" class="subtheme-field" placeholder="Subtheme" fieldSize="small" [disabled]="enableAnnotFields" style="font-weight:normal;">
     </div>
-    <textarea nbInput class="notes-field textarea input-full-width" placeholder="Notes" fieldSize="small"
-        style="font-weight:normal;"></textarea>
+    <textarea nbInput class="notes-field textarea input-full-width" placeholder="Notes" fieldSize="small" [disabled]="enableAnnotFields" style="font-weight:normal;"></textarea>
 </div>
