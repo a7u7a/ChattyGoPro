@@ -90,6 +90,9 @@
             },
             "lancs": {
               "browserTarget": "nebulartest:build:lancs"
+            },
+            "edin": {
+              "browserTarget": "nebulartest:build:edin"
             }
           }
         },
