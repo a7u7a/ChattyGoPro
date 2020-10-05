@@ -7,19 +7,19 @@
 
     Select date and device: <br>
 
-    <form [formGroup]="form" (ngSubmit)="submit()">
+    <form [formGroup]="form" (ngSubmit)="submit()" class="input-form">
 
-      <nb-select formControlName="devices" id="devices" placeholder="Pick device">
-        <nb-option *ngFor="let camera of cameras; let i = index" [value]="cameras[i].id">
+      <nb-select formControlName="devices" id="devices" placeholder="Pick device" >
+        <nb-option *ngFor="let camera of cameras; let i = index" [value]="cameras[i].id" >
           {{cameras[i].name}}
         </nb-option>
       </nb-select>
 
-      <input nbInput placeholder="Pick Date" [ngModel]="pickedDate" [nbDatepicker]="dateTimePicker"
+      <input nbInput placeholder="Pick Date" [ngModel]="pickedDate" [nbDatepicker]="dateTimePicker" 
         (ngModelChange)="setPickerDate($event)" [ngModelOptions]="{standalone: true}">
       <nb-datepicker #dateTimePicker></nb-datepicker>
 
-      <button nbButton>Submit</button>
+      <button nbButton class="submit-button">Submit</button>
     </form>
 
 

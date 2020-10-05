@@ -15,12 +15,21 @@ app-focus-child {
     stroke: #000;
   }
 
-.annotations{
+.annotation-controls{
   .inputs{
     display: flex;
-    margin-bottom: 15px;
-    :first-child{
-      margin-right: 15px;
+    margin-bottom: 10px;
+    .annotation-button{
+      margin-right: 10px;
+    }
+    .save-button{
+      margin-right: 10px;
+    }
+    .delete-button{
+      margin-right: 30px;
+    }
+    .theme-field{
+      margin-right: 10px;
     }
   }
   .textarea{

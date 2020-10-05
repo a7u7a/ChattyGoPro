@@ -1,8 +1,25 @@
-<div id="mainChart"></div> 
-<div class="annotations"  *ngIf="displayForm">
-    <div class="inputs">   
-        <input nbInput type="text" class="theme-field" placeholder="Theme">
-        <input nbInput type="text" class="subtheme-field" placeholder="Subtheme">
+<div *ngIf="loading"> {{ status }} </div>
+<div *ngIf="showChartInfo">
+    <p>
+        <strong>Displaying data from: </strong> {{ displayDateFrom }} <strong> to: </strong> {{ displayDateTo }}
+        <br>
+        <strong>Total ride time: </strong> {{ displayRideMinutes }} minutes
+    </p>
+</div>
+
+<div id="mainChart"></div>
+
+<div class="annotation-controls" *ngIf="displayAnnotationForm">
+
+    <div class="inputs">
+        <button nbButton size="small" class="annotation-button">Annotate</button>
+        <button nbButton size="small" class="save-button">Save</button>
+        <button nbButton size="small" class="delete-button">Delete</button>
+
+        <input nbInput type="text" class="theme-field" placeholder="Theme" fieldSize="small" style="font-weight:normal;">
+        <input nbInput type="text" class="subtheme-field" placeholder="Subtheme" fieldSize="small"
+            style="font-weight:normal;">
     </div>
-    <textarea nbInput class="notes-field textarea input-full-width" placeholder="Theme"></textarea>
+    <textarea nbInput class="notes-field textarea input-full-width" placeholder="Notes" fieldSize="small"
+        style="font-weight:normal;"></textarea>
 </div>

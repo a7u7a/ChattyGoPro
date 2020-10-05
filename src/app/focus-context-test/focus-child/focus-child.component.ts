@@ -94,7 +94,14 @@ export class FocusChildComponent implements OnInit {
   static annotBrushes = []; // Keep track of annot brushes
   static annotBrushesGroup; // SVG group where annot brushes go
   static annotBrushOverlayHeight;
-  public displayForm = false;
+  displayAnnotationForm = false;
+  loading = false;
+  status; 
+  showChartInfo;
+  displayDateFrom;
+  displayDateTo;
+  displayRideMinutes;
+
   toEpoch = d3.timeFormat("%Q");
 
   constructor(
@@ -105,26 +112,36 @@ export class FocusChildComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // These variables should be set using date/object selector menu
-    // this.startDate = "1593028342060";
-    // this.endDate = "1593028405691";
-    // this.selectedObj = "5e9064411b806200123de098";
-    // this.getData();
   }
-
+  
   public getData(startDate, endDate, selectedObj) {
+    // clear svg before
+    this.removeExistingChartFromParent();
+
+    // Create chart once data has been loaded
+    this.showChartInfo = false;
+    this.displayAnnotationForm = false;
+    this.loading = true;
+    this.status = "Loading chart.."
     this.startDate = startDate;
     this.endDate = endDate;
     this.selectedObj = selectedObj;
-    // Create chart once data has been loaded
     var selectedVis = ["acceleration", "gyroscope", "gps"];
+
+   
+
     this.data_service.getGoProData(this.startDate, this.endDate, this.selectedObj, selectedVis, 1).subscribe((response) => {
       if(response.data.length > 0){
         this.createChart(this.data_parser.parseData(response.data));
       }
       else{
         console.log("Unable to plot because data selection is empty!")
+        this.status = "No data available for the selected parameters"
       }
+    },
+    err =>{
+      console.log(err);
+      this.status = "Server error. Probably no data available for the selected parameters.";
     });
   }
 
@@ -168,11 +185,11 @@ export class FocusChildComponent implements OnInit {
     this.alt_domain = objs.alt_domain;
     this.date_domain = objs.date_domain;
 
-    this.removeExistingChartFromParent();
+    this.loading = false;
 
     this.setChartDimensions();
 
-    this.makeTimeRangeDisplay();
+    this.setChartInfo();
 
     this.setAxis();
 
@@ -199,6 +216,10 @@ export class FocusChildComponent implements OnInit {
     this.createAnnotationEditor();
 
     this.addElements();
+
+    this.displayAnnotationForm = true;
+    this.showChartInfo = true;
+    
   }
 
   private setChartDimensions() {
@@ -213,7 +234,7 @@ export class FocusChildComponent implements OnInit {
     FocusChildComponent.focus1Height = 170;
     FocusChildComponent.focus2Height = 170;
     FocusChildComponent.focus3Height = 170;
-    this.margin = { top: 45, right: 0, bottom: 45, left: 50 };
+    this.margin = { top: 0, right: 0, bottom: 0, left: 25 };
     this.marginTop_f1 = this.margin.top + this.contextHeight + this.spacer1;
     this.marginTop_f2 = this.marginTop_f1 + FocusChildComponent.focus1Height + this.spacer2; 
     this.marginTop_f3 = this.marginTop_f2 + FocusChildComponent.focus2Height + this.spacer2; 
@@ -225,8 +246,8 @@ export class FocusChildComponent implements OnInit {
     FocusChildComponent.width = viewBoxWidth - this.margin.right - this.margin.left;
     this.highlighterBrushOverlayHeight = FocusChildComponent.focus1Height + FocusChildComponent.focus1Height + FocusChildComponent.focus3Height + this.spacer2 *2;
     
-    //this.hostElement = document.getElementById("chartView");
-    FocusChildComponent.svg = d3.select("#mainChart").append('svg')
+    this.hostElement = document.getElementById("mainChart");
+    FocusChildComponent.svg = d3.select(this.hostElement).append('svg')
       .attr('width', "100%")
       .attr('height', "100%")
       .attr('viewBox', '0 0 ' + viewBoxWidth + ' ' + this.stackedHeight)
@@ -806,26 +827,11 @@ export class FocusChildComponent implements OnInit {
     .attr('stroke', 'black');
   }
 
-  private makeTimeRangeDisplay(){
-  // Display range dates on top part of SVG
-
-  var displayDateFrom = this.date_domain[0].toLocaleDateString("en-GB", {weekday: 'long'}) + " " + this.date_domain[0].toLocaleString();
-  var displayDateTo = this.date_domain[1].toLocaleDateString("en-GB", {weekday: 'long'}) + " " + this.date_domain[1].toLocaleString();
-
-  FocusChildComponent.svg.append("text")
-    .attr("dy", 15)
-    .attr("dx", this.margin.left)
-    .attr("text-anchor", "left")
-    .style("fill", "#616161")
-    .text("Displaying from: " + displayDateFrom + " to " + displayDateTo)
-
-  var displayRideMinutes = Math.round(((this.date_domain[1].getTime() - this.date_domain[0].getTime()) / 60000) * 10)/10;
-    FocusChildComponent.svg.append("text")
-    .attr("dy", 35)
-    .attr("dx", this.margin.left)
-    .attr("text-anchor", "left")
-    .style("fill", "#616161")
-    .text("Total time: " + displayRideMinutes + (displayRideMinutes > 1 ? " minutes" : " minute"));
+  private setChartInfo(){
+  // Display range dates on top of chart
+  this.displayDateFrom = this.date_domain[0].toLocaleDateString("en-GB", {weekday: 'long'}) + " " + this.date_domain[0].toLocaleString();
+  this.displayDateTo = this.date_domain[1].toLocaleDateString("en-GB", {weekday: 'long'}) + " " + this.date_domain[1].toLocaleString();
+  this.displayRideMinutes = Math.round(((this.date_domain[1].getTime() - this.date_domain[0].getTime()) / 60000) * 10)/10;
   }
 
 
@@ -850,8 +856,6 @@ export class FocusChildComponent implements OnInit {
       .append("button")
       .attr("disabled", "true")
       .text("Delete");
-
-    
   }
 
   private toggleAnnotationMode() {
