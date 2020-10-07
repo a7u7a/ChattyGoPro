@@ -31,25 +31,18 @@ export class FocusChildComponent implements OnInit {
   public yAxisLeft_f1;
   public yAxisLeft_f2;
   public yAxisLeft_f3;
-  contextMargin;
-  static height;
   contextHeight;
   static width;
   static contextBrush;
   static zoom;
-  zoomToggle;
-  static zoomEnabled = false;
   zoomHeight;
   static focus1;
   static focus2;
   static focus3;
   static context;
-  data;
   static gyro_values;
   static accl_values;
   static alt_values = [];
-  top_limit;
-  bottom_limit;
   gyro_domain;
   accl_domain;
   alt_domain;
@@ -73,8 +66,7 @@ export class FocusChildComponent implements OnInit {
   spacer1;
   spacer2;
   margin;
-  static lastSelection;
-  static brushSelection;
+  static lastSelection; // temp var
   annotEditor;
   annotModeEnabled = false;
   static highlighterBrush;
@@ -87,9 +79,8 @@ export class FocusChildComponent implements OnInit {
   static annotChart1;
   static annotBrushes = []; // Keep track of annot brushes
   static annotBrushesGroup; // SVG group where annot brushes go
-  static annotBrushOverlayHeight;
   displayAnnotationForm = false;
-  loading = false;
+  isLoading = false;
   status;
   showChartInfo;
   displayDateFrom;
@@ -103,7 +94,6 @@ export class FocusChildComponent implements OnInit {
   notesText: string = "";
   highlighterBrushArea;
   lastClickedBrush;
-
 
   toEpoch = d3.timeFormat("%Q");
 
@@ -124,7 +114,7 @@ export class FocusChildComponent implements OnInit {
     // Create chart once data has been loaded
     this.showChartInfo = false;
     this.displayAnnotationForm = false;
-    this.loading = true;
+    this.isLoading = true;
     this.status = "Loading chart.."
     this.startDate = startDate;
     this.endDate = endDate;
@@ -188,7 +178,7 @@ export class FocusChildComponent implements OnInit {
     this.alt_domain = objs.alt_domain;
     this.date_domain = objs.date_domain;
 
-    this.loading = false;
+    this.isLoading = false;
 
     this.setChartDimensions();
 
