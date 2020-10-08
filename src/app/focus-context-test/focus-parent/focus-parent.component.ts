@@ -81,6 +81,7 @@ setPickerDate(value) {
   }
 
   private makeChart(){
+    
     this.chart.getData(this.startDate,this.endDate,this.selectedObj);
   }
 }
