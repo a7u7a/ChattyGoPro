@@ -7,7 +7,7 @@ import { NbSidebarService, NbMenuItem } from '@nebular/theme';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  title = 'nebulartest';
+  title = 'ChattyGoPro';
 
   items: NbMenuItem[] =[
     {

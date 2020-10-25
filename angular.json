@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "nebulartest": {
+    "ChattyGoPro": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -17,7 +17,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist/nebulartest",
+            "outputPath": "dist/ChattyGoPro",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
@@ -82,24 +82,24 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "nebulartest:build"
+            "browserTarget": "ChattyGoPro:build"
           },
           "configurations": {
             "production": {
-              "browserTarget": "nebulartest:build:production"
+              "browserTarget": "ChattyGoPro:build:production"
             },
             "lancs": {
-              "browserTarget": "nebulartest:build:lancs"
+              "browserTarget": "ChattyGoPro:build:lancs"
             },
             "edin": {
-              "browserTarget": "nebulartest:build:edin"
+              "browserTarget": "ChattyGoPro:build:edin"
             }
           }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "nebulartest:build"
+            "browserTarget": "ChattyGoPro:build"
           }
         },
         "test": {
@@ -136,15 +136,15 @@
           "builder": "@angular-devkit/build-angular:protractor",
           "options": {
             "protractorConfig": "e2e/protractor.conf.js",
-            "devServerTarget": "nebulartest:serve"
+            "devServerTarget": "ChattyGoPro:serve"
           },
           "configurations": {
             "production": {
-              "devServerTarget": "nebulartest:serve:production"
+              "devServerTarget": "ChattyGoPro:serve:production"
             }
           }
         }
       }
     }},
-  "defaultProject": "nebulartest"
+  "defaultProject": "ChattyGoPro"
 }
