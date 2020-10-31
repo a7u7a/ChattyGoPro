@@ -998,16 +998,18 @@ export class FocusChildComponent implements OnInit {
       .scale(k)
       .translate(Tx, 0));
 
-      function appX(x){
-        return x * k + Tx;
-      }
+      // Attempt to synthetically get a transform from zoom
+    var real_x = d3.zoomIdentity.scale(k).translate(Tx, 0).x; // This is entirely a result of trial and error, not entirely sure why do I have to do it this way.
+  
+    function appX(x){
+      return x * k + real_x;
+    }
 
     FocusChildComponent.brushesSelection.forEach(select => {
       if (select.selection) { // skip nulls
         FocusChildComponent.annotChart1.select("#brush-" + select.id).call(FocusChildComponent.annotBrushes.filter(obj => { return obj.id === select.id })[0].brush.move, select.selection.map(appX));
       }
     });
-
   }
 
 
