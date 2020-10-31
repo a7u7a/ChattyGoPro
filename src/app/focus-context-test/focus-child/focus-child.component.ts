@@ -77,6 +77,7 @@ export class FocusChildComponent implements OnInit {
   static annotations;
   newAnnotation;
   static annotChart1;
+  static clip_annot1;
   static annotBrushes = []; // Keep track of annot brushes
   static annotBrushesGroup; // SVG group where annot brushes go
   displayAnnotationForm = false;
@@ -452,6 +453,16 @@ export class FocusChildComponent implements OnInit {
       .attr("class", "annot_brushes")
       .attr("transform", "translate(" + 0 + "," + 0 + ")")
 
+      // Append clip path
+    FocusChildComponent.annotBrushesGroup.append("defs").append("clipPath")
+    .attr("id","clip_annot1")
+    .append("rect")
+    .attr("width", FocusChildComponent.width)
+    .attr("height", FocusChildComponent.annotChart1Height);
+
+  FocusChildComponent.clip_annot1 = FocusChildComponent.annotBrushesGroup.append("g")
+    .attr("clip-path","url(#clip_annot1)")
+
     // Create highlighter brush  
     FocusChildComponent.highlighterBrush = d3.brushX()
       .extent([[0, 0], [FocusChildComponent.width, this.highlighterBrushOverlayHeight]])
@@ -589,8 +600,12 @@ export class FocusChildComponent implements OnInit {
     }
 
     // Select brushes we just created
-    var brushSelection = FocusChildComponent.annotBrushesGroup.selectAll('.brush')
+    var brushSelection = FocusChildComponent.clip_annot1
+      .selectAll('.brush')
       .data(FocusChildComponent.annotBrushes, d => { return d.id });
+
+      console.log("selection", FocusChildComponent.annotBrushes)
+      console.log("annotations",FocusChildComponent.annotations);
 
     // Iterate over annotations and draw corresponding brushes
     brushSelection.enter()
@@ -600,7 +615,8 @@ export class FocusChildComponent implements OnInit {
       .each(function (brushObj) {
         // this init's the brush
         brushObj.brush(d3.select(this));
-        // Move brush in place using annotation start/end dates
+        // Move brush to location using annotation start/end dates
+        console.log("each",brushObj.id);
         brushObj.brush.move(d3.select(this), [
           FocusChildComponent.x(FocusChildComponent.annotations[brushObj.id].startDate),
           FocusChildComponent.x(FocusChildComponent.annotations[brushObj.id].endDate)
@@ -742,7 +758,8 @@ export class FocusChildComponent implements OnInit {
 
   static drawAnnotBrushes() {
 
-    var brushSelection = FocusChildComponent.annotBrushesGroup.selectAll('.brush')
+    var brushSelection = FocusChildComponent.clip_annot1
+      .selectAll('.brush')
       .data(FocusChildComponent.annotBrushes, d => { return d.id });
 
     // Set up new brushes
@@ -999,14 +1016,14 @@ export class FocusChildComponent implements OnInit {
       .translate(Tx, 0));
 
       // Attempt to synthetically get a transform from zoom
-    var real_x = d3.zoomIdentity.scale(k).translate(Tx, 0).x; // This is entirely a result of trial and error, not entirely sure why do I have to do it this way.
+    var real_x = d3.zoomIdentity.scale(k).translate(Tx, 0).x; // This is entirely a result of trial and error. Not really sure why do I have to get transform.x this way..
   
     function appX(x){
       return x * k + real_x;
     }
 
     FocusChildComponent.brushesSelection.forEach(select => {
-      if (select.selection) { // skip nulls
+      if (select.selection) {
         FocusChildComponent.annotChart1.select("#brush-" + select.id).call(FocusChildComponent.annotBrushes.filter(obj => { return obj.id === select.id })[0].brush.move, select.selection.map(appX));
       }
     });
