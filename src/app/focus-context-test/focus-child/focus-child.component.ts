@@ -4,6 +4,7 @@ import * as d3 from 'd3';
 import { DataService } from '../../data.service'
 import { DataParserService } from '../../data-parser.service'
 import { NbInputModule } from '@nebular/theme';
+import { brushSelection } from 'd3';
 
 @Component({
   selector: 'app-focus-child',
@@ -66,7 +67,6 @@ export class FocusChildComponent implements OnInit {
   spacer1;
   spacer2;
   margin;
-  static lastSelection; // temp var
   annotEditor;
   annotModeEnabled = false;
   static highlighterBrush;
@@ -94,6 +94,9 @@ export class FocusChildComponent implements OnInit {
   notesText: string = "";
   highlighterBrushArea;
   lastClickedBrush;
+  static lastSelection; // temp var
+  static brushesSelection = [];
+
 
   toEpoch = d3.timeFormat("%Q");
 
@@ -609,20 +612,9 @@ export class FocusChildComponent implements OnInit {
 
     // Disable dragging annotation brushes 
     for (var key in FocusChildComponent.annotations) {
-      console.log("test disable",FocusChildComponent.annotChart1.select('#brush-' + key))
+      console.log("test disable", FocusChildComponent.annotChart1.select('#brush-' + key))
       FocusChildComponent.annotChart1.select('#brush-' + key).style('pointer-events', 'none');
     }
-
-  }
-
-
-  static makeBrush() {
-    // Empty brush
-    return d3.brushX()
-      .extent([[0, 0], [FocusChildComponent.width, FocusChildComponent.annotChart1Height]])
-      // .on("start", FocusChildComponent.annotBrushStart)
-      // .on("brush", FocusChildComponent.annotBrushed)
-      .on("end", FocusChildComponent.annotBrushEnd)
 
   }
 
@@ -675,6 +667,15 @@ export class FocusChildComponent implements OnInit {
     }
   }
 
+  static makeBrush() {
+    // Empty brush
+    return d3.brushX()
+      .extent([[0, 0], [FocusChildComponent.width, FocusChildComponent.annotChart1Height]])
+      // .on("start", FocusChildComponent.annotBrushStart)
+      // .on("brush", FocusChildComponent.annotBrushed)
+      .on("end", FocusChildComponent.annotBrushEnd)
+  }
+
   static newAnnotBrush() {
 
     // this could be a class of brush obj
@@ -692,6 +693,21 @@ export class FocusChildComponent implements OnInit {
     this.drawAnnotBrushes();
     // Disable overlay
     FocusChildComponent.annotBrushesGroup.selectAll('.overlay').style('pointer-events', 'none');
+
+    //TESTING
+    FocusChildComponent.brushesSelection = []
+    FocusChildComponent.annotBrushes.forEach(brush => {
+      var brushID = brush.id;
+      var brushElement = document.getElementById('brush-' + brushID);
+      if (brushElement instanceof SVGGElement) {
+        var brushSel = d3.brushSelection(brushElement);
+        //if(brushSel != null){
+        FocusChildComponent.brushesSelection.push({ id: brush.id, selection: brushSel })
+
+        //  }
+      }
+    })
+
   }
 
   static annotBrushStart() {
@@ -717,6 +733,7 @@ export class FocusChildComponent implements OnInit {
 
     // If it does, that means we need another one
     if (selection && selection[0] !== selection[1]) {
+
       FocusChildComponent.newAnnotBrush();
     }
 
@@ -813,7 +830,7 @@ export class FocusChildComponent implements OnInit {
       //d3.selectAll(".selection").on("click", null)
 
       for (var key in FocusChildComponent.annotations) {
-        console.log("test disable",FocusChildComponent.annotChart1.select('#brush-' + key))
+        console.log("test disable", FocusChildComponent.annotChart1.select('#brush-' + key))
         FocusChildComponent.annotChart1.select('#brush-' + key).style('pointer-events', 'none');
       }
 
@@ -961,68 +978,68 @@ export class FocusChildComponent implements OnInit {
     this.toggleAnnotationMode();
   }
 
-  static brushed() { // Brush event handler
-    // if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
-    // var s = d3.event.selection || FocusChildComponent.x_context.range();
-    // //var t = d3.event.transform;
-    // FocusChildComponent.x.domain(s.map(FocusChildComponent.x_context.invert, FocusChildComponent.x_context));
-    // FocusChildComponent.focus1.selectAll(".line").attr("d", FocusChildComponent.setLine_f1());
-    // FocusChildComponent.focus1.select(".axis--x").call(FocusChildComponent.xAxis_f1);
-    // FocusChildComponent.focus2.selectAll(".line").attr("d", FocusChildComponent.setLine_f2());
-    // FocusChildComponent.focus2.select(".axis--x").call(FocusChildComponent.xAxis_f2);
-    // FocusChildComponent.focus3.select(".line_f3").attr("d", FocusChildComponent.setLine_f3());
-    // FocusChildComponent.focus3.select(".axis--x").call(FocusChildComponent.xAxis_f3);
-    // FocusChildComponent.annotChart1.select(".axis--x").call(FocusChildComponent.xAxis_f1);
 
-    // FocusChildComponent.svg.select(".zoom").call(FocusChildComponent.zoom.transform, d3.zoomIdentity
-    //   .scale(FocusChildComponent.width / (s[1] - s[0]))
-    //   .translate(-s[0], 0));
+  static brushed() { // Brush event handler
+    if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
+    var s = d3.event.selection || FocusChildComponent.x_context.range();
+    FocusChildComponent.x.domain(s.map(FocusChildComponent.x_context.invert, FocusChildComponent.x_context));
+    FocusChildComponent.focus1.selectAll(".line").attr("d", FocusChildComponent.setLine_f1());
+    FocusChildComponent.focus1.select(".axis--x").call(FocusChildComponent.xAxis_f1);
+    FocusChildComponent.focus2.selectAll(".line").attr("d", FocusChildComponent.setLine_f2());
+    FocusChildComponent.focus2.select(".axis--x").call(FocusChildComponent.xAxis_f2);
+    FocusChildComponent.focus3.select(".line_f3").attr("d", FocusChildComponent.setLine_f3());
+    FocusChildComponent.focus3.select(".axis--x").call(FocusChildComponent.xAxis_f3);
+    FocusChildComponent.annotChart1.select(".axis--x").call(FocusChildComponent.xAxis_f1);
+
+    var k = FocusChildComponent.width / (s[1] - s[0]);
+    var Tx = -s[0];
+
+    FocusChildComponent.svg.select(".zoom").call(FocusChildComponent.zoom.transform, d3.zoomIdentity
+      .scale(k)
+      .translate(Tx, 0));
+
+      function appX(x){
+        return x * k + Tx;
+      }
+
+    FocusChildComponent.brushesSelection.forEach(select => {
+      if (select.selection) { // skip nulls
+        FocusChildComponent.annotChart1.select("#brush-" + select.id).call(FocusChildComponent.annotBrushes.filter(obj => { return obj.id === select.id })[0].brush.move, select.selection.map(appX));
+      }
+    });
+
   }
 
 
   static zoomed() { // Zoom event handler
+    if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return; // ignore zoom-by-brush
+    var t = d3.event.transform;
+    FocusChildComponent.x.domain(t.rescaleX(FocusChildComponent.x_context).domain()); // sets domain to scale with transform
+    FocusChildComponent.focus1.selectAll(".line").attr("d", FocusChildComponent.setLine_f1());
+    FocusChildComponent.focus1.select(".axis--x").call(FocusChildComponent.xAxis_f1);
+    FocusChildComponent.focus2.selectAll(".line").attr("d", FocusChildComponent.setLine_f2());
+    FocusChildComponent.focus2.select(".axis--x").call(FocusChildComponent.xAxis_f2);
+    FocusChildComponent.focus3.select(".line_f3").attr("d", FocusChildComponent.setLine_f3());
+    FocusChildComponent.focus3.select(".axis--x").call(FocusChildComponent.xAxis_f3);
+    FocusChildComponent.context.select(".main_brush").call(FocusChildComponent.contextBrush.move, FocusChildComponent.x.range().map(t.invertX, t));
+    FocusChildComponent.annotChart1.select(".axis--x").call(FocusChildComponent.xAxis_f1);
 
-    // if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return; // ignore zoom-by-brush
-    // var t = d3.event.transform;
-    // FocusChildComponent.x.domain(t.rescaleX(FocusChildComponent.x_context).domain()); // sets domain to scale with transform
-    // FocusChildComponent.focus1.selectAll(".line").attr("d", FocusChildComponent.setLine_f1());
-    // FocusChildComponent.focus1.select(".axis--x").call(FocusChildComponent.xAxis_f1);
-    // FocusChildComponent.focus2.selectAll(".line").attr("d", FocusChildComponent.setLine_f2());
-    // FocusChildComponent.focus2.select(".axis--x").call(FocusChildComponent.xAxis_f2);
-    // FocusChildComponent.focus3.select(".line_f3").attr("d", FocusChildComponent.setLine_f3());
-    // FocusChildComponent.focus3.select(".axis--x").call(FocusChildComponent.xAxis_f3);
-    // FocusChildComponent.context.select(".main_brush").call(FocusChildComponent.contextBrush.move, FocusChildComponent.x.range().map(t.invertX, t));
+    FocusChildComponent.brushesSelection.forEach(select => {
+      if (select.selection) { // skip nulls
+        FocusChildComponent.annotChart1.select("#brush-" + select.id).call(FocusChildComponent.annotBrushes.filter(obj => { return obj.id === select.id })[0].brush.move, select.selection.map(t.applyX, t));
+      }
+    });
 
-    // // Update annotChart1
-    // FocusChildComponent.annotChart1.select(".axis--x").call(FocusChildComponent.xAxis_f1);
-
-    // // WORKS: just a single brush 
-    // FocusChildComponent.annotChart1.select("#brush-0").call(FocusChildComponent.annotBrushes[0].brush.move, FocusChildComponent.lastSelection.map(t.applyX, t));
-
-    // // BUGGY: Update all brushes when zooming
-    // FocusChildComponent.annotBrushes.forEach((brushObject: any) => {
-    //   var brush = document.getElementById('brush-' + brushObject.id);
-
-    //   if (brush instanceof SVGGElement) {
-    //     FocusChildComponent.brushSelection = d3.brushSelection(brush);
-    //     if (FocusChildComponent.brushSelection != null) {
-    //       ////console.log("brushSelection" + brushObject.id, brushSelection)
-    //       //FocusChildComponent.annotChart1.select("#brush-" + brushObject.id).call(brushObject.brush.move, [t.applyX(brushSelection[0],t),t.applyX(brushSelection[1],t)]);
-    //       FocusChildComponent.annotChart1.select("#brush-" + brushObject.id).call(brushObject.brush.move, FocusChildComponent.brushSelection.map(t.applyX, t));
-    //       //FocusChildComponent.annotChart1.select("#brush-" + brushObject.id).call(brushObject.brush.move, brushSelection.forEach( item => {return }));
-    //     }
-    //   }
-    // });
-
+    
   }
 
   private removeExistingChartFromParent() {
     // clears the svg before drawing a new one
     d3.select(this.hostElement).select('svg').remove();
-    if(FocusChildComponent.svg){
+    if (FocusChildComponent.svg) {
       FocusChildComponent.svg.remove()
     }
-    
+
   }
 
 }

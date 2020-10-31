@@ -32,7 +32,7 @@ export class DataParserService {
     });
 
     // Downsample streams
-    var downsampleThres = 5000;
+    var downsampleThres = 1000;
     gyro_x = this.largestTriangleThreeBucket(gyro_x, downsampleThres, "date", "val");
     gyro_y = this.largestTriangleThreeBucket(gyro_y, downsampleThres, "date", "val");
     gyro_z = this.largestTriangleThreeBucket(gyro_z, downsampleThres, "date", "val");
