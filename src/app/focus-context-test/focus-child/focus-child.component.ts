@@ -586,7 +586,6 @@ export class FocusChildComponent implements OnInit {
   // ANNOTATION METHODS
 
   private drawAnnotationBrushesFromData() {
-
     // Build an array of brushes from annotation data
     // Use id from annotation to make brush
     for (var key in FocusChildComponent.annotations) {
@@ -604,9 +603,6 @@ export class FocusChildComponent implements OnInit {
       .selectAll('.brush')
       .data(FocusChildComponent.annotBrushes, d => { return d.id });
 
-      console.log("selection", FocusChildComponent.annotBrushes)
-      console.log("annotations",FocusChildComponent.annotations);
-
     // Iterate over annotations and draw corresponding brushes
     brushSelection.enter()
       .insert('g', '.brush')
@@ -616,7 +612,6 @@ export class FocusChildComponent implements OnInit {
         // this init's the brush
         brushObj.brush(d3.select(this));
         // Move brush to location using annotation start/end dates
-        console.log("each",brushObj.id);
         brushObj.brush.move(d3.select(this), [
           FocusChildComponent.x(FocusChildComponent.annotations[brushObj.id].startDate),
           FocusChildComponent.x(FocusChildComponent.annotations[brushObj.id].endDate)
@@ -809,7 +804,6 @@ export class FocusChildComponent implements OnInit {
 
 
   // ANNOTATION CONTROL HANDLERS
-
   toggleAnnotationMode() {
     this.annotModeEnabled = !this.annotModeEnabled;
     if (this.annotModeEnabled) {
@@ -818,7 +812,7 @@ export class FocusChildComponent implements OnInit {
       // enable clicking on brushes
       d3.selectAll(".selection").on("click", this.brushClicked.bind(this));
 
-      this.annotateBtnText = "Discard";
+      this.annotateBtnText = "Done";
 
       // Enable dragging brushes
       for (var key in FocusChildComponent.annotations) {
@@ -844,10 +838,7 @@ export class FocusChildComponent implements OnInit {
       console.log("Annotation mode OFF");
 
       // disable clicking on brushes
-      //d3.selectAll(".selection").on("click", null)
-
       for (var key in FocusChildComponent.annotations) {
-        console.log("test disable", FocusChildComponent.annotChart1.select('#brush-' + key))
         FocusChildComponent.annotChart1.select('#brush-' + key).style('pointer-events', 'none');
       }
 
@@ -859,7 +850,7 @@ export class FocusChildComponent implements OnInit {
       // Update button text
       this.annotateBtnText = "Annotate";
 
-      // Disable zoom
+      // Disable zoom area
       FocusChildComponent.svg.select(".zoom")
         .attr("fill", "white");
 
@@ -915,7 +906,7 @@ export class FocusChildComponent implements OnInit {
         console.log(err)
       },
       () => { // add new annotation only after prev. version has been deleted
-        var annotation = {
+        var annotation = { // This really would look more professional by using a custom data object
           theme: theme,
           subtheme: subtheme,
           startDate: startDate,
@@ -923,28 +914,24 @@ export class FocusChildComponent implements OnInit {
           notes: notes
         };
         this.data_service.addAnnotation(annotation, this.selectedObj).subscribe(resp => {
-          return resp;
+          // return resp;
         });
       })
   }
 
   saveAnnotations() { // To be called by save button in UI
 
-    // Compute changes: which annotations suffered changes and need to be updated? (replaced)
+    // Compute changes: which annotations suffered changes and need to be updated/replaced?
     FocusChildComponent.annotBrushes.forEach((brushObject: any) => {
-
       // Get brush
       var brush = document.getElementById('brush-' + brushObject.id);
       if (brush instanceof SVGGElement) {
         // Get selection
         var selection = d3.brushSelection(brush);
-
         if (selection) {
-
           // Filter brushes that contain edits
           if (Object.keys(FocusChildComponent.annotations).includes(brushObject.id)) {
             // There is probably a simpler way to compare dicts but I needed to convert timescale values to epoch
-
             var brushTheme = brushObject.theme,
               brushSubtheme = brushObject.subtheme,
               brushNotes = brushObject.notes,
@@ -952,18 +939,15 @@ export class FocusChildComponent implements OnInit {
               brushEndEpoch = Number(this.toEpoch(FocusChildComponent.x.invert(selection[1]))),
               annotStartEpoch = FocusChildComponent.annotations[brushObject.id].startDateEpoch,
               annotEndEpoch = FocusChildComponent.annotations[brushObject.id].endDateEpoch;
-
             // Check if changes are because brush was moved
             if (brushStartEpoch != annotStartEpoch ||
               brushEndEpoch != annotEndEpoch) {
-
               // Also check if changes in texts
               if (this.lastClickedBrush) { // avoid checking against nulls
                 if (brushObject.id == this.lastClickedBrush) {
                   if (brushTheme != this.themeText ||
                     brushSubtheme != this.subthemeText ||
                     brushNotes != this.notesText) {
-
                     // Replace field values if changes are detected
                     brushTheme = this.themeText;
                     brushSubtheme = this.subthemeText;
