@@ -140,7 +140,7 @@ export class FocusChildComponent implements OnInit {
       });
   }
 
-  
+
 
   private createChart(objs) {
     FocusChildComponent.gyro_values = objs.gyro;
@@ -719,50 +719,60 @@ export class FocusChildComponent implements OnInit {
       if(eventType == "zoom" || eventType == "brush") return; // skip zoom/brush events
     }
 
-    // Figure out if our latest brush (currently empty) has a selection
-    var lastBrushID = FocusChildComponent.annotBrushes[FocusChildComponent.annotBrushes.length - 1].id;
-    var latestSelection = FocusChildComponent.getBrushSelection(lastBrushID);
-    console.log("annotBrushEnd", lastBrushID)
-    // If it does, that means we need another one
-    if(latestSelection && latestSelection[0] !== latestSelection[1]){
-      FocusChildComponent.newAnnotBrush();
-      FocusChildComponent.brushesSelections.push({id: lastBrushID, 
-                                                 selection: [FocusChildComponent.x.invert(latestSelection[0]), 
-                                                             FocusChildComponent.x.invert(latestSelection[1])]})
-    }
-    
-    // Compute differences, which brushes have changed?
-    // Not doing this results in brushes jumping back into previous place
-    console.log("annotBrushes", FocusChildComponent.annotBrushes)
-    console.log("sels", FocusChildComponent.brushesSelections)
-
+    FocusChildComponent.brushesSelections = []
     FocusChildComponent.annotBrushes.forEach(brushObj => {
       var sel = FocusChildComponent.getBrushSelection(brushObj.id)
-      if(sel && FocusChildComponent.brushesSelections.length > 0){
-        // console.log("testt", sel, brushObj.id)
-        // console.log("test2", FocusChildComponent.brushesSelections.filter(obj => { return obj.id === brushObj.id}))
-        var test_brushObj : any = FocusChildComponent.brushesSelections.filter(obj => { return obj.id === brushObj.id})
-        if(test_brushObj){
-          var test_sel = test_brushObj.selection;
-          if(!arrayEquals(test_sel, sel)){ // if different
-            FocusChildComponent.brushesSelections.forEach(item => {
-              if(item.id == brushObj.id){
-                console.log("updating",brushObj.id)
-                item["selection"] = [FocusChildComponent.x.invert(latestSelection[0]), // update (as x domain)
-                                    FocusChildComponent.x.invert(latestSelection[1])]
-              }
-            })
-          }
-        }
+      if(sel){
+        FocusChildComponent.brushesSelections.push({id: brushObj.id, selection:[FocusChildComponent.x.invert(sel[0]), 
+                                                                                FocusChildComponent.x.invert(sel[1])]})
       }
     })
 
-    function arrayEquals(a, b) {
-      return Array.isArray(a) &&
-        Array.isArray(b) &&
-        a.length === b.length &&
-        a.every((val, index) => val === b[index]);
-    }
+
+    // // Figure out if our latest brush (currently empty) has a selection
+    // var lastBrushID = FocusChildComponent.annotBrushes[FocusChildComponent.annotBrushes.length - 1].id;
+    // var latestSelection = FocusChildComponent.getBrushSelection(lastBrushID);
+    // console.log("annotBrushEnd", lastBrushID)
+    // // If it does, that means we need another one
+    // if(latestSelection && latestSelection[0] !== latestSelection[1]){
+    //   FocusChildComponent.newAnnotBrush();
+    //   FocusChildComponent.brushesSelections.push({id: lastBrushID, 
+    //                                              selection: [FocusChildComponent.x.invert(latestSelection[0]), 
+    //                                                          FocusChildComponent.x.invert(latestSelection[1])]})
+    // }
+    
+    // // Compute differences, which brushes have changed?
+    // // Not doing this results in brushes jumping back into previous place
+    // console.log("annotBrushes", FocusChildComponent.annotBrushes)
+    // console.log("sels", FocusChildComponent.brushesSelections)
+
+    // FocusChildComponent.annotBrushes.forEach(brushObj => {
+    //   var sel = FocusChildComponent.getBrushSelection(brushObj.id)
+    //   if(sel && FocusChildComponent.brushesSelections.length > 0){
+    //     // console.log("testt", sel, brushObj.id)
+    //     // console.log("test2", FocusChildComponent.brushesSelections.filter(obj => { return obj.id === brushObj.id}))
+    //     var test_brushObj : any = FocusChildComponent.brushesSelections.filter(obj => { return obj.id === brushObj.id})
+    //     if(test_brushObj){
+    //       var test_sel = test_brushObj.selection;
+    //       if(!arrayEquals(test_sel, sel)){ // if different
+    //         FocusChildComponent.brushesSelections.forEach(item => {
+    //           if(item.id == brushObj.id){
+    //             console.log("updating",brushObj.id)
+    //             item["selection"] = [FocusChildComponent.x.invert(latestSelection[0]), // update (as x domain)
+    //                                 FocusChildComponent.x.invert(latestSelection[1])]
+    //           }
+    //         })
+    //       }
+    //     }
+    //   }
+    // })
+
+    // function arrayEquals(a, b) {
+    //   return Array.isArray(a) &&
+    //     Array.isArray(b) &&
+    //     a.length === b.length &&
+    //     a.every((val, index) => val === b[index]);
+    // }
   }
 
   static drawAnnotBrushes() {
@@ -1027,7 +1037,10 @@ export class FocusChildComponent implements OnInit {
 
     FocusChildComponent.brushesSelections.forEach(select => {
       if (select.selection) {
-        FocusChildComponent.annotChart1.select("#brush-" + select.id).call(FocusChildComponent.annotBrushes.filter(obj => { return obj.id === select.id })[0].brush.move, select.selection.map(appX));
+        // FocusChildComponent.annotChart1.select("#brush-" + select.id).call(FocusChildComponent.annotBrushes.filter(obj => { return obj.id === select.id })[0].brush.move, select.selection.map(appX));
+        FocusChildComponent.annotChart1.select("#brush-" + select.id)
+        .call(FocusChildComponent.annotBrushes.filter(obj => { return obj.id === select.id })[0].brush.move, [FocusChildComponent.x(select.selection[0]), 
+                                                                                                              FocusChildComponent.x(select.selection[1])]);
       }
     });
   }
