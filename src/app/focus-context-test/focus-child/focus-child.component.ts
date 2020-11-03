@@ -714,6 +714,9 @@ export class FocusChildComponent implements OnInit {
 
   static annotBrushEnd() {
     
+    // WIP: disable dragging of brushes: this is not the right approach because we still need to be able to click on them
+    // FocusChildComponent.annotBrushesGroup.selectAll(".selection").style('pointer-events', 'none');
+    
     if(d3.event.sourceEvent){  
       var eventType = d3.event.sourceEvent.type
       if(eventType == "zoom" || eventType == "brush") return; // skip zoom/brush events
@@ -729,17 +732,17 @@ export class FocusChildComponent implements OnInit {
     })
 
 
-    // // Figure out if our latest brush (currently empty) has a selection
-    // var lastBrushID = FocusChildComponent.annotBrushes[FocusChildComponent.annotBrushes.length - 1].id;
-    // var latestSelection = FocusChildComponent.getBrushSelection(lastBrushID);
-    // console.log("annotBrushEnd", lastBrushID)
-    // // If it does, that means we need another one
-    // if(latestSelection && latestSelection[0] !== latestSelection[1]){
-    //   FocusChildComponent.newAnnotBrush();
-    //   FocusChildComponent.brushesSelections.push({id: lastBrushID, 
-    //                                              selection: [FocusChildComponent.x.invert(latestSelection[0]), 
-    //                                                          FocusChildComponent.x.invert(latestSelection[1])]})
-    // }
+    // Figure out if our latest brush (currently empty) has a selection
+    var lastBrushID = FocusChildComponent.annotBrushes[FocusChildComponent.annotBrushes.length - 1].id;
+    var latestSelection = FocusChildComponent.getBrushSelection(lastBrushID);
+    console.log("annotBrushEnd", lastBrushID)
+    // If it does, that means we need another one
+    if(latestSelection && latestSelection[0] !== latestSelection[1]){
+      FocusChildComponent.newAnnotBrush();
+      // FocusChildComponent.brushesSelections.push({id: lastBrushID, 
+      //                                            selection: [FocusChildComponent.x.invert(latestSelection[0]), 
+      //                                                        FocusChildComponent.x.invert(latestSelection[1])]})
+    }
     
     // // Compute differences, which brushes have changed?
     // // Not doing this results in brushes jumping back into previous place
