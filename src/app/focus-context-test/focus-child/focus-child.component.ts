@@ -275,7 +275,6 @@ export class FocusChildComponent implements OnInit {
     // FocusChildComponent.y_f3.domain(this.alt_domain); // Add a bit of margin
     FocusChildComponent.xAxis_f3 = d3.axisBottom(FocusChildComponent.x); // x scale same as focus1
     this.yAxisLeft_f3 = d3.axisLeft(FocusChildComponent.y_f3); // these could go. too verbose
-
   }
 
   private setContextBrush() {
@@ -303,6 +302,8 @@ export class FocusChildComponent implements OnInit {
   }
 
   private createFocusCharts() {
+    var labelColor = ['#000000', '#e41a1c', '#377eb8', '#4daf4a', '#e41a1c', '#FF00FF'];
+
     // Focus1
     // Create acceleration focus
     FocusChildComponent.focus1 = FocusChildComponent.svg.append("g")
@@ -325,6 +326,20 @@ export class FocusChildComponent implements OnInit {
       .attr('fill', 'white')
       .attr('stroke', 'black');
 
+    var focus1Label = ["Acceleration (m/s²)","x","y","z"]
+    FocusChildComponent.focus1.selectAll(null)
+      .data(focus1Label)
+      .enter()
+      .append('text')
+      .append("tspan")
+      .style("text-anchor", "start")
+      .style("font-weight", "bold")
+      .attr("x", (d,i) => { var s = i? 100 : 10 ;var offset = s + i * 10;  return offset })
+      .attr("y", 15)
+      .attr("fill", (d,i) => { return labelColor[i] })
+      .attr("font-size", "10px")
+      .text(t => { return t })
+
     // Focus2
     FocusChildComponent.focus2 = FocusChildComponent.svg.append("g")
       .attr("class", "focus2")
@@ -346,6 +361,20 @@ export class FocusChildComponent implements OnInit {
       .attr('fill', 'white')
       .attr('stroke', 'black');
 
+      var focus2Label = ["Gyroscope (rad/s)","x","y","z"]
+      FocusChildComponent.focus2.selectAll(null)
+        .data(focus2Label)
+        .enter()
+        .append('text')
+        .append("tspan")
+        .style("text-anchor", "start")
+        .style("font-weight", "bold")
+        .attr("x", (d,i) => { var s = i? 100 : 10 ;var offset = s + i * 10; return offset })
+        .attr("y", 15)
+        .attr("fill", (d,i) => { return labelColor[i] })
+        .attr("font-size", "10px")
+        .text(t => { return t })
+
     // Focus3    
     FocusChildComponent.focus3 = FocusChildComponent.svg.append("g")
       .attr("class", "focus3")
@@ -366,6 +395,16 @@ export class FocusChildComponent implements OnInit {
       .attr('height', FocusChildComponent.focus3Height)
       .attr('fill', 'white')
       .attr('stroke', 'black');
+
+    var focus3Label = "Altitude (m)"
+    FocusChildComponent.focus3.append('text')
+      .style("text-anchor", "start")
+      .style("font-weight", "bold")
+      .text(focus3Label)
+      .attr("x", 10)
+      .attr("y", 15)
+      .attr("fill", "black")
+      .attr("font-size", "10px");
   }
 
   private createContextLine() {
@@ -643,7 +682,7 @@ export class FocusChildComponent implements OnInit {
         .attr("x", labelAnchor)
         .attr("y", FocusChildComponent.annotChart1Height - FocusChildComponent.contextHeight / 2)
         .attr("fill", "black")
-        .attr("font-size", "small");
+        .attr("font-size", "10px");
     }
   }
 
