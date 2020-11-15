@@ -32,7 +32,7 @@ export class FocusChildComponent implements OnInit {
   public yAxisLeft_f1;
   public yAxisLeft_f2;
   public yAxisLeft_f3;
-  contextHeight;
+  static contextHeight;
   static width;
   static contextBrush;
   static zoom;
@@ -194,14 +194,14 @@ export class FocusChildComponent implements OnInit {
     var viewBoxWidth = 800;
     this.spacer1 = 25;
     this.spacer2 = 0;
-    this.contextHeight = 80;
+    FocusChildComponent.contextHeight = 80;
     FocusChildComponent.annotChart1Height = 80
     this.annotEditorHeight = 200;
     FocusChildComponent.focus1Height = 170;
     FocusChildComponent.focus2Height = 170;
     FocusChildComponent.focus3Height = 170;
     this.margin = { top: 0, right: 0, bottom: 0, left: 25 };
-    this.marginTop_f1 = this.margin.top + this.contextHeight + this.spacer1;
+    this.marginTop_f1 = this.margin.top + FocusChildComponent.contextHeight + this.spacer1;
     this.marginTop_f2 = this.marginTop_f1 + FocusChildComponent.focus1Height + this.spacer2;
     this.marginTop_f3 = this.marginTop_f2 + FocusChildComponent.focus2Height + this.spacer2;
     this.marginTop_annotChart1 = this.marginTop_f3 + FocusChildComponent.focus3Height + this.spacer1;
@@ -236,7 +236,7 @@ export class FocusChildComponent implements OnInit {
       .range([0, FocusChildComponent.width]);
 
     // Y2
-    this.y_context = d3.scaleLinear().range([this.contextHeight, 0]);
+    this.y_context = d3.scaleLinear().range([FocusChildComponent.contextHeight, 0]);
     this.y_context.domain([this.gyro_domain[0] * 1.05, this.gyro_domain[1] * 1.05]);
 
     // Apply X2 (no yAxis on context..yet)
@@ -281,7 +281,7 @@ export class FocusChildComponent implements OnInit {
   private setContextBrush() {
     // Create context brush feature
     FocusChildComponent.contextBrush = d3.brushX()
-      .extent([[0, 0], [FocusChildComponent.width, this.contextHeight]])
+      .extent([[0, 0], [FocusChildComponent.width, FocusChildComponent.contextHeight]])
       .on("brush", FocusChildComponent.brushed);
   }
 
@@ -297,7 +297,7 @@ export class FocusChildComponent implements OnInit {
       .attr('x', 0)
       .attr('y', 0)
       .attr('width', FocusChildComponent.width)
-      .attr('height', this.contextHeight)
+      .attr('height', FocusChildComponent.contextHeight)
       .attr('fill', 'white')
       .attr('stroke', 'black');
   }
@@ -454,15 +454,15 @@ export class FocusChildComponent implements OnInit {
       .attr("class", "annot_brushes")
       .attr("transform", "translate(" + 0 + "," + 0 + ")")
 
-      // Append clip path
+    // Append clip path
     FocusChildComponent.annotBrushesGroup.append("defs").append("clipPath")
-    .attr("id","clip_annot1")
-    .append("rect")
-    .attr("width", FocusChildComponent.width)
-    .attr("height", FocusChildComponent.annotChart1Height);
+      .attr("id", "clip_annot1")
+      .append("rect")
+      .attr("width", FocusChildComponent.width)
+      .attr("height", FocusChildComponent.annotChart1Height);
 
-  FocusChildComponent.clip_annot1 = FocusChildComponent.annotBrushesGroup.append("g")
-    .attr("clip-path","url(#clip_annot1)")
+    FocusChildComponent.clip_annot1 = FocusChildComponent.annotBrushesGroup.append("g")
+      .attr("clip-path", "url(#clip_annot1)")
 
     // Create highlighter brush  
     FocusChildComponent.highlighterBrush = d3.brushX()
@@ -484,7 +484,7 @@ export class FocusChildComponent implements OnInit {
     // Appends x axis to Context
     FocusChildComponent.context.append("g")
       .attr("class", "axis axis--x")
-      .attr("transform", "translate(0," + this.contextHeight + ")")
+      .attr("transform", "translate(0," + FocusChildComponent.contextHeight + ")")
       .call(FocusChildComponent.xAxis_context);
 
     // Appends brush to context, sets initial range
@@ -531,7 +531,7 @@ export class FocusChildComponent implements OnInit {
     // Appends x axis
     FocusChildComponent.annotChart1.append("g")
       .attr("class", "axis axis--x")
-      .attr("transform", "translate(0," + this.contextHeight + ")")
+      .attr("transform", "translate(0," + FocusChildComponent.contextHeight + ")")
       .call(FocusChildComponent.xAxis_f1);
 
     // Append annotation brush
@@ -571,7 +571,7 @@ export class FocusChildComponent implements OnInit {
       .attr('x', 0)
       .attr('y', 0)
       .attr('width', FocusChildComponent.width)
-      .attr('height', this.contextHeight)
+      .attr('height', FocusChildComponent.contextHeight)
       .attr('fill', 'white')
       .attr('stroke', 'black');
   }
@@ -590,6 +590,7 @@ export class FocusChildComponent implements OnInit {
   // ANNOTATION METHODS
 
   private drawAnnotationBrushesFromData() {
+
     // Build an array of brushes from annotation data
     // Use id from annotation to make brush
     for (var key in FocusChildComponent.annotations) {
@@ -615,31 +616,54 @@ export class FocusChildComponent implements OnInit {
       .each(function (brushObj) {
         // this init's the brush
         brushObj.brush(d3.select(this));
+
+        var start = FocusChildComponent.x(FocusChildComponent.annotations[brushObj.id].startDate)
+        var end = FocusChildComponent.x(FocusChildComponent.annotations[brushObj.id].endDate)
         // Move brush to location using annotation start/end dates
-        brushObj.brush.move(d3.select(this), [FocusChildComponent.x(FocusChildComponent.annotations[brushObj.id].startDate),
-                                              FocusChildComponent.x(FocusChildComponent.annotations[brushObj.id].endDate)
-        ]);
+        brushObj.brush.move(d3.select(this), [start, end]
+        );
       })
 
     // Disable overlay events
-    //FocusChildComponent.annotBrushesGroup.selectAll('.overlay').style('pointer-events', 'none');
+    FocusChildComponent.annotBrushesGroup.selectAll('.overlay').style('pointer-events', 'none');
 
-    // Disable dragging annotation brushes 
     for (var key in FocusChildComponent.annotations) {
-      // console.log("test disable", FocusChildComponent.annotChart1.select('#brush-' + key))
-      FocusChildComponent.annotChart1.select('#brush-' + key).style('pointer-events', 'none');
+      // Disable dragging annotation brushes 
+      var currentBrush = FocusChildComponent.annotChart1.select('#brush-' + key).style('pointer-events', 'none');
+
+      var s: any = FocusChildComponent.getBrushSelection(key);
+      var labelAnchor = ((s[1] - s[0]) / 2) + s[0];
+
+      // append brush labels
+      currentBrush.append("text")
+        .attr("class", "brushLabel")
+        .style("text-anchor", "middle")
+        .style("dominant-baseline", "central")
+        .text(FocusChildComponent.annotations[key].subtheme)
+        .attr("x", labelAnchor)
+        .attr("y", FocusChildComponent.annotChart1Height - FocusChildComponent.contextHeight / 2)
+        .attr("fill", "black")
+        .attr("font-size", "small");
     }
   }
 
   brushClicked() {
-
     // clear higlighter brush
-    this.newAnnotation = null;
-    this.highlighterBrushArea.call(FocusChildComponent.highlighterBrush.move, null)
+    //this.newAnnotation = null;
+    // this.highlighterBrushArea.call(FocusChildComponent.highlighterBrush.move, null)
 
     this.disableAnnotationFields = false;
 
+    // un-highlight previous brush
+    if (this.lastClickedBrush) {
+      FocusChildComponent.annotChart1.select('#brush-' + this.lastClickedBrush).select('.selection').style('fill-opacity', '0.3');
+    }
+
+    // Get the selected brush id
     this.lastClickedBrush = d3.event.path[1].id.replace("brush-", "");
+
+    // Highlight selected brush
+    FocusChildComponent.annotChart1.select('#brush-' + this.lastClickedBrush).select('.selection').style('fill-opacity', '0.6');
 
     var selectedBrush: any = FocusChildComponent.annotBrushes.filter(obj => {
       return obj.id == this.lastClickedBrush;
@@ -649,10 +673,26 @@ export class FocusChildComponent implements OnInit {
     this.notesText = selectedBrush[0].notes;
   }
 
+  static annotBrushed() {
+    for (var key in FocusChildComponent.annotations) {
+
+      var s: any = FocusChildComponent.getBrushSelection(key);
+
+      if(s){
+        var labelAnchor = ((s[1] - s[0]) / 2) + s[0];
+        var currentBrush = FocusChildComponent.annotChart1.select('#brush-' + key)
+          .select('.brushLabel')
+          .attr("x", labelAnchor)
+          .attr("y", FocusChildComponent.annotChart1Height - FocusChildComponent.contextHeight / 2)
+      }
+    }
+  }
+
+
   private highlightBrushed() {
     this.disableAnnotationFields = false;
 
-    // Creates a new annotation-like object that we can later write to the server
+    // Creates a new annotation-like object that we can later write to database
     // Get higlighter brush selection
     // Check if this is a new annotation
     if (this.newAnnotation == null) {
@@ -685,7 +725,7 @@ export class FocusChildComponent implements OnInit {
     return d3.brushX()
       .extent([[0, 0], [FocusChildComponent.width, FocusChildComponent.annotChart1Height]])
       // .on("start", FocusChildComponent.annotBrushStart)
-      // .on("brush", FocusChildComponent.annotBrushed)
+      .on("brush", FocusChildComponent.annotBrushed)
       .on("end", FocusChildComponent.annotBrushEnd)
   }
 
@@ -700,82 +740,49 @@ export class FocusChildComponent implements OnInit {
     });
     this.drawAnnotBrushes();
     // Disable overlay
-    FocusChildComponent.annotBrushesGroup.selectAll('.overlay').style('pointer-events', 'none');
+    //FocusChildComponent.annotBrushesGroup.selectAll('.overlay').style('pointer-events', 'none');
   }
 
-  static getBrushSelection(brushID){
+  static getBrushSelection(brushID) {
     var brushElement = document.getElementById('brush-' + brushID);
-    if(brushElement instanceof SVGGElement){
-      return d3.brushSelection(brushElement); 
-    }else{
+    if (brushElement instanceof SVGGElement) {
+      return d3.brushSelection(brushElement);
+    } else {
       return null;
     }
   }
 
+
+
   static annotBrushEnd() {
-    
-    // WIP: disable dragging of brushes: this is not the right approach because we still need to be able to click on them
+
+    // WIP: disable dragging of brushes: this is not the right approach cause we still need to be able to click on them
     // FocusChildComponent.annotBrushesGroup.selectAll(".selection").style('pointer-events', 'none');
-    
-    if(d3.event.sourceEvent){  
+
+    if (d3.event.sourceEvent) {
       var eventType = d3.event.sourceEvent.type
-      if(eventType == "zoom" || eventType == "brush") return; // skip zoom/brush events
+      if (eventType == "zoom" || eventType == "brush") return; // skip zoom/brush events
     }
 
     FocusChildComponent.brushesSelections = []
     FocusChildComponent.annotBrushes.forEach(brushObj => {
       var sel = FocusChildComponent.getBrushSelection(brushObj.id)
-      if(sel){
-        FocusChildComponent.brushesSelections.push({id: brushObj.id, selection:[FocusChildComponent.x.invert(sel[0]), 
-                                                                                FocusChildComponent.x.invert(sel[1])]})
+      if (sel) {
+        FocusChildComponent.brushesSelections.push({
+          id: brushObj.id, selection: [FocusChildComponent.x.invert(sel[0]),
+          FocusChildComponent.x.invert(sel[1])]
+        })
       }
     })
-
 
     // Figure out if our latest brush (currently empty) has a selection
     var lastBrushID = FocusChildComponent.annotBrushes[FocusChildComponent.annotBrushes.length - 1].id;
     var latestSelection = FocusChildComponent.getBrushSelection(lastBrushID);
-    console.log("annotBrushEnd", lastBrushID)
+
     // If it does, that means we need another one
-    if(latestSelection && latestSelection[0] !== latestSelection[1]){
+    if (latestSelection && latestSelection[0] !== latestSelection[1]) {
       FocusChildComponent.newAnnotBrush();
-      // FocusChildComponent.brushesSelections.push({id: lastBrushID, 
-      //                                            selection: [FocusChildComponent.x.invert(latestSelection[0]), 
-      //                                                        FocusChildComponent.x.invert(latestSelection[1])]})
     }
-    
-    // // Compute differences, which brushes have changed?
-    // // Not doing this results in brushes jumping back into previous place
-    // console.log("annotBrushes", FocusChildComponent.annotBrushes)
-    // console.log("sels", FocusChildComponent.brushesSelections)
-
-    // FocusChildComponent.annotBrushes.forEach(brushObj => {
-    //   var sel = FocusChildComponent.getBrushSelection(brushObj.id)
-    //   if(sel && FocusChildComponent.brushesSelections.length > 0){
-    //     // console.log("testt", sel, brushObj.id)
-    //     // console.log("test2", FocusChildComponent.brushesSelections.filter(obj => { return obj.id === brushObj.id}))
-    //     var test_brushObj : any = FocusChildComponent.brushesSelections.filter(obj => { return obj.id === brushObj.id})
-    //     if(test_brushObj){
-    //       var test_sel = test_brushObj.selection;
-    //       if(!arrayEquals(test_sel, sel)){ // if different
-    //         FocusChildComponent.brushesSelections.forEach(item => {
-    //           if(item.id == brushObj.id){
-    //             console.log("updating",brushObj.id)
-    //             item["selection"] = [FocusChildComponent.x.invert(latestSelection[0]), // update (as x domain)
-    //                                 FocusChildComponent.x.invert(latestSelection[1])]
-    //           }
-    //         })
-    //       }
-    //     }
-    //   }
-    // })
-
-    // function arrayEquals(a, b) {
-    //   return Array.isArray(a) &&
-    //     Array.isArray(b) &&
-    //     a.length === b.length &&
-    //     a.every((val, index) => val === b[index]);
-    // }
   }
 
   static drawAnnotBrushes() {
@@ -817,9 +824,11 @@ export class FocusChildComponent implements OnInit {
   private resetBrushes() {
     // Clears brushes, reset vars and reloads from server
     console.log("Resetting brushes");
+    // Remove all annotbrushes
     FocusChildComponent.annotBrushes.forEach((brushObject: any) => {
       d3.select('#brush-' + brushObject.id).remove();
     });
+    // Remove highlighter brush
     d3.select('#highlighterBrush').remove();
     FocusChildComponent.annotBrushes = [];
     FocusChildComponent.newAnnotBrush();
@@ -835,15 +844,17 @@ export class FocusChildComponent implements OnInit {
     if (this.annotModeEnabled) {
       console.log("Annotation mode ON");
 
-      // enable clicking on brushes
-      d3.selectAll(".selection").on("click", this.brushClicked.bind(this));
-
       this.annotateBtnText = "Discard";
 
-      // Enable dragging brushes
+      // Enable clicking on brushes but disable clicking
       for (var key in FocusChildComponent.annotations) {
         FocusChildComponent.annotChart1.select('#brush-' + key).style('pointer-events', 'all');
+        // The following line is an absolute hack. Without this, however, brushes would still be draggable which is a problem because they get snapped to visible chart extents if you drag them which is counter-intuitive.
+        FocusChildComponent.annotChart1.select('#brush-' + key).select('.selection').style('fill-opacity', '0.3');
       }
+
+      // enable clicking on brushes
+      FocusChildComponent.annotChart1.selectAll(".selection").on("click", this.brushClicked.bind(this));
 
       // Re-enable highlighter
       if (d3.select('#highlighterBrush').empty()) {
@@ -894,7 +905,7 @@ export class FocusChildComponent implements OnInit {
   }
 
 
-    // GET/SAVE/DELETE ANNOTATIONS 
+  // GET/SAVE/DELETE ANNOTATIONS 
 
   private getAnnotations() {
     this.data_service.getAnnotations(this.selectedObj, this.startDate, this.endDate).subscribe((response) => {
@@ -934,7 +945,7 @@ export class FocusChildComponent implements OnInit {
         console.log(err)
       },
       () => { // Add new annotation only after prev. version has been deleted
-        var annotation = { 
+        var annotation = {
           theme: theme,
           subtheme: subtheme,
           startDate: startDate,
@@ -1031,10 +1042,10 @@ export class FocusChildComponent implements OnInit {
       .scale(k)
       .translate(Tx, 0));
 
-      // Attempt to synthetically get a transform from zoom
+    // Attempt to synthetically get a transform from zoom
     var real_x = d3.zoomIdentity.scale(k).translate(Tx, 0).x; // This is entirely a result of trial and error. Not really sure why do I have to get transform.x this way..
-  
-    function appX(x){
+
+    function appX(x) {
       return x * k + real_x;
     }
 
@@ -1042,8 +1053,8 @@ export class FocusChildComponent implements OnInit {
       if (select.selection) {
         // FocusChildComponent.annotChart1.select("#brush-" + select.id).call(FocusChildComponent.annotBrushes.filter(obj => { return obj.id === select.id })[0].brush.move, select.selection.map(appX));
         FocusChildComponent.annotChart1.select("#brush-" + select.id)
-        .call(FocusChildComponent.annotBrushes.filter(obj => { return obj.id === select.id })[0].brush.move, [FocusChildComponent.x(select.selection[0]), 
-                                                                                                              FocusChildComponent.x(select.selection[1])]);
+          .call(FocusChildComponent.annotBrushes.filter(obj => { return obj.id === select.id })[0].brush.move, [FocusChildComponent.x(select.selection[0]),
+          FocusChildComponent.x(select.selection[1])]);
       }
     });
   }
@@ -1066,10 +1077,10 @@ export class FocusChildComponent implements OnInit {
       if (select.selection) { // skip nulls
         // FocusChildComponent.annotChart1.select("#brush-" + select.id)
         //.call(FocusChildComponent.annotBrushes.filter(obj => { return obj.id === select.id })[0].brush.move, select.selection.map(t.applyX, t));
-        
+
         FocusChildComponent.annotChart1.select("#brush-" + select.id)
-        .call(FocusChildComponent.annotBrushes.filter(obj => { return obj.id === select.id })[0].brush.move, [FocusChildComponent.x(select.selection[0]), 
-                                                                                                              FocusChildComponent.x(select.selection[1])]);
+          .call(FocusChildComponent.annotBrushes.filter(obj => { return obj.id === select.id })[0].brush.move, [FocusChildComponent.x(select.selection[0]),
+          FocusChildComponent.x(select.selection[1])]);
       }
     });
   }
