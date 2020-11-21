@@ -60,6 +60,7 @@ export class FocusParentComponent implements OnInit {
   submit() {
     // Init chart(tbd: once user has selected time range and camID)
     // Currently only works for 24 hour intervals
+    
     if(typeof(this.form.value.devices) === 'number' && !isNaN(this.pickedDate)){
       this.startDate = this.toEpoch(this.pickedDate);
       var dayShift = this.pickedDate; // so as not to modify 'pickeDate'

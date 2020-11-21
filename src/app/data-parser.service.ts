@@ -67,7 +67,6 @@ export class DataParserService {
   }
 
   public parseAnnotations(rawAnnotations){
-    
     var annotations = {};
     rawAnnotations.forEach(annotation => {
       annotations[annotation._id] = {startDateEpoch: annotation.startDate,
