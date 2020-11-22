@@ -694,13 +694,22 @@ export class FocusChildComponent implements OnInit {
 
   brushClicked() {
     // clear higlighter brush
-    //this.newAnnotation = null;
-    // this.highlighterBrushArea.call(FocusChildComponent.highlighterBrush.move, null)
-
+    this.newAnnotation = null;
+    this.highlighterBrushArea.call(FocusChildComponent.highlighterBrush.move, null)
     this.disableAnnotationFields = false;
 
-    // un-highlight previous brush
+    // before switching focus to another brush
     if (this.lastClickedBrush) {
+      // update annot. contents
+      for(var i in FocusChildComponent.annotBrushes){
+        if(FocusChildComponent.annotBrushes[i].id == this.lastClickedBrush){
+          FocusChildComponent.annotBrushes[i].theme = this.themeText;
+          FocusChildComponent.annotBrushes[i].subtheme = this.subthemeText;
+          FocusChildComponent.annotBrushes[i].notes = this.notesText;
+        }
+      }
+      
+      // un-highlight previous brush
       FocusChildComponent.annotChart1.select('#brush-' + this.lastClickedBrush)
       .select('.selection')
       .style('fill-opacity', '0.3');
@@ -712,6 +721,7 @@ export class FocusChildComponent implements OnInit {
     .select('.selection')
     .style('fill-opacity', '0.6');
 
+    // update ui to with selected brush's contents
     var selectedBrush: any = FocusChildComponent.annotBrushes.filter(obj => {
       return obj.id == this.lastClickedBrush;
     });
@@ -760,6 +770,8 @@ export class FocusChildComponent implements OnInit {
         }
       }
     } else {
+      console.log("this.highlightBrushed",this.highlightBrushed)
+      // update ui
       this.themeText = this.newAnnotation.theme;
       this.subthemeText = this.newAnnotation.subtheme;
       this.notesText = this.newAnnotation.notes;
@@ -894,7 +906,7 @@ export class FocusChildComponent implements OnInit {
 
       this.annotateBtnText = "Discard";
 
-      // Enable clicking on brushes but disable clicking
+      // Enable clicking on brushes but disable dragging
       for (var key in FocusChildComponent.annotations) {
         FocusChildComponent.annotChart1.select('#brush-' + key).style('pointer-events', 'all');
         // The following line is an absolute hack. Without this, however, brushes would still be draggable which is a problem because they get snapped to visible chart extents if you drag them which is counter-intuitive.
@@ -1009,6 +1021,7 @@ export class FocusChildComponent implements OnInit {
   }
 
   /* New behavior:
+
   func annotationDone:
     - If there is highlighter brush, transfer to annotation brush and clear highlighter brush
 
@@ -1016,6 +1029,7 @@ export class FocusChildComponent implements OnInit {
     - compute changes between 
     - iterate over changes and save to mongodb
     - reload chart when done
+
   */
 
   saveAnnotations() { 
