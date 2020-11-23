@@ -41,7 +41,7 @@ export class DataParserService {
     accl_z = this.largestTriangleThreeBucket(accl_z, downsampleThres, "date", "val");
     gps_alt = this.largestTriangleThreeBucket(gps_alt, downsampleThres, "date", "val");
 
-    // Compute domains
+    // compute domains
     var gyro_domain = d3.extent(d3.extent(gyro_x, (d) => { return d.val }).concat(
                       d3.extent(gyro_y, (d) => { return d.val; }),
                       d3.extent(gyro_z, (d) => { return d.val; })));
@@ -52,7 +52,7 @@ export class DataParserService {
 
     var alt_domain = d3.extent(gps_alt, d => { return d.val; });
 
-    // Any stream should do (not entirely sure tho!)
+    // any stream should do (not entirely sure tho!)
     var date_domain = d3.extent(gyro_x, d => { return d.date; });
 
     console.log("Current date domain",date_domain);
