@@ -99,7 +99,7 @@ export class FocusChildComponent implements OnInit {
   static lastSelection; // temp var
   static brushesSelections = [];
   newAnnotCounter: number;
-  isDoneBtn:boolean; //hack
+  isDoneBtn=false; //hack
   annotationsBackup;
 
 
@@ -715,7 +715,6 @@ export class FocusChildComponent implements OnInit {
       .attr('class', 'brush')
       .attr('id', d => `brush-${d.id}`)
       .each(function (brushObj) {
-        console.log("sdsdfsdf")
         // this init's the brush
         brushObj.brush(d3.select(this));
         // Move brush to location
@@ -801,9 +800,7 @@ export class FocusChildComponent implements OnInit {
   annotBrushed() { // called every time an annotation brush is dragged/resized
     FocusChildComponent.annotBrushes.forEach(brushObj => {
       var s: any = FocusChildComponent.getBrushSelection(brushObj.id);
-      if (s) {
-
-
+      if(s){
         // update position of label
         // done this way so that label becomes immediately visible on newly added brush
         var labelAnchor = ((s[1] - s[0]) / 2) + s[0];
@@ -824,6 +821,7 @@ export class FocusChildComponent implements OnInit {
       if (d3.event.sourceEvent.type == 'mouseup') {
         if(this.lastClickedBrush){
           // before switching focus to another brush
+          console.log("gotcha")
           this.updateLastClicked();
         }
         this.lastClickedBrush = null;
@@ -970,10 +968,11 @@ export class FocusChildComponent implements OnInit {
     FocusChildComponent.clearAllBrushes();
     FocusChildComponent.annotBrushes = [];
     // Remove highlighter brush
-    d3.select('#highlighterBrush').remove();
+    // d3.select('#highlighterBrush').remove();
+    FocusChildComponent.annotBrushesGroup.selectAll('.brushLabel').remove()
     // FocusChildComponent.newAnnotBrush();
     // Get new annotations and redraw brushes
-    this.getAnnotations();
+    // this.getAnnotations();
   }
 
   static clearAllBrushes() {
@@ -985,12 +984,13 @@ export class FocusChildComponent implements OnInit {
   // ANNOTATION CONTROL HANDLER
 
   toggleAnnotationMode() {
-
+    
     this.annotModeEnabled = !this.annotModeEnabled;
     if (this.annotModeEnabled) {
       console.log("Annotation mode ON");
       // make a copy of current state
-      this.annotationsBackup = FocusChildComponent.annotBrushes
+      // this.annotationsBackup = FocusChildComponent.annotBrushes  
+      this.annotationsBackup = cloneable.deepCopy(FocusChildComponent.annotBrushes)
       // update ui button
       this.annotateBtnText = "Discard";
       // Enable clicking on brushes but disable dragging
@@ -1021,15 +1021,17 @@ export class FocusChildComponent implements OnInit {
         FocusChildComponent.annotChart1.select('#brush-' + brushObj.id).style('pointer-events', 'none');
       })
 
-      if(this.isDoneBtn == true){
+
+      if(this.isDoneBtn == false){
         // means user pressed discard button
         // replace with prev state
-        console.log("discard")
+        console.log('discard')
+        this.resetBrushes()
         FocusChildComponent.annotBrushes = this.annotationsBackup;
-        // update
-        FocusChildComponent.moveAnnotBrushes();
+      //   // update
+        
         this.drawAnnotationBrushesFromData();
-        this.isDoneBtn = false;
+        // FocusChildComponent.moveAnnotBrushes();
       }
 
       // Discard new annotation
@@ -1042,6 +1044,8 @@ export class FocusChildComponent implements OnInit {
       FocusChildComponent.annotChart1.select('#brush-' + this.lastClickedBrush)
         .select('.selection')
         .style('fill-opacity', '0.3');
+      
+        this.lastClickedBrush = null;
 
       // Update button text
       this.annotateBtnText = "Annotate";
@@ -1055,6 +1059,8 @@ export class FocusChildComponent implements OnInit {
       // this.resetBrushes();
 
       this.disableAnnotationFields = true;
+      
+      this.isDoneBtn = false
 
       // discard input fields
       this.themeText = null;
@@ -1065,9 +1071,10 @@ export class FocusChildComponent implements OnInit {
 
 
   annotationDone() {
+    this.updateLastClicked();
+    this.lastClickedBrush = null;
     // transfer to FocusChildComponent.annotBrushes using push
     // append new annotation to annotBrushes
-
     if (FocusChildComponent.getBrushSelectionNoPrefix('highlighterBrush')) {
       FocusChildComponent.annotBrushes.push({
         id: String(this.newAnnotCounter),
@@ -1228,5 +1235,22 @@ export class FocusChildComponent implements OnInit {
     if (FocusChildComponent.clip_annot1) {
       FocusChildComponent.clearAllBrushes();
     }
+  }
+}
+
+export class cloneable {
+  //https://medium.com/javascript-in-plain-english/deep-clone-an-object-and-preserve-its-type-with-typescript-d488c35e5574
+  public static deepCopy<T>(source: T): T {
+    return Array.isArray(source)
+    ? source.map(item => this.deepCopy(item))
+    : source instanceof Date
+    ? new Date(source.getTime())
+    : source && typeof source === 'object'
+          ? Object.getOwnPropertyNames(source).reduce((o, prop) => {
+            o[prop] = this.deepCopy(source[prop]);
+            Object.defineProperty(o, prop, Object.getOwnPropertyDescriptor(source, prop));
+            return o;
+          }, Object.create(Object.getPrototypeOf(source)))
+    : source as T;
   }
 }
