@@ -130,6 +130,7 @@ export class FocusChildComponent implements OnInit {
 
     this.data_service.getGoProData(this.startDate, this.endDate, this.selectedObj, selectedVis, 1).subscribe((response) => {
       if (response.data.length > 0) {
+        console.log(response)
         this.createChart(this.data_parser.parseData(response.data));
       }
       else {
