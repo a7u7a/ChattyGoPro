@@ -134,7 +134,6 @@ export class FocusChildComponent implements OnInit {
     this.selectedObj = selectedObj;
     var selectedVis = ["acceleration", "gyroscope", "gps"];    
 
-    this.test();
     this.data_service.getGoProData(this.startDate, this.endDate, this.selectedObj, selectedVis, 1).subscribe((response) => {
       if (response.data.length > 0) {
         console.log(response)
@@ -150,14 +149,6 @@ export class FocusChildComponent implements OnInit {
         this.status = "Server error. Probably no data available for the selected parameters.";
       });
   }
-
-private test(){
-  var selectedVis_test = ["fork_compression", "fork_rebound", "shock_compression", "shock_rebound"];
-  this.data_service.getGoProData(this.startDate, this.endDate, this.selectedObj, selectedVis_test, 1).subscribe((response)=> {
-    console.log(response)
-  })
-
-}
 
   private createChart(objs) { // useful as TOC
     FocusChildComponent.gyro_values = objs.gyro;
