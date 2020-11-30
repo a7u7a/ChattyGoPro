@@ -19,17 +19,28 @@ app-focus-child {
   .inputs{
     display: flex;
     margin-bottom: 10px;
-    .annotation-button{
-      margin-right: 10px;
+    justify-content: space-between;
+    // .annotation-button{
+    //   margin-right: 10px;
+    // }
+    // .done-button{
+    //   margin-right: 10px;
+    // }
+    // .save-button{
+    //   margin-right: 10px;
+      
+    // }
+    // .delete-button{
+    //   margin-right: 30px;
+    // }
+    .themesDropDown{
+      margin-left: 30px;
     }
-    .save-button{
-      margin-right: 10px;
-    }
-    .delete-button{
+    // .theme-field{
+    //   margin-left: 30px;
+    // }
+    .subtheme-field{
       margin-right: 30px;
-    }
-    .theme-field{
-      margin-right: 10px;
     }
   }
   .textarea{

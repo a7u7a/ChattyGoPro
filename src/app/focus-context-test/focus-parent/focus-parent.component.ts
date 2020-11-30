@@ -37,7 +37,7 @@ export class FocusParentComponent implements OnInit {
     this.getDevices();
  
     // Create new object(temporary hack because I couldnt create an object using the python interface)
-    // var object:any={ name:"5e9064411b806200123de098", components:[{name:""}]};
+    // var object:any={ name:"6717b212327a11eba4a87200", components:[{name:""}]};
     // this.data_service.addObject(object).subscribe(response =>{
     //   console.log("addobject",response);
     // });

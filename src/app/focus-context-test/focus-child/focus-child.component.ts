@@ -6,7 +6,7 @@ import { DataParserService } from '../../data-parser.service'
 import { NbInputModule } from '@nebular/theme';
 import { brushSelection } from 'd3';
 import { conditionallyCreateMapObjectLiteral } from '@angular/compiler/src/render3/view/util';
-
+import { FormBuilder,FormGroup,FormArray,FormControl, ValidatorFn } from '@angular/forms';
 @Component({
   selector: 'app-focus-child',
   encapsulation: ViewEncapsulation.None,
@@ -89,7 +89,7 @@ export class FocusChildComponent implements OnInit {
   displayDateTo;
   displayRideMinutes;
   annotateBtnText = "Annotate";
-  disableSave = true;
+  disableDoneBtn = true;
   disableAnnotationFields = false;
   themeText: string = "";
   subthemeText: string = "";
@@ -101,6 +101,9 @@ export class FocusChildComponent implements OnInit {
   newAnnotCounter: number;
   isDoneBtn=false; //hack
   annotationsBackup;
+  themes =[{id: 0, name: "theme1"},
+           {id: 1, name: "theme2"}]
+  annotToolsGroup;
 
 
   toEpoch = d3.timeFormat("%Q");
@@ -114,6 +117,9 @@ export class FocusChildComponent implements OnInit {
 
   ngOnInit(): void {
     this.newAnnotCounter = 0;
+    this.annotToolsGroup = new FormGroup({
+      themes: new FormControl()
+    });
   }
 
   public getData(startDate, endDate, selectedObj) {
@@ -126,8 +132,9 @@ export class FocusChildComponent implements OnInit {
     this.startDate = startDate;
     this.endDate = endDate;
     this.selectedObj = selectedObj;
-    var selectedVis = ["acceleration", "gyroscope", "gps"];
+    var selectedVis = ["acceleration", "gyroscope", "gps"];    
 
+    this.test();
     this.data_service.getGoProData(this.startDate, this.endDate, this.selectedObj, selectedVis, 1).subscribe((response) => {
       if (response.data.length > 0) {
         console.log(response)
@@ -144,7 +151,13 @@ export class FocusChildComponent implements OnInit {
       });
   }
 
+private test(){
+  var selectedVis_test = ["fork_compression", "fork_rebound", "shock_compression", "shock_rebound"];
+  this.data_service.getGoProData(this.startDate, this.endDate, this.selectedObj, selectedVis_test, 1).subscribe((response)=> {
+    console.log(response)
+  })
 
+}
 
   private createChart(objs) { // useful as TOC
     FocusChildComponent.gyro_values = objs.gyro;
@@ -860,20 +873,6 @@ export class FocusChildComponent implements OnInit {
     // .on("end", this.annotBrushEnd.bind(this))
   }
 
-  // static newAnnotBrush() { // currently unused
-  //   // adds an empty brush to the array
-
-  //   // this could be a class of brush obj
-  //   FocusChildComponent.annotBrushes.push({
-  //     id: FocusChildComponent.annotBrushes.length, // temporal id
-  //     brush: FocusChildComponent.makeBrush(),
-  //     theme: "theme",
-  //     subtheme: "subtheme",
-  //     notes: "notes"
-  //   });
-  //   // this.drawAnnotBrushes(); // currently not in use
-  // }
-
   static getBrushSelectionNoPrefix(brushID) {
     var brushElement = document.getElementById(brushID);
     if (brushElement instanceof SVGGElement) {
@@ -894,87 +893,15 @@ export class FocusChildComponent implements OnInit {
   }
 
 
-  // static annotBrushEnd() { // currently not in use because new annotation brushes are coming through highlighter brush
-  //   console.log("annotbrushend")
-  //   // called after creating a new annot brush by dragging (programatically, in this case, no manual dragging)
-
-  //   if (d3.event.sourceEvent) {
-  //     var eventType = d3.event.sourceEvent.type
-  //     if (eventType == "zoom" || eventType == "brush") return; // skip zoom/brush events
-  //   }
-
-  //   FocusChildComponent.brushesSelections = []
-  //   FocusChildComponent.annotBrushes.forEach(brushObj => {
-  //     var sel = FocusChildComponent.getBrushSelection(brushObj.id)
-  //     if (sel) {
-  //       FocusChildComponent.brushesSelections.push({
-  //         // 
-  //         id: brushObj.id, selection: [FocusChildComponent.x.invert(sel[0]),
-  //         FocusChildComponent.x.invert(sel[1])]
-  //       })
-  //     }
-  //   })
-  //   console.log("FocusChildComponent.brushesSelections",FocusChildComponent.brushesSelections);
-  //   console.log("FocusChildComponent.annotations", FocusChildComponent.annotations)
-
-  //   // Figure out if our latest brush (currently empty) has a selection
-  //   var lastBrushID = FocusChildComponent.annotBrushes[FocusChildComponent.annotBrushes.length - 1].id;
-  //   var latestSelection = FocusChildComponent.getBrushSelection(lastBrushID);
-
-  //   // If it does, that means we need another one
-  //   if (latestSelection && latestSelection[0] !== latestSelection[1]) {
-  //     FocusChildComponent.newAnnotBrush();
-  //   }
-  // }
-
-  // static drawAnnotBrushes() { 
-  //   /* This is not being used due to the fact that brushes are being created using highlighter brush instead */
-  //   var brushSelection = FocusChildComponent.clip_annot1
-  //     .selectAll('.brush')
-  //     .data(FocusChildComponent.annotBrushes, d => { return d.id });
-
-  //   // Set up new brushes
-  //   brushSelection.enter()
-  //     .insert("g", '.brush')
-  //     .attr('class', 'brush')
-  //     .attr('id', function (brush) { return "brush-" + brush.id; })
-  //     .each(function (brushObject) {
-  //       //call the brush
-  //       brushObject.brush(d3.select(this));
-  //     });
-
-  //   // Remove pointer events on brush overlays
-  //   brushSelection
-  //     .each(function (brushObject) {
-  //       d3.select(this)
-  //         .attr('class', 'brush')
-  //         .selectAll('.overlay')
-  //         .style('pointer-events', function () {
-  //           var brush = brushObject.brush;
-  //           if (brushObject.id === FocusChildComponent.annotBrushes.length - 1 && brush !== undefined) {
-  //             return 'all';
-  //           } else {
-  //             return 'none';
-  //           }
-  //         });
-  //     })
-  //   brushSelection.exit()
-  //     .remove();
-  // }
-
   private resetBrushes() {
     // Clears all brushes, reset vars and reloads from server
     console.log("Resetting brushes");
     // Remove all annotbrushes
     FocusChildComponent.clearAllBrushes();
     FocusChildComponent.annotBrushes = [];
-    // Remove highlighter brush
-    // d3.select('#highlighterBrush').remove();
     FocusChildComponent.annotBrushesGroup.selectAll('.brushLabel').remove()
-    // FocusChildComponent.newAnnotBrush();
-    // Get new annotations and redraw brushes
-    // this.getAnnotations();
   }
+
 
   static clearAllBrushes() {
     FocusChildComponent.annotBrushes.forEach((brushObject: any) => {
@@ -990,7 +917,6 @@ export class FocusChildComponent implements OnInit {
     if (this.annotModeEnabled) {
       console.log("Annotation mode ON");
       // make a copy of current state
-      // this.annotationsBackup = FocusChildComponent.annotBrushes  
       this.annotationsBackup = cloneable.deepCopy(FocusChildComponent.annotBrushes)
       // update ui button
       this.annotateBtnText = "Discard";
@@ -1013,7 +939,7 @@ export class FocusChildComponent implements OnInit {
       FocusChildComponent.svg.select(".zoom")
         .attr("fill", "none");
       // Enable save button
-      this.disableSave = false;
+      this.disableDoneBtn = false;
     } else {
       console.log("Annotation mode OFF");
 
@@ -1022,47 +948,35 @@ export class FocusChildComponent implements OnInit {
         FocusChildComponent.annotChart1.select('#brush-' + brushObj.id).style('pointer-events', 'none');
       })
 
-
       if(this.isDoneBtn == false){
         // means user pressed discard button
         // replace with prev state
         console.log('discard')
         this.resetBrushes()
         FocusChildComponent.annotBrushes = this.annotationsBackup;
-      //   // update
+        // update
         
         this.drawAnnotationBrushesFromData();
-        // FocusChildComponent.moveAnnotBrushes();
       }
 
       // Discard new annotation
-      // this.newAnnotation = null; 
       this.highlighterBrushArea.call(FocusChildComponent.highlighterBrush.move, null)
-
-      // d3.select('#highlighterBrush').remove();
-
       // un-highlight previous brush
       FocusChildComponent.annotChart1.select('#brush-' + this.lastClickedBrush)
         .select('.selection')
         .style('fill-opacity', '0.3');
-      
-        this.lastClickedBrush = null;
 
+      this.lastClickedBrush = null;
       // Update button text
       this.annotateBtnText = "Annotate";
-
       // Disable zoom area
       FocusChildComponent.svg.select(".zoom")
         .attr("fill", "white");
-
       // Disable save button
-      this.disableSave = true;
+      this.disableDoneBtn = true;
       // this.resetBrushes();
-
       this.disableAnnotationFields = true;
-      
       this.isDoneBtn = false
-
       // discard input fields
       this.themeText = null;
       this.subthemeText = null;
