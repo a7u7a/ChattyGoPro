@@ -7,6 +7,7 @@ import { NbInputModule } from '@nebular/theme';
 import { brushSelection } from 'd3';
 import { conditionallyCreateMapObjectLiteral } from '@angular/compiler/src/render3/view/util';
 import { FormBuilder,FormGroup,FormArray,FormControl, ValidatorFn } from '@angular/forms';
+
 @Component({
   selector: 'app-focus-child',
   encapsulation: ViewEncapsulation.None,
@@ -90,6 +91,7 @@ export class FocusChildComponent implements OnInit {
   displayRideMinutes;
   annotateBtnText = "Annotate";
   disableDoneBtn = true;
+  disableSaveBtn = true;
   disableAnnotationFields = false;
   themeText: string = "";
   subthemeText: string = "";
@@ -104,7 +106,6 @@ export class FocusChildComponent implements OnInit {
   themes =[{id: 0, name: "theme1"},
            {id: 1, name: "theme2"}]
   annotToolsGroup;
-
 
   toEpoch = d3.timeFormat("%Q");
 
@@ -123,6 +124,7 @@ export class FocusChildComponent implements OnInit {
   }
 
   public getData(startDate, endDate, selectedObj) {
+    this.disableSaveBtn = true;
     FocusChildComponent.removeExistingChartFromParent()
     // Create chart once data has been loaded
     this.showChartInfo = false;
@@ -136,7 +138,7 @@ export class FocusChildComponent implements OnInit {
 
     this.data_service.getGoProData(this.startDate, this.endDate, this.selectedObj, selectedVis, 1).subscribe((response) => {
       if (response.data.length > 0) {
-        console.log(response)
+        // console.log(response)
         this.createChart(this.data_parser.parseData(response.data));
       }
       else {
@@ -644,6 +646,7 @@ export class FocusChildComponent implements OnInit {
       this.populateAnnotBrushes();
       this.drawAnnotationBrushesFromData();
     });
+  
   }
 
   private addAnnotation(theme, subtheme, startDate, endDate, notes) {
@@ -906,6 +909,9 @@ export class FocusChildComponent implements OnInit {
     
     this.annotModeEnabled = !this.annotModeEnabled;
     if (this.annotModeEnabled) {
+      // disable save btn
+      this.disableSaveBtn = true
+
       console.log("Annotation mode ON");
       // make a copy of current state
       this.annotationsBackup = cloneable.deepCopy(FocusChildComponent.annotBrushes)
@@ -929,10 +935,13 @@ export class FocusChildComponent implements OnInit {
       // Disable zoom
       FocusChildComponent.svg.select(".zoom")
         .attr("fill", "none");
-      // Enable save button
+      // Enable done button
       this.disableDoneBtn = false;
     } else {
       console.log("Annotation mode OFF");
+
+      // enable save btn
+      this.disableSaveBtn = false
 
       // disable clicking on brushes
       FocusChildComponent.annotBrushes.forEach(brushObj => {
@@ -963,7 +972,7 @@ export class FocusChildComponent implements OnInit {
       // Disable zoom area
       FocusChildComponent.svg.select(".zoom")
         .attr("fill", "white");
-      // Disable save button
+      // Disable done button
       this.disableDoneBtn = true;
       // this.resetBrushes();
       this.disableAnnotationFields = true;
@@ -1017,69 +1026,31 @@ export class FocusChildComponent implements OnInit {
   }
 
 
-  // saveAnnotations() { 
+  saveAnnotations() { 
 
-  //   /* Notes:
-  //   - To be called by save button in UI
-  //   - Compares API-fetched annotations with current state of the chart */
-  //   console.log("FocusChildComponent.annotBrushes",FocusChildComponent.annotBrushes)
-  //   // Compute changes: which annotations suffered changes and need to be updated/replaced?
-  //   FocusChildComponent.annotBrushes.forEach((brushObject: any) => {
-  //     // Get brush
-  //     var brush = document.getElementById('brush-' + brushObject.id);
-  //     if(brush instanceof SVGGElement) {
-  //       // Get selection  
-  //       var selection = d3.brushSelection(brush);
-  //       if(selection){
-  //         // Filter brushes that contain edits
-  //         if(Object.keys(FocusChildComponent.annotations).includes(brushObject.id)){
-  //           // There is probably a simpler way to compare dicts but I needed to convert timescale values to epoch
-  //           var brushTheme = brushObject.theme,
-  //             brushSubtheme = brushObject.subtheme,
-  //             brushNotes = brushObject.notes,
-  //             brushStartEpoch = Number(this.toEpoch(FocusChildComponent.x.invert(selection[0]))),
-  //             brushEndEpoch = Number(this.toEpoch(FocusChildComponent.x.invert(selection[1]))),
-  //             annotStartEpoch = FocusChildComponent.annotations[brushObject.id].startDateEpoch,
-  //             annotEndEpoch = FocusChildComponent.annotations[brushObject.id].endDateEpoch;
-  //           // Check if changes are because brush was moved
-  //           if(brushStartEpoch != annotStartEpoch ||
-  //             brushEndEpoch != annotEndEpoch) {
-  //             // Also check if changes in texts
-  //             if(this.lastClickedBrush) { // avoid checking against nulls
-  //               if(brushObject.id == this.lastClickedBrush) {
-  //                 if(brushTheme != this.themeText ||
-  //                   brushSubtheme != this.subthemeText ||
-  //                   brushNotes != this.notesText) {
-  //                   // Replace field values if changes are detected
-  //                   brushTheme = this.themeText;
-  //                   brushSubtheme = this.subthemeText;
-  //                   brushNotes = this.notesText;
-  //                 }
-  //               }
-  //             }
-  //             // Delete old annotation
-  //             console.log("Change detected, replacing", brushObject.id);
-  //             this.replaceAnnotation(brushObject.id, brushTheme, brushSubtheme, brushStartEpoch, brushEndEpoch, brushNotes);
-  //           }
-  //         }else{
-  //           console.log("New brush detected:", brushObject.id);
-  //           // Add new brush-annotations to server with default values
-  //           this.addAnnotation(brushTheme, brushSubtheme, brushStartEpoch, brushEndEpoch, brushNotes);
-  //         }
-  //       }
-  //     }
-  //   });
+    console.log("saveAnnotations");
 
-  //   if (this.newAnnotation) {
-  //     console.log("Saving new brush annotatition");
-  //     this.addAnnotation(this.themeText, this.subthemeText, this.newAnnotation.startEpoch, this.newAnnotation.endEpoch, this.notesText)
-  //     this.newAnnotation = null;
-  //   }
-  //   else {
-  //     console.log("No new annotations");
-  //   }
-  //   this.toggleAnnotationMode();
-  // }
+    /* Notes:
+    - To be called by save button in UI
+     */
+
+    // delete originally fetched annotations
+      for(var id in  FocusChildComponent.annotations){
+      console.log("deleting",id)
+      this.data_service.deleteAnnotation(id).subscribe( resp => {
+        console.log("Delete Annotation result:", resp)
+      })
+    }
+    
+    // add all current annotations
+    FocusChildComponent.annotBrushes.forEach(brushObj => {
+      console.log("saving",brushObj)
+      this.addAnnotation(brushObj.theme, brushObj.subtheme, brushObj.startDateEpoch, brushObj.endDateEpoch, brushObj.notes)
+    })
+
+    // reload chart
+    this.getData(this.startDate, this.endDate, this.selectedObj);
+  }
 
 
   // CONTEXT BRUSH AND ZOOM HANDLES
