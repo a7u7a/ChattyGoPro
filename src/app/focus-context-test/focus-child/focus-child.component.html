@@ -17,7 +17,7 @@
             {{ annotateBtnText }}</button>
         <button nbButton size="small" id="done-button" class="done-button" [disabled]="disableDoneBtn"
             (click)="annotationDone()">Done</button>
-        <button nbButton size="small" id="delete-button" class="delete-button" [disabled]="true">Delete</button>
+        <button nbButton size="small" id="delete-button" class="delete-button" [disabled]="disableDeleteBtn" (click)="deleteSelectedAnnot()">Delete</button>
 
         <div [formGroup]="annotToolsGroup">
             <nb-select formControlName="themes" id="themes" class="themesDropDown" placeholder="themes">

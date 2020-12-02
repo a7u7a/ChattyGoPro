@@ -92,6 +92,7 @@ export class FocusChildComponent implements OnInit {
   annotateBtnText = "Annotate";
   disableDoneBtn = true;
   disableSaveBtn = true;
+  disableDeleteBtn = true;
   disableAnnotationFields = false;
   themeText: string = "";
   subthemeText: string = "";
@@ -781,6 +782,7 @@ export class FocusChildComponent implements OnInit {
 
   brushClicked() {
     // clear higlighter brush
+    this.disableDeleteBtn = false;
     this.newAnnotation = null; //cleanup
     this.highlighterBrushArea.call(FocusChildComponent.highlighterBrush.move, null)
     this.disableAnnotationFields = false;
@@ -799,10 +801,6 @@ export class FocusChildComponent implements OnInit {
     this.themeText = selectedBrush[0].theme;
     this.subthemeText = selectedBrush[0].subtheme;
     this.notesText = selectedBrush[0].notes;
-  }
-
-  discard(){
-
   }
 
   annotBrushed() { // called every time an annotation brush is dragged/resized
@@ -830,6 +828,7 @@ export class FocusChildComponent implements OnInit {
         if(this.lastClickedBrush){
           // before switching focus to another brush
           console.log("gotcha")
+          this.disableDeleteBtn = true
           this.updateLastClicked();
         }
         this.lastClickedBrush = null;
@@ -939,6 +938,8 @@ export class FocusChildComponent implements OnInit {
       this.disableDoneBtn = false;
     } else {
       console.log("Annotation mode OFF");
+      // disable Delete
+      this.disableDeleteBtn = true;
 
       // enable save btn
       this.disableSaveBtn = false
@@ -1025,29 +1026,56 @@ export class FocusChildComponent implements OnInit {
     this.toggleAnnotationMode();
   }
 
+  deleteSelectedAnnot(){
+    
+    console.log("To be deleted:",this.lastClickedBrush)
+
+
+    for (var i in FocusChildComponent.annotBrushes){
+      if(FocusChildComponent.annotBrushes[i].id == this.lastClickedBrush)
+      delete FocusChildComponent.annotBrushes[i];
+    }
+
+    // make deep copy of annotbrushes
+    var previousAnnotations = []
+    for (var i in FocusChildComponent.annotBrushes){
+      previousAnnotations[i] = FocusChildComponent.annotBrushes[i]
+    }
+
+    // reset
+    FocusChildComponent.annotBrushes = []
+
+    // transfer from copy skipping the deleted one
+    var counter = 0
+    for (var i in previousAnnotations){
+      if(previousAnnotations[i].id !== this.lastClickedBrush){
+        FocusChildComponent.annotBrushes[counter] = previousAnnotations[i]
+        counter += 1
+      }
+    }    
+    
+    // remove svg 
+    d3.select('#brush-' + this.lastClickedBrush).remove();
+
+    this.drawAnnotationBrushesFromData();
+  }
+
 
   saveAnnotations() { 
-
+    // To be called by save button in UI
     console.log("saveAnnotations");
-
-    /* Notes:
-    - To be called by save button in UI
-     */
-
     // delete originally fetched annotations
       for(var id in  FocusChildComponent.annotations){
-      console.log("deleting",id)
+      // console.log("deleting",id)
       this.data_service.deleteAnnotation(id).subscribe( resp => {
-        console.log("Delete Annotation result:", resp)
+        // console.log("Delete Annotation result:", resp)
       })
     }
-    
     // add all current annotations
     FocusChildComponent.annotBrushes.forEach(brushObj => {
-      console.log("saving",brushObj)
+      // console.log("saving",brushObj)
       this.addAnnotation(brushObj.theme, brushObj.subtheme, brushObj.startDateEpoch, brushObj.endDateEpoch, brushObj.notes)
     })
-
     // reload chart
     this.getData(this.startDate, this.endDate, this.selectedObj);
   }
