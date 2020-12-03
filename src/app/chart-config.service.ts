@@ -21,7 +21,7 @@ export class ChartConfigService {
       streamIds: this.streamIds.goPro,
       contextView: {
         streamId: 'gps_alt', // use variable name
-        streamColor: '#e41a1c',
+        lineColor: '#e41a1c',
       },
       focusCharts: [
         {
