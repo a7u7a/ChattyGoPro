@@ -20,9 +20,65 @@ export class ChartConfigService {
       parser: 'gopro', // or parseMIQ
       streamIds: this.streamIds.goPro,
       contextView: {
-        streamId: 'gps_alt', // simply use name of variable available 
+        streamId: 'gps_alt', // use variable name
         streamColor: '#e41a1c',
-      }
+      },
+      focusCharts: [
+        {
+          name: 'Acceleration (m/s2)',
+          height: 170,
+          streams: [
+            {
+              streamId: 'accl_x',
+              streamLabel: 'x',
+              lineColor: '#e41a1c'
+            },
+            {
+              streamId: 'accl_y',
+              streamLabel: 'y',
+              lineColor: '#377eb8'
+            },
+            {
+              streamId: 'accl_z',
+              streamLabel: 'z',
+              lineColor: '#4daf4a'
+            }
+          ]
+        },
+        {
+          name: 'Gyroscope (rad/s)',
+          height: 170,
+          streams: [
+            {
+              streamId: 'gyro_x',
+              streamLabel: 'x',
+              lineColor: '#e41a1c'
+            },
+            {
+              streamId: 'gyro_y',
+              streamLabel: 'y',
+              lineColor: '#377eb8'
+            },
+            {
+              streamId: 'gyro_z',
+              streamLabel: 'z',
+              lineColor: '#4daf4a'
+            }
+          ]
+        },
+        {
+          name: 'Altitude',
+          height: 170,
+          streams: [
+            {
+              streamId: 'gps_alt',
+              streamLabel: '(mts)',
+              lineColor: '#magenta'
+            }
+          ]
+        },
+      ]
+
     },
 
     {
@@ -37,6 +93,14 @@ export class ChartConfigService {
 
   ]
 }
+
+
+'gyro_y'
+'gyro_z'
+
+'accl_x'
+'accl_y'
+'accl_z'
 
 
 // // Example
@@ -60,7 +124,7 @@ export class ChartConfigService {
 //                 focus: ..
 // focus: ..
 
-/*{ 
+/*{
 
 chatty = {
     'speaker': id,

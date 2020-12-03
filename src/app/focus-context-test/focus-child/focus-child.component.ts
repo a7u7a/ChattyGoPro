@@ -63,7 +63,7 @@ export class FocusChildComponent implements OnInit {
   static focus1Height;
   static focus2Height;
   static focus3Height;
-  static annotChart1Height;
+  static annotHeight;
   stackedHeight;
   strokeWidth = "0.5";
   spacer1;
@@ -108,6 +108,7 @@ export class FocusChildComponent implements OnInit {
   { id: 1, name: "theme2" }]
   annotToolsGroup;
   chart_config;
+  dataStreams;
 
   toEpoch = d3.timeFormat("%Q");
 
@@ -185,7 +186,46 @@ export class FocusChildComponent implements OnInit {
     }
   }
 
+private getSensorStreams(streamId){
+  // Iterate over the datastreams and returns the specified streams
+  var out_stream;
+  Object.keys(this.dataStreams).forEach(function (key) {
+    if( key === streamId){
+      console.log("found stream", streamId, key)
+      out_stream = this.dataStreams[key] 
+      return
+    }
+  }.bind(this));
+  // if it doesnt find any
+  console.log(`The stream ${streamId} wasn't found in the dataset!`)
+  return out_stream;
+}
+
+private getStreamIds(){
+
+}
+
+
   private createChart(dataStreams) { // useful as TOC
+    this.dataStreams = dataStreams;
+
+    this.chart_config.contextView.streamId
+
+    // Find all the stream ids needed to build the focus charts
+    this.chart_config.focusCharts.forEach(element => {
+      var streams = []
+      element.streams.forEach(streamObj => {
+        console.log("searching for",streamObj.streamId)
+        streams.push(streamObj.streamId)
+        console.log("getstreams",this.getSensorStreams(streamObj.streamId))
+      });
+    });
+   
+  
+   
+
+
+    console.log("dataStreams",dataStreams)
     FocusChildComponent.gyro_values = [dataStreams.gyro_x, dataStreams.gyro_y, dataStreams.gyro_z];
     FocusChildComponent.accl_values = [dataStreams.accl_x, dataStreams.accl_y, dataStreams.accl_z];
     FocusChildComponent.alt_values = dataStreams.gps_alt;
@@ -230,31 +270,37 @@ export class FocusChildComponent implements OnInit {
 
   }
 
+  private setChartInfo() {
+    // Display range dates on top of chart
+    this.displayDateFrom = this.date_domain[0].toLocaleDateString("en-GB", { weekday: 'long' }) + " " + this.date_domain[0].toLocaleString();
+    this.displayDateTo = this.date_domain[1].toLocaleDateString("en-GB", { weekday: 'long' }) + " " + this.date_domain[1].toLocaleString();
+    this.displayRideMinutes = Math.round(((this.date_domain[1].getTime() - this.date_domain[0].getTime()) / 60000) * 10) / 10;
+  }
+
   // CHART SETUP
 
   private setChartDimensions() {
 
     // Max units of the viewbox
     var viewBoxWidth = 800;
+
     this.spacer1 = 25;
     this.spacer2 = 0;
     FocusChildComponent.contextHeight = 80;
-    FocusChildComponent.annotChart1Height = 80
-    this.annotEditorHeight = 200;
+    FocusChildComponent.annotHeight = 80;
     FocusChildComponent.focus1Height = 170;
     FocusChildComponent.focus2Height = 170;
     FocusChildComponent.focus3Height = 170;
     this.margin = { top: 0, right: 0, bottom: 0, left: 25 };
     this.marginTop_f1 = this.margin.top + FocusChildComponent.contextHeight + this.spacer1;
-    this.marginTop_f2 = this.marginTop_f1 + FocusChildComponent.focus1Height + this.spacer2;
-    this.marginTop_f3 = this.marginTop_f2 + FocusChildComponent.focus2Height + this.spacer2;
+    this.marginTop_f2 = this.marginTop_f1 + FocusChildComponent.focus1Height;
+    this.marginTop_f3 = this.marginTop_f2 + FocusChildComponent.focus2Height;
     this.marginTop_annotChart1 = this.marginTop_f3 + FocusChildComponent.focus3Height + this.spacer1;
-    this.martinTop_annotEditor = this.marginTop_annotChart1 + FocusChildComponent.annotChart1Height + this.spacer1;
-    this.zoomHeight = FocusChildComponent.focus1Height + FocusChildComponent.focus1Height + FocusChildComponent.focus1Height + this.spacer2 * 2;
-    // this.stackedHeight = this.annotEditorHeight + this.martinTop_annotEditor + this.margin.bottom;
+    this.martinTop_annotEditor = this.marginTop_annotChart1 + FocusChildComponent.annotHeight + this.spacer1;
+    this.zoomHeight = FocusChildComponent.focus1Height + FocusChildComponent.focus1Height + FocusChildComponent.focus1Height;
     this.stackedHeight = this.martinTop_annotEditor + this.margin.bottom;
     FocusChildComponent.width = viewBoxWidth - this.margin.right - this.margin.left;
-    this.highlighterBrushOverlayHeight = FocusChildComponent.focus1Height + FocusChildComponent.focus1Height + FocusChildComponent.focus3Height + this.spacer2 * 2;
+    this.highlighterBrushOverlayHeight = FocusChildComponent.focus1Height + FocusChildComponent.focus1Height + FocusChildComponent.focus3Height;
 
     FocusChildComponent.hostElement = document.getElementById("mainChart");
     FocusChildComponent.svg = d3.select(FocusChildComponent.hostElement).append('svg')
@@ -270,6 +316,8 @@ export class FocusChildComponent implements OnInit {
       .attr('height', '100%')
       .attr('fill', 'white')
   }
+
+  
 
   private setAxis() {
 
@@ -542,7 +590,7 @@ export class FocusChildComponent implements OnInit {
       .attr("id", "clip_annot1")
       .append("rect")
       .attr("width", FocusChildComponent.width)
-      .attr("height", FocusChildComponent.annotChart1Height);
+      .attr("height", FocusChildComponent.annotHeight);
 
     FocusChildComponent.clip_annot1 = FocusChildComponent.annotBrushesGroup.append("g")
       .attr("clip-path", "url(#clip_annot1)")
@@ -659,12 +707,6 @@ export class FocusChildComponent implements OnInit {
       .attr('stroke', 'black');
   }
 
-  private setChartInfo() {
-    // Display range dates on top of chart
-    this.displayDateFrom = this.date_domain[0].toLocaleDateString("en-GB", { weekday: 'long' }) + " " + this.date_domain[0].toLocaleString();
-    this.displayDateTo = this.date_domain[1].toLocaleDateString("en-GB", { weekday: 'long' }) + " " + this.date_domain[1].toLocaleString();
-    this.displayRideMinutes = Math.round(((this.date_domain[1].getTime() - this.date_domain[0].getTime()) / 60000) * 10) / 10;
-  }
 
 
 
@@ -784,7 +826,7 @@ export class FocusChildComponent implements OnInit {
           .style("dominant-baseline", "central")
           .text(brushObj.subtheme)
           .attr("x", labelAnchor)
-          .attr("y", FocusChildComponent.annotChart1Height - FocusChildComponent.contextHeight / 2)
+          .attr("y", FocusChildComponent.annotHeight - FocusChildComponent.contextHeight / 2)
           .attr("fill", "black")
           .attr("font-size", "10px");
       }
@@ -846,7 +888,7 @@ export class FocusChildComponent implements OnInit {
         FocusChildComponent.annotChart1.select('#brush-' + brushObj.id)
           .select('.brushLabel')
           .attr("x", labelAnchor)
-          .attr("y", FocusChildComponent.annotChart1Height - FocusChildComponent.contextHeight / 2)
+          .attr("y", FocusChildComponent.annotHeight - FocusChildComponent.contextHeight / 2)
       }
     })
   }
@@ -893,7 +935,7 @@ export class FocusChildComponent implements OnInit {
   makeBrush() {
     // empty d3 brush obj
     return d3.brushX()
-      .extent([[0, 0], [FocusChildComponent.width, FocusChildComponent.annotChart1Height]])
+      .extent([[0, 0], [FocusChildComponent.width, FocusChildComponent.annotHeight]])
       // .on("start", FocusChildComponent.annotBrushStart)
       .on("brush", this.annotBrushed.bind(this))
     // .on("end", this.annotBrushEnd.bind(this))
