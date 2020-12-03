@@ -6,7 +6,7 @@ import { DataParserService } from '../../data-parser.service'
 import { NbInputModule } from '@nebular/theme';
 import { brushSelection } from 'd3';
 import { conditionallyCreateMapObjectLiteral } from '@angular/compiler/src/render3/view/util';
-import { FormBuilder,FormGroup,FormArray,FormControl, ValidatorFn } from '@angular/forms';
+import { FormBuilder, FormGroup, FormArray, FormControl, ValidatorFn } from '@angular/forms';
 
 @Component({
   selector: 'app-focus-child',
@@ -102,11 +102,12 @@ export class FocusChildComponent implements OnInit {
   static lastSelection; // temp var
   static brushesSelections = [];
   newAnnotCounter: number;
-  isDoneBtn=false; //hack
+  isDoneBtn = false; //hack
   annotationsBackup;
-  themes =[{id: 0, name: "theme1"},
-           {id: 1, name: "theme2"}]
+  themes = [{ id: 0, name: "theme1" },
+  { id: 1, name: "theme2" }]
   annotToolsGroup;
+  chart_config;
 
   toEpoch = d3.timeFormat("%Q");
 
@@ -124,7 +125,9 @@ export class FocusChildComponent implements OnInit {
     });
   }
 
-  public getData(startDate, endDate, selectedObj) {
+  public getData(startDate, endDate, selectedObj, chart_config) {
+    this.chart_config = chart_config // make this get the actual object
+    console.log("selected chart config", this.chart_config)
     this.disableSaveBtn = true;
     FocusChildComponent.removeExistingChartFromParent()
     // Create chart once data has been loaded
@@ -135,12 +138,21 @@ export class FocusChildComponent implements OnInit {
     this.startDate = startDate;
     this.endDate = endDate;
     this.selectedObj = selectedObj;
-    var selectedVis = ["acceleration", "gyroscope", "gps"];    
+    // var selectedVis = ["acceleration", "gyroscope", "gps"];    
+    var selectedVis = this.chart_config.streamIds
 
-    this.data_service.getGoProData(this.startDate, this.endDate, this.selectedObj, selectedVis, 1).subscribe((response) => {
+    this.data_service.getData(this.startDate, this.endDate, this.selectedObj, selectedVis, 1).subscribe((response) => {
       if (response.data.length > 0) {
         // console.log(response)
-        this.createChart(this.data_parser.parseData(response.data));
+        if (this.chart_config.parser == 'gopro') {
+          console.log("Using GoPro parser")
+          this.createChart(this.data_parser.parseGoPro(response.data));
+        }
+        else if (this.chart_config.parser == 'miq') {
+          console.log("Using MIQ parser")
+          this.createChart(this.data_parser.parseMIQ(response.data));
+        }
+
       }
       else {
         console.log("Unable to plot because data selection is empty!")
@@ -153,14 +165,37 @@ export class FocusChildComponent implements OnInit {
       });
   }
 
-  private createChart(objs) { // useful as TOC
-    FocusChildComponent.gyro_values = objs.gyro;
-    FocusChildComponent.accl_values = objs.accl;
-    FocusChildComponent.alt_values = objs.gps_alt;
-    this.gyro_domain = objs.gyro_domain;
-    this.accl_domain = objs.accl_domain;
-    this.alt_domain = objs.alt_domain;
-    this.date_domain = objs.date_domain;
+  private getDomain(data) {
+    // quick workaround to compute the domain of single or multiple data streams
+    // arg must be array
+    if (data instanceof Array) {
+      if (data.length == 1) {
+        return d3.extent(data[0], (d: any) => { return d.val; });
+      }
+      else if (data.length > 1) {
+        var domains = []
+        for (var i in data) {
+          domains.push(...d3.extent(data[i], (d: any) => { return d.val }))
+        }
+        return d3.extent(domains, (d: any) => { return d })
+      }
+    }
+    else {
+      return undefined
+    }
+  }
+
+  private createChart(dataStreams) { // useful as TOC
+    FocusChildComponent.gyro_values = [dataStreams.gyro_x, dataStreams.gyro_y, dataStreams.gyro_z];
+    FocusChildComponent.accl_values = [dataStreams.accl_x, dataStreams.accl_y, dataStreams.accl_z];
+    FocusChildComponent.alt_values = dataStreams.gps_alt;
+    this.gyro_domain = this.getDomain(FocusChildComponent.gyro_values);
+    this.accl_domain = this.getDomain(FocusChildComponent.accl_values);
+    this.alt_domain = this.getDomain([FocusChildComponent.alt_values]);
+
+    // this one applies to all cases
+    // use the first element of the dataStreams since all will return the same date domain
+    this.date_domain = d3.extent(dataStreams[Object.keys(dataStreams)[0]], (d:any) => { return d.date; });
 
     this.isLoading = false;
 
@@ -183,8 +218,6 @@ export class FocusChildComponent implements OnInit {
     this.createPlotLines();
 
     this.createAnnotBrushSVGGroup();
-
-    // FocusChildComponent.newAnnotBrush(); // Set first empty brush
 
     this.getAnnotations(); // Triggers => drawAnnotFromData()
 
@@ -647,7 +680,7 @@ export class FocusChildComponent implements OnInit {
       this.populateAnnotBrushes();
       this.drawAnnotationBrushesFromData();
     });
-  
+
   }
 
   private addAnnotation(theme, subtheme, startDate, endDate, notes) {
@@ -758,26 +791,26 @@ export class FocusChildComponent implements OnInit {
     })
   }
 
-  updateLastClicked(){
-       if (this.lastClickedBrush) {
-        // update annot. contents
-        for (var i in FocusChildComponent.annotBrushes) {
-          if (FocusChildComponent.annotBrushes[i].id == this.lastClickedBrush) {
-            FocusChildComponent.annotBrushes[i].theme = this.themeText;
-            FocusChildComponent.annotBrushes[i].subtheme = this.subthemeText;
-            FocusChildComponent.annotBrushes[i].notes = this.notesText;
-            // update brushLabel
-            // var s: any = FocusChildComponent.getBrushSelection(brushObj.id);
-            FocusChildComponent.clip_annot1.select('#brush-' + FocusChildComponent.annotBrushes[i].id)
-              .select('.brushLabel').text(FocusChildComponent.annotBrushes[i].subtheme)
-          }
+  updateLastClicked() {
+    if (this.lastClickedBrush) {
+      // update annot. contents
+      for (var i in FocusChildComponent.annotBrushes) {
+        if (FocusChildComponent.annotBrushes[i].id == this.lastClickedBrush) {
+          FocusChildComponent.annotBrushes[i].theme = this.themeText;
+          FocusChildComponent.annotBrushes[i].subtheme = this.subthemeText;
+          FocusChildComponent.annotBrushes[i].notes = this.notesText;
+          // update brushLabel
+          // var s: any = FocusChildComponent.getBrushSelection(brushObj.id);
+          FocusChildComponent.clip_annot1.select('#brush-' + FocusChildComponent.annotBrushes[i].id)
+            .select('.brushLabel').text(FocusChildComponent.annotBrushes[i].subtheme)
         }
-  
-        // un-highlight previous brush
-        FocusChildComponent.annotChart1.select('#brush-' + this.lastClickedBrush)
-          .select('.selection')
-          .style('fill-opacity', '0.3');
       }
+
+      // un-highlight previous brush
+      FocusChildComponent.annotChart1.select('#brush-' + this.lastClickedBrush)
+        .select('.selection')
+        .style('fill-opacity', '0.3');
+    }
   }
 
   brushClicked() {
@@ -806,7 +839,7 @@ export class FocusChildComponent implements OnInit {
   annotBrushed() { // called every time an annotation brush is dragged/resized
     FocusChildComponent.annotBrushes.forEach(brushObj => {
       var s: any = FocusChildComponent.getBrushSelection(brushObj.id);
-      if(s){
+      if (s) {
         // update position of label
         // done this way so that label becomes immediately visible on newly added brush
         var labelAnchor = ((s[1] - s[0]) / 2) + s[0];
@@ -825,7 +858,7 @@ export class FocusChildComponent implements OnInit {
     // filter events. this way we dont lose state of lastClickedBrush every time
     if (d3.event.sourceEvent) {
       if (d3.event.sourceEvent.type == 'mouseup') {
-        if(this.lastClickedBrush){
+        if (this.lastClickedBrush) {
           // before switching focus to another brush
           console.log("gotcha")
           this.disableDeleteBtn = true
@@ -905,7 +938,7 @@ export class FocusChildComponent implements OnInit {
   // ANNOTATION CONTROL HANDLER
 
   toggleAnnotationMode() {
-    
+
     this.annotModeEnabled = !this.annotModeEnabled;
     if (this.annotModeEnabled) {
       // disable save btn
@@ -949,14 +982,14 @@ export class FocusChildComponent implements OnInit {
         FocusChildComponent.annotChart1.select('#brush-' + brushObj.id).style('pointer-events', 'none');
       })
 
-      if(this.isDoneBtn == false){
+      if (this.isDoneBtn == false) {
         // means user pressed discard button
         // replace with prev state
         console.log('discard')
         this.resetBrushes()
         FocusChildComponent.annotBrushes = this.annotationsBackup;
         // update
-        
+
         this.drawAnnotationBrushesFromData();
       }
 
@@ -1026,19 +1059,19 @@ export class FocusChildComponent implements OnInit {
     this.toggleAnnotationMode();
   }
 
-  deleteSelectedAnnot(){
-    
-    console.log("To be deleted:",this.lastClickedBrush)
+  deleteSelectedAnnot() {
+
+    console.log("To be deleted:", this.lastClickedBrush)
 
 
-    for (var i in FocusChildComponent.annotBrushes){
-      if(FocusChildComponent.annotBrushes[i].id == this.lastClickedBrush)
-      delete FocusChildComponent.annotBrushes[i];
+    for (var i in FocusChildComponent.annotBrushes) {
+      if (FocusChildComponent.annotBrushes[i].id == this.lastClickedBrush)
+        delete FocusChildComponent.annotBrushes[i];
     }
 
     // make deep copy of annotbrushes
     var previousAnnotations = []
-    for (var i in FocusChildComponent.annotBrushes){
+    for (var i in FocusChildComponent.annotBrushes) {
       previousAnnotations[i] = FocusChildComponent.annotBrushes[i]
     }
 
@@ -1047,13 +1080,13 @@ export class FocusChildComponent implements OnInit {
 
     // transfer from copy skipping the deleted one
     var counter = 0
-    for (var i in previousAnnotations){
-      if(previousAnnotations[i].id !== this.lastClickedBrush){
+    for (var i in previousAnnotations) {
+      if (previousAnnotations[i].id !== this.lastClickedBrush) {
         FocusChildComponent.annotBrushes[counter] = previousAnnotations[i]
         counter += 1
       }
-    }    
-    
+    }
+
     // remove svg 
     d3.select('#brush-' + this.lastClickedBrush).remove();
 
@@ -1061,13 +1094,13 @@ export class FocusChildComponent implements OnInit {
   }
 
 
-  saveAnnotations() { 
+  saveAnnotations() {
     // To be called by save button in UI
     console.log("saveAnnotations");
     // delete originally fetched annotations
-      for(var id in  FocusChildComponent.annotations){
+    for (var id in FocusChildComponent.annotations) {
       // console.log("deleting",id)
-      this.data_service.deleteAnnotation(id).subscribe( resp => {
+      this.data_service.deleteAnnotation(id).subscribe(resp => {
         // console.log("Delete Annotation result:", resp)
       })
     }
@@ -1076,8 +1109,8 @@ export class FocusChildComponent implements OnInit {
       // console.log("saving",brushObj)
       this.addAnnotation(brushObj.theme, brushObj.subtheme, brushObj.startDateEpoch, brushObj.endDateEpoch, brushObj.notes)
     })
-    // reload chart
-    this.getData(this.startDate, this.endDate, this.selectedObj);
+    // reload chart using the same chart configuration
+    this.getData(this.startDate, this.endDate, this.selectedObj, this.chart_config);
   }
 
 
@@ -1147,15 +1180,15 @@ export class cloneable {
   //https://medium.com/javascript-in-plain-english/deep-clone-an-object-and-preserve-its-type-with-typescript-d488c35e5574
   public static deepCopy<T>(source: T): T {
     return Array.isArray(source)
-    ? source.map(item => this.deepCopy(item))
-    : source instanceof Date
-    ? new Date(source.getTime())
-    : source && typeof source === 'object'
+      ? source.map(item => this.deepCopy(item))
+      : source instanceof Date
+        ? new Date(source.getTime())
+        : source && typeof source === 'object'
           ? Object.getOwnPropertyNames(source).reduce((o, prop) => {
             o[prop] = this.deepCopy(source[prop]);
             Object.defineProperty(o, prop, Object.getOwnPropertyDescriptor(source, prop));
             return o;
           }, Object.create(Object.getPrototypeOf(source)))
-    : source as T;
+          : source as T;
   }
 }
