@@ -11,7 +11,7 @@
 
       <nb-select formControlName="devices" id="devices" class="devices" placeholder="Device">
         <nb-option *ngFor="let camera of cameras; let i = index" [value]="cameras[i].id">
-          {{cameras[i].name}}
+          {{cameras[i].label}}
         </nb-option>
       </nb-select>
 

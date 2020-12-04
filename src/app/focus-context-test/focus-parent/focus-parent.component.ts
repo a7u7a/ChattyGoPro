@@ -24,6 +24,10 @@ export class FocusParentComponent implements OnInit {
   form: FormGroup;
   cameras = [];
   pickedDate;
+  objLabels = {
+  '5e9064411b806200123de098' : 'GoPro1',
+  '6717b212327a11eba4a87200' : 'MIQ1'};
+
   selectedChartConfig;
   availChartConfigs = [];
   toEpoch = d3.timeFormat("%Q");
@@ -59,7 +63,7 @@ export class FocusParentComponent implements OnInit {
       var counter = 0
       response.data.forEach((element, index) => {
         if (element.name) {
-          this.cameras.push({ id: counter, name: element.name })
+          this.cameras.push({ id: counter, name: element.name, label:this.objLabels[element.name] })
           counter++;
         }
       });

@@ -12,22 +12,22 @@ export class ChartConfigService {
     miq: ["fork_compression", "fork_rebound", "shock_compression", "shock_rebound"]
   }
 
-
   public configs = [
-    // list with all required streams
+    
     {
       name: 'Edinburgh',
-      parser: 'gopro', // or parseMIQ
+      parser: 'gopro', 
       streamIds: this.streamIds.goPro,
       contextView: {
-        streamId: 'gps_alt', // use variable name
+        streamId: 'gps_alt', // use variable name as apperas in data-parser
+        streamLabel: 'Altitude',
         lineColor: '#e41a1c',
       },
       focusCharts: [
         {
           name: 'Acceleration (m/s2)',
           id: 'f1',
-          height: 170,
+          height: 100,
           streams: [
             {
               streamId: 'accl_x',
@@ -81,53 +81,84 @@ export class ChartConfigService {
           ]
         },
       ]
-
     },
+
 
     {
       name: "Cardiff",
       parser: "miq",
       streamIds: this.streamIds.miq,
       contextView: {
-        streamId: 'gps_alt', // simply use name of variable available 
-        streamColor: '#e41a1c',
-      }
-    }
+        streamId: 'shock_compression_slope3', // simply use name of variable available 
+        streamLabel: 'Slope',
+        lineColor: '#e41a1c',
+      },
+      focusCharts: [
+        {
+          name: 'Fork compression',
+          id: 'f1',
+          height: 170,
+          streams: [
+            {
+              streamId: 'fork_compression_p1',
+              streamLabel: 'p1',
+              lineColor: '#e41a1c'
+            },
+            {
+              streamId: 'fork_compression_p2',
+              streamLabel: 'p2',
+              lineColor: '#377eb8'
+            },
+            {
+              streamId: 'fork_compression_gforce',
+              streamLabel: 'gforce',
+              lineColor: '#4daf4a'
+            }
+          ]
+        },
+        {
+          name: 'Shock rebound',
+          id: 'f2',
+          height: 80,
+          streams: [
+            {
+              streamId: 'shock_rebound_pMaxSpeed',
+              streamLabel: 'pMaxSpeed',
+              lineColor: '#e41a1c'
+            }
+          ]
+        },
+        {
+          name: 'Shock compression',
+          id: 'f3',
+          height: 170,
+          streams: [
+            {
+              streamId: 'shock_compression_p1',
+              streamLabel: 'p1',
+              lineColor: '#e41a1c'
+            },
+            {
+              streamId: 'shock_compression_p2',
+              streamLabel: 'p2',
+              lineColor: '#377eb8'
+            },
+            {
+              streamId: 'shock_compression_gforce',
+              streamLabel: 'gforce',
+              lineColor: '#4daf4a'
+            }
+          ]
+        },
 
+      ]
+    }
   ]
 }
 
 
-'gyro_y'
-'gyro_z'
 
-'accl_x'
-'accl_y'
-'accl_z'
-
-
-// // Example
-// // check wiki for list of available streamId’s
-// contextView: {
-//     streamId: ‘gps_alt’,
-//     streamColor: <hexColor>}
-// focus: {
-//             focusLabel:  ‘Acceleration (m/s2)’,
-// streams : [
-// {streamId: accel_y,
-// streamLabel: ‘y,
-// streamColor: <hexColor>},
-// {streamId: accel_x,
-// streamLabel: ‘x,
-// streamColor: <hexColor>},
-// {streamId: accel_z,
-// streamLabel: ‘z,
-// streamColor: <hexColor>}]
-//                 }
-//                 focus: ..
-// focus: ..
-
-/*{
+/*
 
 chatty = {
     'speaker': id,
@@ -172,24 +203,4 @@ chatty = {
         }
     }
 }
-
-// Example
-// check wiki for list of available streamId’s
-contextView: {
-    streamId: ‘gps_alt’,
-    streamColor: <hexColor>}
-focus: {
-            focusLabel:  ‘Acceleration (m/s2)’,
-streams : [
-{streamId: accel_y,
-streamLabel: ‘y,
-streamColor: <hexColor>},
-{streamId: accel_x,
-streamLabel: ‘x,
-streamColor: <hexColor>},
-{streamId: accel_z,
-streamLabel: ‘z,
-streamColor: <hexColor>}]
-                }
-                focus: ..
-focus: .. }*/
+*/

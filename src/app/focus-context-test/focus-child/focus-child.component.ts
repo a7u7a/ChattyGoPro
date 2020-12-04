@@ -42,8 +42,6 @@ export class FocusChildComponent implements OnInit {
   static focus2;
   static focus3;
   static context;
-  static gyro_values;
-  static accl_values;
   static alt_values = [];
   gyro_domain;
   accl_domain;
@@ -202,37 +200,20 @@ export class FocusChildComponent implements OnInit {
     return out_stream;
   }
 
-  private getStreamIds() {
-
-  }
-
 
   private createChart(dataStreams) { // useful as TOC
     this.dataStreams = dataStreams;
     console.log("dataStreams", dataStreams)
-    this.chart_config.contextView.streamId
 
-    // Find all the stream ids needed to build the focus charts
-    this.chart_config.focusCharts.forEach(element => {
-      var streams = []
-      element.streams.forEach(streamObj => {
-        // console.log("searching for", streamObj.streamId)
-        streams.push(streamObj.streamId)
-        // console.log("getstreams", this.getSensorStreams(streamObj.streamId))
-      });
-    });
-
-
-
-
-
-
-    FocusChildComponent.gyro_values = [dataStreams.gyro_x, dataStreams.gyro_y, dataStreams.gyro_z];
-    FocusChildComponent.accl_values = [dataStreams.accl_x, dataStreams.accl_y, dataStreams.accl_z];
-    FocusChildComponent.alt_values = dataStreams.gps_alt;
-    this.gyro_domain = this.getDomain(FocusChildComponent.gyro_values);
-    this.accl_domain = this.getDomain(FocusChildComponent.accl_values);
-    this.alt_domain = this.getDomain([FocusChildComponent.alt_values]);
+    // // Find all the stream ids needed to build the focus charts
+    // this.chart_config.focusCharts.forEach(element => {
+    //   var streams = []
+    //   element.streams.forEach(streamObj => {
+    //     // console.log("searching for", streamObj.streamId)
+    //     streams.push(streamObj.streamId)
+    //     // console.log("getstreams", this.getSensorStreams(streamObj.streamId))
+    //   });
+    // });
 
     // this one applies to all cases
     // use the first element of the dataStreams since all will return the same date domain
@@ -262,7 +243,7 @@ export class FocusChildComponent implements OnInit {
 
     this.addElements();
 
-    // this.setContextBrush();
+    this.setContextBrush();
 
     this.displayAnnotationForm = true;
     this.showChartInfo = true;
@@ -312,7 +293,7 @@ export class FocusChildComponent implements OnInit {
     // apply dims to base svg element
     FocusChildComponent.hostElement = document.getElementById("mainChart");
     FocusChildComponent.svg = d3.select(FocusChildComponent.hostElement).append('svg')
-      .attr('width', "100%")
+      .attr('width', "70%")
       .attr('height', "100%")
       .attr('viewBox', '0 0 ' + viewBoxWidth + ' ' + this.chartHeight)
     // get rid of these
@@ -353,8 +334,13 @@ export class FocusChildComponent implements OnInit {
   private createContextChart() {
     var context_domain = this.getDomain([this.getSensorStreams(this.chart_config.contextView.streamId)])
     // Y2
-    this.y_context = d3.scaleLinear().range([FocusChildComponent.contextHeight, 0])
+    this.y_context = d3.scaleLinear()
+      .range([FocusChildComponent.contextHeight, 0])
       .domain([context_domain[0], context_domain[1]]); // add some friendly margin
+
+    FocusChildComponent.x_context = d3.scaleTime()
+      .domain(this.date_domain)
+      .range([0, FocusChildComponent.chartWidth])
 
     // Create context svg group and position
     FocusChildComponent.context = FocusChildComponent.svg.append("g")
@@ -379,8 +365,22 @@ export class FocusChildComponent implements OnInit {
       .attr("fill-opacity", "0%")
       .attr("stroke-width", this.strokeWidth)
       .attr("d", d3.line()
-        .x((d: any) => { return FocusChildComponent.x(d.date); })
+        .x((d: any) => { return FocusChildComponent.x_context(d.date); })
         .y((d: any) => { return this.y_context(d.val); }));
+
+    FocusChildComponent.context.selectAll(null)
+      .data([this.chart_config.contextView.streamLabel])
+      .enter()
+        .append('text')
+        .append('tspan')
+        .style("text-anchor", "start")
+        .style("font-weight", "bold")
+        .attr("x", 10)
+        .attr("y", 15)
+        .attr("fill", '#black')
+        .attr("font-size", "10px")
+        .text(t => { return t })
+
 
     // Appends x axis to Context
     FocusChildComponent.context.append("g")
@@ -446,19 +446,21 @@ export class FocusChildComponent implements OnInit {
       focusChart.selectAll(null) // add label
         .data(labels)
         .enter()
-        .append('text')
-        .append("tspan")
-        .style("text-anchor", "start")
-        .style("font-weight", "bold")
-        .attr("x", (d, i) => { var s = i ? 100 : 10; var offset = s + i * 10; return offset })
-        .attr("y", 15)
-        .attr("fill", (d, i) => { return colors[i] })
-        .attr("font-size", "10px")
-        .text(t => { return t })
-      focusChart.append('g')
+          .append('text')
+          .append("tspan")
+          .style("text-anchor", "start")
+          .style("font-weight", "bold")
+          .attr("x", (d, i) => { var x = i < 1 ? 10:0 ; var offset = x + i * 10; return offset })
+          .attr("y", (d, i)=> { var y = i == 0 ? 15 : 30; return y})
+          .attr("fill", (d, i) => { return colors[i] })
+          .attr("font-size", "10px")
+          .text(t => { return t })
+
+      var lines = focusChart.append('g')
         .attr("clip-path", "url(#clip_" + id + ")")
+
       if (streams.length > 1) { // add multiline
-        focusChart.selectAll(".line")
+        lines.selectAll(".line")
           .data(streams)
           .enter()
           .append("path")
@@ -469,7 +471,7 @@ export class FocusChildComponent implements OnInit {
           .attr("d", line)
       }
       else { // add single line
-        focusChart.append("path")
+        lines.append("path")
           .datum(streams[0])
           .attr("class", "line")
           .attr("fill", "none")
@@ -502,22 +504,20 @@ export class FocusChildComponent implements OnInit {
       .attr("transform", "translate(0," + this.focusStackedHeight + ")")
       .call(FocusChildComponent.xAxisFocus);
 
-      // Append annotation brush
+    // Append annotation brush
     this.highlighterBrushArea = FocusChildComponent.focusSVGGroup.append("g")
       .attr("id", "highlighterBrush")
       .attr("transform", "translate(" + 0 + "," + 0 + ")")
       .call(FocusChildComponent.highlighterBrush);
 
     // Appends zoom to svg over focus1 area
-    // FocusChildComponent.svg.append("rect")
-    //   .attr("class", "zoom")
-    //   .attr("width", FocusChildComponent.chartWidth)
-    //   .attr("height", this.zoomHeight)
-    //   .attr("fill-opacity", "0%")
-    //   .attr("transform", "translate(" + this.margin.left + "," + this.marginTop_f1 + ")")
-    //   .call(FocusChildComponent.zoom);
+    FocusChildComponent.focusSVGGroup.append("rect")
+      .attr("class", "zoom")
+      .attr("width", FocusChildComponent.chartWidth)
+      .attr("height", this.zoomHeight)
+      .attr("fill-opacity", "0%")
+      .call(FocusChildComponent.zoom);
   }
-
 
   private createAnnotationsChart() {
     FocusChildComponent.annotChart1 = FocusChildComponent.svg.append("g")
@@ -550,8 +550,6 @@ export class FocusChildComponent implements OnInit {
     FocusChildComponent.clip_annot1 = FocusChildComponent.annotBrushesGroup.append("g")
       .attr("clip-path", "url(#clip_annot1)")
   }
-
- 
 
   private addElements() {
 
@@ -1026,43 +1024,48 @@ export class FocusChildComponent implements OnInit {
 
   // CONTEXT BRUSH AND ZOOM HANDLES
 
-  static contextBrushed() { // Context brush
+  static contextBrushed() { // context brush handler
     if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
-    console.log("brushed")
-    var s = d3.event.selection || FocusChildComponent.x.range();
-    FocusChildComponent.x.domain(s.map(FocusChildComponent.x.invert, FocusChildComponent.x));
-    FocusChildComponent.focus1.selectAll(".line").attr("d", FocusChildComponent.setLine_f1());
-    FocusChildComponent.focus1.select(".axis--x").call(FocusChildComponent.xAxisFocus);
-    FocusChildComponent.focus2.selectAll(".line").attr("d", FocusChildComponent.setLine_f2());
-    FocusChildComponent.focus2.select(".axis--x").call(FocusChildComponent.xAxis_f2);
-    FocusChildComponent.focus3.select(".line_f3").attr("d", FocusChildComponent.setLine_f3());
-    FocusChildComponent.focus3.select(".axis--x").call(FocusChildComponent.xAxis_f3);
+    var s = d3.event.selection || FocusChildComponent.x_context.range();
+    FocusChildComponent.x.domain(s.map(FocusChildComponent.x_context.invert, FocusChildComponent.x_context));
+
+    FocusChildComponent.updateFocus();
+
     FocusChildComponent.annotChart1.select(".axis--x").call(FocusChildComponent.xAxisFocus);
+
     var k = FocusChildComponent.chartWidth / (s[1] - s[0]);
     var Tx = -s[0];
-    FocusChildComponent.svg.select(".zoom").call(FocusChildComponent.zoom.transform, d3.zoomIdentity
+
+    FocusChildComponent.focusSVGGroup.select(".zoom").call(FocusChildComponent.zoom.transform, d3.zoomIdentity
       .scale(k)
       .translate(Tx, 0));
-    FocusChildComponent.moveAnnotBrushes()
+    FocusChildComponent.updateBrushes()
   }
 
-  static zoomed() { // Zoom event handler
+  static zoomed() { // zoom event handler
     if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return; // ignore zoom-by-brush
     var t = d3.event.transform;
-    FocusChildComponent.x.domain(t.rescaleX(FocusChildComponent.x).domain()); // sets domain to scale with transform
-    FocusChildComponent.focus1.selectAll(".line").attr("d", FocusChildComponent.setLine_f1());
-    FocusChildComponent.focus1.select(".axis--x").call(FocusChildComponent.xAxisFocus);
-    FocusChildComponent.focus2.selectAll(".line").attr("d", FocusChildComponent.setLine_f2());
-    FocusChildComponent.focus2.select(".axis--x").call(FocusChildComponent.xAxis_f2);
-    FocusChildComponent.focus3.select(".line_f3").attr("d", FocusChildComponent.setLine_f3());
-    FocusChildComponent.focus3.select(".axis--x").call(FocusChildComponent.xAxis_f3);
-    FocusChildComponent.context.select(".main_brush").call(FocusChildComponent.contextBrush.move, FocusChildComponent.x.range().map(t.invertX, t));
+    FocusChildComponent.x.domain(t.rescaleX(FocusChildComponent.x_context).domain()); // sets domain to scale with transform
+
+    FocusChildComponent.updateFocus();
+
     FocusChildComponent.annotChart1.select(".axis--x").call(FocusChildComponent.xAxisFocus);
-    FocusChildComponent.moveAnnotBrushes()
+
+    FocusChildComponent.context.select(".main_brush").call(FocusChildComponent.contextBrush.move, FocusChildComponent.x.range().map(t.invertX, t));
+
+    FocusChildComponent.updateBrushes()
   }
 
-  static moveAnnotBrushes() {
-    // move the brushes, normally called by zoomed/contextBrushed
+  static updateFocus() {
+    // update line chart upon zoom/brush
+    FocusChildComponent.focusGroup.forEach(focusChart => {
+      focusChart.svgSelection.selectAll('.line').attr('d', focusChart.line) // lines
+      FocusChildComponent.focusSVGGroup.select('.axis--x').call(FocusChildComponent.xAxisFocus); // bottom axis
+    });
+  }
+
+  static updateBrushes() {
+    // update annot brushes position upon zoom/brush
     FocusChildComponent.annotBrushes.forEach(brushObj => {
       var from = brushObj.startDate
       var to = brushObj.endDate
@@ -1086,6 +1089,7 @@ export class FocusChildComponent implements OnInit {
   }
 }
 
+// can be made much simpler, will delete
 export class cloneable {
   //https://medium.com/javascript-in-plain-english/deep-clone-an-object-and-preserve-its-type-with-typescript-d488c35e5574
   public static deepCopy<T>(source: T): T {
