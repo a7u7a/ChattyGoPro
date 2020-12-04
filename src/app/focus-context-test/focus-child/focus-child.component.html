@@ -11,13 +11,27 @@
 
 <div class="annotation-controls" *ngIf="displayAnnotationForm">
 
-    <div class="inputs">
-        <button id="annotation-btn" nbButton size="small" class="annotation-button" (click)="toggleAnnotationMode()" > {{ annotateBtnText }}</button>
-        <button nbButton size="small" id="save-button" class="save-button" [disabled]="disableSave" (click)="annotationDone()" >Done</button>
-        <button nbButton size="small" id="delete-button" class="delete-button" [disabled]="true" >Delete</button>
 
-        <input nbInput type="text" [(ngModel)]="themeText"  class="theme-field" placeholder="Theme" fieldSize="small" [disabled]="disableAnnotationFields" style="font-weight:normal;">
-        <input nbInput type="text" [(ngModel)]="subthemeText" class="subtheme-field" placeholder="Subtheme" fieldSize="small" [disabled]="disableAnnotationFields" style="font-weight:normal;">
+    <div class="inputs">
+        <button id="annotation-btn" nbButton size="small" class="annotation-button" (click)="toggleAnnotationMode()">
+            {{ annotateBtnText }}</button>
+        <button nbButton size="small" id="done-button" class="done-button" [disabled]="disableDoneBtn"
+            (click)="annotationDone()">Done</button>
+        <button nbButton size="small" id="delete-button" class="delete-button" [disabled]="disableDeleteBtn" (click)="deleteSelectedAnnot()">Delete</button>
+
+        <div [formGroup]="annotToolsGroup">
+            <nb-select formControlName="themes" id="themes" class="themesDropDown" placeholder="themes">
+                <nb-option *ngFor="let theme of themes; let i = index" [value]="themes[i].id">
+                    {{themes[i].name}}
+                </nb-option>
+            </nb-select>
+        </div>
+
+        <!-- <input nbInput type="text" [(ngModel)]="themeText"  class="theme-field" placeholder="Theme" fieldSize="small" [disabled]="disableAnnotationFields" style="font-weight:normal;"> -->
+        <input nbInput type="text" [(ngModel)]="subthemeText" class="subtheme-field" placeholder="Subtheme"
+            fieldSize="small" [disabled]="disableAnnotationFields" style="font-weight:normal;">
+        <button nbButton size="small" id="save-button" class="save-button" [disabled]="disableSaveBtn" (click)="saveAnnotations()">Save</button>
     </div>
-    <textarea nbInput [(ngModel)]="notesText" class="notes-field textarea input-full-width" placeholder="Notes" fieldSize="small" [disabled]="disableAnnotationFields" style="font-weight:normal;"></textarea>
+    <textarea nbInput [(ngModel)]="notesText" class="notes-field textarea input-full-width" placeholder="Notes"
+        fieldSize="small" [disabled]="disableAnnotationFields" style="font-weight:normal;"></textarea>
 </div>

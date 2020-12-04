@@ -11,14 +11,14 @@ export class DataService {
     private  httpClient:HttpClient,
   ) { }
 
-  public getGoProData(start,end,objectId,fields,nPerSec) {
+  public getData(start,end,objectId,fields,nPerSec) {
 
     console.log("Fetching data from: ", environment.apiUrl);
     console.log("Query: ",{startDate:start, endDate:end, object:objectId, fields:fields});
   
     return this.httpClient.post<any>(environment.apiUrl + '/data/getRange', {startDate:start, endDate:end, object:objectId, fields:fields, num:nPerSec})  
   }
-
+  
   public getAnnotations(object, start, end){
     return this.httpClient.post<any>(environment.apiUrl + "/admin/annotations/range", {object: object, startDate: start,endDate:end})
   }

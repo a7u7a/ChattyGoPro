@@ -19,17 +19,29 @@ app-focus-child {
   .inputs{
     display: flex;
     margin-bottom: 10px;
+    justify-content: flex-start;
     .annotation-button{
+      margin-right: 10px;
+    }
+    .done-button{
       margin-right: 10px;
     }
     .save-button{
       margin-right: 10px;
+      
     }
     .delete-button{
-      margin-right: 30px;
+      margin-right: 20px;
     }
-    .theme-field{
+    .themesDropDown{
+      margin-left: 20px;
       margin-right: 10px;
+    }
+    // .theme-field{
+    //   margin-left: 30px;
+    // }
+    .subtheme-field{
+      margin-right: 30px;
     }
   }
   .textarea{

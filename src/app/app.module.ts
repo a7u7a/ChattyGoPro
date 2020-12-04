@@ -13,7 +13,8 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { HomeComponent } from './home/home.component';
 import { FocusParentComponent } from './focus-context-test/focus-parent/focus-parent.component';
 import { FocusChildComponent } from './focus-context-test/focus-child/focus-child.component';
-import { DataService } from './data.service'
+import { DataService } from './data.service';
+
 
 @NgModule({
   declarations: [

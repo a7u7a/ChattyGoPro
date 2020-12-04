@@ -9,13 +9,19 @@
 
     <form [formGroup]="form" (ngSubmit)="submit()" class="input-form">
 
-      <nb-select formControlName="devices" id="devices" placeholder="Pick device">
+      <nb-select formControlName="devices" id="devices" class="devices" placeholder="Device">
         <nb-option *ngFor="let camera of cameras; let i = index" [value]="cameras[i].id">
-          {{cameras[i].name}}
+          {{cameras[i].label}}
         </nb-option>
       </nb-select>
 
-      <input nbInput placeholder="Pick Date" [ngModel]="pickedDate" [nbDatepicker]="dateTimePicker" 
+      <nb-select formControlName="configs" id="config" class="configs" placeholder="Configuration">
+        <nb-option *ngFor="let config of availChartConfigs; let i = index" [value]="availChartConfigs[i].id">
+          {{availChartConfigs[i].name}}
+        </nb-option>
+      </nb-select>
+
+      <input nbInput placeholder="Date" [ngModel]="pickedDate" [nbDatepicker]="dateTimePicker" 
         (ngModelChange)="setPickerDate($event)" [ngModelOptions]="{standalone: true}">
       <nb-datepicker #dateTimePicker></nb-datepicker>
 
