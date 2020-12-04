@@ -26,6 +26,7 @@ export class ChartConfigService {
       focusCharts: [
         {
           name: 'Acceleration (m/s2)',
+          id: 'f1',
           height: 170,
           streams: [
             {
@@ -47,6 +48,7 @@ export class ChartConfigService {
         },
         {
           name: 'Gyroscope (rad/s)',
+          id: 'f2',
           height: 170,
           streams: [
             {
@@ -68,12 +70,13 @@ export class ChartConfigService {
         },
         {
           name: 'Altitude',
+          id: 'f3',
           height: 170,
           streams: [
             {
               streamId: 'gps_alt',
               streamLabel: '(mts)',
-              lineColor: '#magenta'
+              lineColor: '#e41a1c'
             }
           ]
         },

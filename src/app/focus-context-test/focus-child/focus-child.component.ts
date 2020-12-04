@@ -111,6 +111,7 @@ export class FocusChildComponent implements OnInit {
   static focusSVGGroup;
   focusStart;
   static focusGroup
+  focusStackedHeight;
 
   toEpoch = d3.timeFormat("%Q");
 
@@ -193,7 +194,7 @@ export class FocusChildComponent implements OnInit {
     var out_stream;
     Object.keys(this.dataStreams).forEach(function (key) {
       if (key === streamId) {
-        console.log("found stream", streamId, key)
+        // console.log("found stream", streamId, key)
         out_stream = this.dataStreams[key]
         return
       }
@@ -215,9 +216,9 @@ export class FocusChildComponent implements OnInit {
     this.chart_config.focusCharts.forEach(element => {
       var streams = []
       element.streams.forEach(streamObj => {
-        console.log("searching for", streamObj.streamId)
+        // console.log("searching for", streamObj.streamId)
         streams.push(streamObj.streamId)
-        console.log("getstreams", this.getSensorStreams(streamObj.streamId))
+        // console.log("getstreams", this.getSensorStreams(streamObj.streamId))
       });
     });
 
@@ -245,27 +246,23 @@ export class FocusChildComponent implements OnInit {
 
     this.setMainAxis();
 
-    // this.setContextBrush();
+    this.createZoom();
+
+    this.createHighlighterBrush();
 
     this.createContextChart();
 
-    this.createFocusCharts(); // Includes: Gyro, Accl, Elevation
-
-    this.createZoom(); // Includes zoom toggle
+    this.createFocusCharts(); // programatially creates focus charts
 
     this.createAnnotationsChart();
-
-    // this.createContextLine();
-
-    this.createPlotLines();
 
     this.createAnnotBrushSVGGroup();
 
     this.getAnnotations(); // Triggers => drawAnnotFromData()
 
-
-
     this.addElements();
+
+    // this.setContextBrush();
 
     this.displayAnnotationForm = true;
     this.showChartInfo = true;
@@ -302,11 +299,11 @@ export class FocusChildComponent implements OnInit {
     // where focus charts start
     this.focusStart = FocusChildComponent.contextHeight + this.spacer1;
     // total focus height
-    var focusStackedHeight = this.getFocusHeights().reduce((a, b) => a + b, 0);
+    this.focusStackedHeight = this.getFocusHeights().reduce((a, b) => a + b, 0);
     // where annotation chart starts
-    var annotStart = this.focusStart + focusStackedHeight + this.spacer1;
+    var annotStart = this.focusStart + this.focusStackedHeight + this.spacer1;
     // zoom height for zoom area
-    this.zoomHeight = focusStackedHeight;
+    this.zoomHeight = this.focusStackedHeight;
     // height of one theme lane
     this.themeHeight = FocusChildComponent.annotHeight + this.spacer1
     // total chart dims
@@ -328,31 +325,36 @@ export class FocusChildComponent implements OnInit {
     this.marginTop_annotChart = annotStart;
   }
 
-
   private setMainAxis() {
-    var plotMargin = 1.1;
     // main x scale
     FocusChildComponent.x = d3.scaleTime()
       .domain(this.date_domain) // shared with context X 
       .range([0, FocusChildComponent.chartWidth]);
-
-    // Apply x scale on bottom last step 
+    // Apply x scale on bottom
     FocusChildComponent.xAxisFocus = d3.axisBottom(FocusChildComponent.x);
   }
 
+  private createZoom() {
+    // Create zoom feature
+    FocusChildComponent.zoom = d3.zoom()
+      .scaleExtent([1, Infinity])
+      .translateExtent([[0, 0], [FocusChildComponent.chartWidth, this.zoomHeight]])
+      .extent([[0, 0], [FocusChildComponent.chartWidth, this.zoomHeight]])
+      .on("zoom", FocusChildComponent.zoomed);
+  }
+
+  private createHighlighterBrush() {
+    // Create highlighter brush  
+    FocusChildComponent.highlighterBrush = d3.brushX()
+      .extent([[0, 0], [FocusChildComponent.chartWidth, this.zoomHeight]])
+      .on("end", this.highlightBrushed.bind(this));
+  }
 
   private createContextChart() {
-
     var context_domain = this.getDomain([this.getSensorStreams(this.chart_config.contextView.streamId)])
     // Y2
     this.y_context = d3.scaleLinear().range([FocusChildComponent.contextHeight, 0])
       .domain([context_domain[0], context_domain[1]]); // add some friendly margin
-
-    // Create context brush feature
-    FocusChildComponent.contextBrush = d3.brushX()
-      .extent([[0, 0], [FocusChildComponent.chartWidth, FocusChildComponent.contextHeight]])
-      .on("brush", FocusChildComponent.contextBrushed);
-
 
     // Create context svg group and position
     FocusChildComponent.context = FocusChildComponent.svg.append("g")
@@ -385,394 +387,136 @@ export class FocusChildComponent implements OnInit {
       .attr("class", "axis axis--x")
       .attr("transform", "translate(0," + FocusChildComponent.contextHeight + ")")
       .call(d3.axisBottom(FocusChildComponent.x));
-
-    // // Appends brush to context, sets initial range
-    // FocusChildComponent.context.append("g")
-    // .attr("class", "main_brush")
-    // .call(FocusChildComponent.contextBrush)
-    // .call(FocusChildComponent.contextBrush.move, FocusChildComponent.x.range()); // sets initial brush state
-
   }
 
-  // private createContextLine() {
-  //   // Create context line
-  //   this.contextLine = d3.line()
-  //     .x((d: any) => { return FocusChildComponent.x(d.date); })
-  //     .y((d: any) => { return this.y_context(d.val); });
-  // }
-
-
-
-
-
   private createFocusCharts() {
-
-    var plotMargin = 1.1;
-    var labelColor = ['#000000', '#e41a1c', '#377eb8', '#4daf4a', '#e41a1c', '#FF00FF'];
- 
-    // this will go
-    // Y scale
-    FocusChildComponent.y_f1 = d3.scaleLinear()
-      .range([FocusChildComponent.focus1Height, 0]) // get from config file
-      .domain([this.gyro_domain[0] * plotMargin, this.gyro_domain[1] * plotMargin]); // Add a bit of margin
-    this.yAxisLeft_f1 = d3.axisLeft(FocusChildComponent.y_f1);
-
-
-    // Focus2 (x scale same as focus1)
-    // Set Y scale
-    FocusChildComponent.y_f2 = d3.scaleLinear()
-      .range([FocusChildComponent.focus2Height, 0])
-      .domain([this.accl_domain[0] * plotMargin, this.accl_domain[1] * plotMargin]); // Add a bit of margin
-    FocusChildComponent.xAxis_f2 = d3.axisBottom(FocusChildComponent.x);
-    this.yAxisLeft_f2 = d3.axisLeft(FocusChildComponent.y_f2); // these could go. too verbose
-
-    // Focus3 
-    // Set Y scale
-    FocusChildComponent.y_f3 = d3.scaleLinear()
-      .range([FocusChildComponent.focus3Height, 0])
-      .domain([this.alt_domain[0] - 0.5, this.alt_domain[1] + 0.5]); // Add a bit of margin
-    FocusChildComponent.xAxis_f3 = d3.axisBottom(FocusChildComponent.x); // x scale same as focus1
-    this.yAxisLeft_f3 = d3.axisLeft(FocusChildComponent.y_f3); // these could go. too verbose 
-
-
-
-
-
-
-    // make focus chart svg group here!
+    // programatically creates all focus chart elements following chart config file
+    // base group
     FocusChildComponent.focusSVGGroup = FocusChildComponent.svg.append("g")
-      .attr("class", "focusGroup")
+      .attr("class", "focusSVGGroup")
       .attr("transform", "translate(" + this.margin.left + "," + this.focusStart + ")");
 
     FocusChildComponent.focusGroup = []
 
-    var insertHeight = this.focusStart
+    var insertHeight = 0
     // this loop creates focus charts
 
-    
     this.chart_config.focusCharts.forEach(element => {
       var name = element.name;
       var height = element.height;
       var id = element.id;
       var labels = [name]
+      var streams = []
+      var colors = ['#black']
 
-      var colors =[]
-      // create list with labels and label colors
+      // create arrays
       element.streams.forEach(stream => {
-        labels.push(...stream.streamLabel)
-        colors.push(...stream.lineColor)
+        labels.push(stream.streamLabel)
+        colors.push(stream.lineColor)
+        streams.push(this.getSensorStreams(stream.streamId))
       });
 
-      var focusChart = FocusChildComponent.focusSVGGroup.append('g')
-                .attr("class", id)
-                .attr("transform", "translate(" + this.margin.left + "," + insertHeight + ")")
-                .append("defs").append("clipPath") // clip path
-                .attr("id", "clip_ + id")
-                .append("rect")
-                .attr("width", FocusChildComponent.chartWidth)
-                .attr("height", height)
-                .append('rect') // add bounding box
-                .attr("class", "bbox")
-                .attr('x', 0)
-                .attr('y', 0)
-                .attr('width', FocusChildComponent.chartWidth)
-                .attr('height', height)
-                .attr('fill', 'white')
-                .attr('stroke', 'black')
-                .selectAll(null) // add label
-                .data(labels)
-                .enter()
-                .append('text')
-                .append("tspan")
-                .style("text-anchor", "start")
-                .style("font-weight", "bold")
-                .attr("x", (d, i) => { var s = i ? 100 : 10; var offset = s + i * 10; return offset })
-                .attr("y", 15)
-                .attr("fill", (d, i) => { return colors[i] })
-                .attr("font-size", "10px")
-                .text(t => { return t })
+      var yScale = d3.scaleLinear()
+        .range([height, 0])
+        .domain(this.getDomain(streams))
 
+      // console.log("found", streams, yScale.domain())
+      // console.log("colors for", id, colors)
+
+      var yAxisLeft = d3.axisLeft(yScale)
+      var line = d3.line()
+        .x((d: any) => { return FocusChildComponent.x(d.date) })
+        .y((d: any) => { return yScale(d.val) })
+      var focusChart = FocusChildComponent.focusSVGGroup.append('g')
+        .attr("class", id)
+        .attr("transform", "translate(0," + insertHeight + ")");
+      focusChart.append("defs").append("clipPath") // clip path
+        .attr("id", "clip_" + id)
+        .append("rect")
+        .attr("width", FocusChildComponent.chartWidth)
+        .attr("height", height);
+      focusChart.append('rect') // add bounding box
+        .attr("class", "bbox")
+        .attr('x', 0)
+        .attr('y', 0)
+        .attr('width', FocusChildComponent.chartWidth)
+        .attr('height', height)
+        .attr('fill', 'white')
+        .attr('stroke', 'black');
+      focusChart.selectAll(null) // add label
+        .data(labels)
+        .enter()
+        .append('text')
+        .append("tspan")
+        .style("text-anchor", "start")
+        .style("font-weight", "bold")
+        .attr("x", (d, i) => { var s = i ? 100 : 10; var offset = s + i * 10; return offset })
+        .attr("y", 15)
+        .attr("fill", (d, i) => { return colors[i] })
+        .attr("font-size", "10px")
+        .text(t => { return t })
+      focusChart.append('g')
+        .attr("clip-path", "url(#clip_" + id + ")")
+      if (streams.length > 1) { // add multiline
+        focusChart.selectAll(".line")
+          .data(streams)
+          .enter()
+          .append("path")
+          .attr("class", "line")  // I add the class line to be able to modify this line later on.
+          .attr("fill", "none")
+          .attr("stroke", (d, i) => { return colors[i + 1] }) // skip black
+          .attr("stroke-width", this.strokeWidth)
+          .attr("d", line)
+      }
+      else { // add single line
+        focusChart.append("path")
+          .datum(streams[0])
+          .attr("class", "line")
+          .attr("fill", "none")
+          .attr("stroke", colors[1])
+          .attr("stroke-width", this.strokeWidth)
+          .attr("d", line);
+      }
+      // y axis on the left
+      focusChart.append("g")
+        .attr("class", "axis axis--y")
+        .call(yAxisLeft);
+
+      insertHeight += height // update for insertion point for the next one
+
+      // append to array
       FocusChildComponent.focusGroup.push({
+        height: height,
+        id: id,
+        streams: streams,
+        yScale: yScale,
+        line: line,
         name: name,
-        svg: focusChart
+        svgSelection: focusChart
       })
     });
 
-    // // Focus1
-    // // Create acceleration focus
-    // FocusChildComponent.focus1 = FocusChildComponent.svg.append("g")
-    //   .attr("class", "focus1")
-    //   .attr("transform", "translate(" + this.margin.left + "," + this.marginTop_f1 + ")");
-
-    // // Add clip path to svg
-    // FocusChildComponent.focus1.append("defs").append("clipPath")
-    //   .attr("id", "clip1")
-    //   .append("rect")
-    //   .attr("width", FocusChildComponent.chartWidth)
-    //   .attr("height", FocusChildComponent.focus1Height);
-
-    // FocusChildComponent.focus1.append('rect')
-    //   .attr("class", "bbox")
-    //   .attr('x', 0)
-    //   .attr('y', 0)
-    //   .attr('width', FocusChildComponent.chartWidth)
-    //   .attr('height', FocusChildComponent.focus1Height)
-    //   .attr('fill', 'white')
-    //   .attr('stroke', 'black');
-
-
-    // var focus1Label = ["Acceleration (m/s²)", "x", "y", "z"]
-    // FocusChildComponent.focus1.selectAll(null)
-    //   .data(focus1Label)
-    //   .enter()
-    //   .append('text')
-    //   .append("tspan")
-    //   .style("text-anchor", "start")
-    //   .style("font-weight", "bold")
-    //   .attr("x", (d, i) => { var s = i ? 100 : 10; var offset = s + i * 10; return offset })
-    //   .attr("y", 15)
-    //   .attr("fill", (d, i) => { return labelColor[i] })
-    //   .attr("font-size", "10px")
-    //   .text(t => { return t })
-
-    // // Focus2
-    // FocusChildComponent.focus2 = FocusChildComponent.svg.append("g")
-    //   .attr("class", "focus2")
-    //   .attr("transform", "translate(" + this.margin.left + "," + this.marginTop_f2 + ")");
-
-    // // Add clip path to svg
-    // FocusChildComponent.focus2.append("defs").append("clipPath")
-    //   .attr("id", "clip2")
-    //   .append("rect")
-    //   .attr("width", FocusChildComponent.chartWidth)
-    //   .attr("height", FocusChildComponent.focus2Height);
-
-    // FocusChildComponent.focus2.append('rect')
-    //   .attr("class", "bbox")
-    //   .attr('x', 0)
-    //   .attr('y', 0)
-    //   .attr('width', FocusChildComponent.chartWidth)
-    //   .attr('height', FocusChildComponent.focus2Height)
-    //   .attr('fill', 'white')
-    //   .attr('stroke', 'black');
-
-    // var focus2Label = ["Gyroscope (rad/s)", "x", "y", "z"]
-    // FocusChildComponent.focus2.selectAll(null)
-    //   .data(focus2Label)
-    //   .enter()
-    //   .append('text')
-    //   .append("tspan")
-    //   .style("text-anchor", "start")
-    //   .style("font-weight", "bold")
-    //   .attr("x", (d, i) => { var s = i ? 100 : 10; var offset = s + i * 10; return offset })
-    //   .attr("y", 15)
-    //   .attr("fill", (d, i) => { return labelColor[i] })
-    //   .attr("font-size", "10px")
-    //   .text(t => { return t })
-
-    // // Focus3    
-    // FocusChildComponent.focus3 = FocusChildComponent.svg.append("g")
-    //   .attr("class", "focus3")
-    //   .attr("transform", "translate(" + this.margin.left + "," + this.marginTop_f3 + ")");
-
-    // // Add clip path to svg
-    // FocusChildComponent.focus3.append("defs").append("clipPath")
-    //   .attr("id", "clip3")
-    //   .append("rect")
-    //   .attr("width", FocusChildComponent.chartWidth)
-    //   .attr("height", FocusChildComponent.focus3Height);
-
-    // FocusChildComponent.focus3.append('rect')
-    //   .attr("class", "bbox")
-    //   .attr('x', 0)
-    //   .attr('y', 0)
-    //   .attr('width', FocusChildComponent.chartWidth)
-    //   .attr('height', FocusChildComponent.focus3Height)
-    //   .attr('fill', 'white')
-    //   .attr('stroke', 'black');
-
-    // var focus3Label = "Altitude (m)"
-    // FocusChildComponent.focus3.append('text')
-    //   .style("text-anchor", "start")
-    //   .style("font-weight", "bold")
-    //   .text(focus3Label)
-    //   .attr("x", 10)
-    //   .attr("y", 15)
-    //   .attr("fill", "black")
-    //   .attr("font-size", "10px");
-  }
-
-
-
-  static setLine_f1() {
-    console.log("setLine_f1")
-    return d3.line()
-      .x((d: any) => { return FocusChildComponent.x(d.date) })
-      .y((d: any) => { return FocusChildComponent.y_f1(d.val) })
-  }
-
-  static setLine_f2() {
-    return d3.line()
-      .x((d: any) => { return FocusChildComponent.x(d.date) })
-      .y((d: any) => { return FocusChildComponent.y_f2(d.val) })
-  }
-
-  static setLine_f3() {
-    return d3.line()
-      .x((d: any) => { return FocusChildComponent.x(d.date) })
-      .y((d: any) => { return FocusChildComponent.y_f3(d.val) })
-  }
-
-  private createPlotLines() {
-    // Focus1
-    // Color palette
-    var colors_f1 = ['#e41a1c', '#377eb8', '#4daf4a', '#e41a1c', '#FF00FF', '#000000'];
-
-    // Assign line group to variable `line`
-    FocusChildComponent.lines_f1 = FocusChildComponent.focus1.append('g')
-      .attr("clip-path", "url(#clip1)");
-
-    // Create gyro plot lines on focus1
-    FocusChildComponent.lines_f1.selectAll(".line")
-      .data(FocusChildComponent.gyro_values)
-      .enter()
-      .append("path")
-      .attr("class", "line")  // I add the class line to be able to modify this line later on.
-      .attr("fill", "none")
-      .attr("stroke", d => { return colors_f1[FocusChildComponent.gyro_values.indexOf(d)] })
-      .attr("stroke-width", this.strokeWidth)
-      .attr("d", FocusChildComponent.setLine_f1());
-
-    //Focus2
-    // Color palette
-    var colors_f2 = ['#e41a1c', '#377eb8', '#4daf4a', '#e41a1c', '#FF00FF', '#000000'];
-
-    // Assign line group to variable `line`
-    FocusChildComponent.lines_f2 = FocusChildComponent.focus2.append('g')
-      .attr("clip-path", "url(#clip2)");
-
-    // Create accl plot lines
-    FocusChildComponent.lines_f2.selectAll(".line")
-      .data(FocusChildComponent.accl_values)
-      .enter()
-      .append("path")
-      .attr("class", "line")  // I add the class line to be able to modify this line later on.
-      .attr("fill", "none")
-      .attr("stroke", d => { return colors_f2[FocusChildComponent.accl_values.indexOf(d)] })
-      .attr("stroke-width", this.strokeWidth)
-      .attr("d", FocusChildComponent.setLine_f2());
-
-    //Focus3
-    // Create line variable
-    FocusChildComponent.line_f3 = FocusChildComponent.focus3.append('g')
-      .attr("clip-path", "url(#clip3)");
-
-    // Append single plot line
-    FocusChildComponent.line_f3.append("path")
-      .datum(FocusChildComponent.alt_values)
-      .attr("class", "line_f3")
-      .attr("stroke", "magenta")
-      .attr("fill-opacity", "0%")
-      .attr("fill", "none")
-      .attr("stroke-width", this.strokeWidth)
-      //.attr("transform", "translate(0," + -55 + ")")
-      .attr("d", FocusChildComponent.setLine_f3());
-  }
-
-  private createAnnotBrushSVGGroup() {
-    FocusChildComponent.annotBrushesGroup = FocusChildComponent.annotChart1.append('g')
-      .attr("class", "annot_brushes")
-      .attr("transform", "translate(" + 0 + "," + 0 + ")")
-
-    // Append clip path
-    FocusChildComponent.annotBrushesGroup.append("defs").append("clipPath")
-      .attr("id", "clip_annot1")
-      .append("rect")
-      .attr("width", FocusChildComponent.chartWidth)
-      .attr("height", FocusChildComponent.annotHeight);
-
-    FocusChildComponent.clip_annot1 = FocusChildComponent.annotBrushesGroup.append("g")
-      .attr("clip-path", "url(#clip_annot1)")
-
-    // Create highlighter brush  
-    FocusChildComponent.highlighterBrush = d3.brushX()
-      .extent([[0, 0], [FocusChildComponent.chartWidth, this.zoomHeight]])
-      .on("end", this.highlightBrushed.bind(this));
-  }
-
-  private createZoom() {
-    // Create zoom feature
-    FocusChildComponent.zoom = d3.zoom()
-      .scaleExtent([1, Infinity])
-      .translateExtent([[0, 0], [FocusChildComponent.chartWidth, this.zoomHeight]])
-      .extent([[0, 0], [FocusChildComponent.chartWidth, this.zoomHeight]])
-      .on("zoom", FocusChildComponent.zoomed);
-  }
-
-  private addElements() {
-    // Focus1
     // Appends X to focus svg group
-    FocusChildComponent.focus1.append("g")
+    FocusChildComponent.focusSVGGroup.append("g")
       .attr("class", "axis axis--x")
-      .attr("transform", "translate(0," + FocusChildComponent.focus1Height + ")")
+      .attr("transform", "translate(0," + this.focusStackedHeight + ")")
       .call(FocusChildComponent.xAxisFocus);
 
-    // Appends Y to focus svg group
-    FocusChildComponent.focus1.append("g")
-      .attr("class", "axis axis--y")
-      .call(this.yAxisLeft_f1);
-
-    // Focus2
-    FocusChildComponent.focus2.append("g")
-      .attr("class", "axis axis--x")
-      .attr("transform", "translate(0," + FocusChildComponent.focus2Height + ")")
-      .call(FocusChildComponent.xAxis_f2);
-
-    // Appends Y to focus svg group
-    FocusChildComponent.focus2.append("g")
-      .attr("class", "axis axis--y")
-      .call(this.yAxisLeft_f2);
-
-    // Focus3
-    FocusChildComponent.focus3.append("g")
-      .attr("class", "axis axis--x")
-      .attr("transform", "translate(0," + FocusChildComponent.focus3Height + ")")
-      .call(FocusChildComponent.xAxis_f3);
-
-    // Appends Y axis left
-    FocusChildComponent.focus3.append("g")
-      .attr("class", "axis axis--y")
-      .call(this.yAxisLeft_f3);
-
-    // Annotchart1
-    // Appends x axis
-    FocusChildComponent.annotChart1.append("g")
-      .attr("class", "axis axis--x")
-      .attr("transform", "translate(0," + FocusChildComponent.contextHeight + ")")
-      .call(FocusChildComponent.xAxisFocus);
-
-    // Append annotation brush
-    this.highlighterBrushArea = FocusChildComponent.svg.append("g")
+      // Append annotation brush
+    this.highlighterBrushArea = FocusChildComponent.focusSVGGroup.append("g")
       .attr("id", "highlighterBrush")
-      .attr("transform", "translate(" + this.margin.left + "," + this.marginTop_f1 + ")")
+      .attr("transform", "translate(" + 0 + "," + 0 + ")")
       .call(FocusChildComponent.highlighterBrush);
 
     // Appends zoom to svg over focus1 area
-    FocusChildComponent.svg.append("rect")
-      .attr("class", "zoom")
-      .attr("width", FocusChildComponent.chartWidth)
-      .attr("height", this.zoomHeight)
-      .attr("fill-opacity", "0%")
-      .attr("transform", "translate(" + this.margin.left + "," + this.marginTop_f1 + ")")
-      .call(FocusChildComponent.zoom);
-
-    // Appends brush to context, sets initial range
-    FocusChildComponent.context.append("g")
-      .attr("class", "main_brush")
-      .call(FocusChildComponent.contextBrush)
-      .call(FocusChildComponent.contextBrush.move, FocusChildComponent.x.range()); // sets initial brush state
+    // FocusChildComponent.svg.append("rect")
+    //   .attr("class", "zoom")
+    //   .attr("width", FocusChildComponent.chartWidth)
+    //   .attr("height", this.zoomHeight)
+    //   .attr("fill-opacity", "0%")
+    //   .attr("transform", "translate(" + this.margin.left + "," + this.marginTop_f1 + ")")
+    //   .call(FocusChildComponent.zoom);
   }
-
 
 
   private createAnnotationsChart() {
@@ -791,7 +535,47 @@ export class FocusChildComponent implements OnInit {
       .attr('stroke', 'black');
   }
 
+  private createAnnotBrushSVGGroup() {
+    FocusChildComponent.annotBrushesGroup = FocusChildComponent.annotChart1.append('g')
+      .attr("class", "annot_brushes")
+      .attr("transform", "translate(" + 0 + "," + 0 + ")")
 
+    // Append clip path
+    FocusChildComponent.annotBrushesGroup.append("defs").append("clipPath")
+      .attr("id", "clip_annot1")
+      .append("rect")
+      .attr("width", FocusChildComponent.chartWidth)
+      .attr("height", FocusChildComponent.annotHeight);
+
+    FocusChildComponent.clip_annot1 = FocusChildComponent.annotBrushesGroup.append("g")
+      .attr("clip-path", "url(#clip_annot1)")
+  }
+
+ 
+
+  private addElements() {
+
+    // Annotchart1
+    // Appends x axis
+    FocusChildComponent.annotChart1.append("g")
+      .attr("class", "axis axis--x")
+      .attr("transform", "translate(0," + FocusChildComponent.contextHeight + ")")
+      .call(FocusChildComponent.xAxisFocus);
+
+  }
+
+  private setContextBrush() {
+    // create context brush feature
+    FocusChildComponent.contextBrush = d3.brushX()
+      .extent([[0, 0], [FocusChildComponent.chartWidth, FocusChildComponent.contextHeight]])
+      .on("brush", FocusChildComponent.contextBrushed);
+
+    // Appends brush to context, then sets initial pos
+    FocusChildComponent.context.append("g")
+      .attr("class", "main_brush")
+      .call(FocusChildComponent.contextBrush)
+      .call(FocusChildComponent.contextBrush.move, FocusChildComponent.x.range()); // sets initial brush state
+  }
 
 
   // ANNOTATION METHODS
