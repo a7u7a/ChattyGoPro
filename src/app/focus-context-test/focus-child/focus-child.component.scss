@@ -26,25 +26,33 @@ app-focus-child {
     .done-button{
       margin-right: 10px;
     }
-    .save-button{
-      margin-right: 10px;
-      
-    }
     .delete-button{
-      margin-right: 20px;
-    }
-    .themesDropDown{
-      margin-left: 20px;
       margin-right: 10px;
     }
-    // .theme-field{
-    //   margin-left: 30px;
+    .create-theme-button{
+      margin-right: 10px;
+    }
+    .newTheme-field{
+      margin-right: 10px;
+    }
+    // .save-button{
+    //   margin-left: 10px;
     // }
+  }
+  .subtheme-area{
+    display: flex;
+    margin-bottom: 10px;
+    justify-content: flex-start;
     .subtheme-field{
-      margin-right: 30px;
+      margin-right: 10px;
     }
   }
-  .textarea{
-    width: 100%;
+  .notes-area{
+    display: flex;
+    margin-bottom: 10px;
+    justify-content: flex-start;
+    .textarea{
+      width: 100%;
+    }
   }
 }
