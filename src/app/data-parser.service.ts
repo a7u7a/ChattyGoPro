@@ -26,12 +26,18 @@ export class DataParserService {
   }
 
   public parseThemes(rawAnnotations){
+    // remove duplicates and sort alphabetically
     var themes = [];
     var c = 0;
     rawAnnotations.forEach(annotObj => {
-      themes.push({name: annotObj.theme} )
+      themes.push(annotObj.theme)
     });
-    return themes
+    // sort alphabetically
+    themes.sort((a, b) => a.localeCompare(b))
+    // remove duplicates
+    var themesSet = new Set(themes)
+    var backToArray = [...themesSet]
+    return backToArray
   }
 
   public parseMIQ(data) { // clearly not very elegant - could be improved
