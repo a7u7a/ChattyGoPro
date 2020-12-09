@@ -117,7 +117,9 @@ export class FocusChildComponent implements OnInit {
   annotStart;
   static themeGroup;
   viewBoxWidth;
-  annotInsertHeight = 0
+  annotInsertHeight = 0;
+  lastClickedTheme;
+
 
   themeForm = new FormGroup({
     theme: new FormControl('', [Validators.required])
@@ -259,13 +261,13 @@ export class FocusChildComponent implements OnInit {
 
     this.getThemes();
 
-    this.createAnnotationsChart();
+    // this.createAnnotationsChart();
 
-    this.createAnnotBrushSVGGroup();
+    // this.createAnnotBrushSVGGroup();
 
     this.getAnnotations(); // Triggers => drawAnnotFromData()
 
-    this.addElements();
+    // this.addElements();
 
     this.setContextBrush();
 
@@ -543,19 +545,41 @@ export class FocusChildComponent implements OnInit {
       .call(FocusChildComponent.zoom);
   }
 
-  private addThemeTimeline(themeName){
+  updateLastTimeline() {
+    if (this.lastClickedTheme) {
+      FocusChildComponent.themeTimelineSVGGroup.select('.bbox_' + this.lastClickedTheme)
+        .attr('fill', 'white');
+    }
+  }
+
+  themeTimelineClicked() {
+    if (this.annotModeEnabled) {
+      this.updateLastTimeline();
+      this.lastClickedTheme = d3.event.path[0].classList[0].replace('bbox_', '')
+      // console.log("hey!",this.lastClickedTheme)
+      FocusChildComponent.themeTimelineSVGGroup.select('.bbox_' + this.lastClickedTheme)
+        .attr('fill', 'lightgray')
+
+      // Enable done button
+      this.disableDoneBtn = false;
+    }
+  }
+
+  private addThemeTimeline(themeName) {
     console.log("creating timeline for:", themeName);
     var annotChart = FocusChildComponent.themeTimelineSVGGroup.append('g')
       .attr('class', 'annot_' + themeName)
       .attr("transform", "translate(0," + this.annotInsertHeight + ")");
     annotChart.append('rect') // bounding box
-      .attr("class", "bbox")
+      .attr('id', 'bbox')
+      .attr("class", "bbox_" + themeName)
       .attr('x', 0)
       .attr('y', 0)
       .attr('width', FocusChildComponent.chartWidth)
       .attr('height', FocusChildComponent.annotHeight)
       .attr('fill', 'white')
-      .attr('stroke', 'black');
+      .attr('stroke', 'black')
+      .on("click", this.themeTimelineClicked.bind(this));
     annotChart.append('text') // theme label
       .style("text-anchor", "start")
       .style("font-weight", "bold")
@@ -593,6 +617,7 @@ export class FocusChildComponent implements OnInit {
   }
 
   createTheme() {
+    // called by ui button
     console.log("createTheme", this.newThemeName)
     this.addThemeTimeline(this.newThemeName)
   }
@@ -604,7 +629,7 @@ export class FocusChildComponent implements OnInit {
       .attr('class', 'themeTimelineSVGGroup')
       .attr("transform", "translate(" + this.margin.left + "," + this.annotStart + ")");
 
-      FocusChildComponent.themeGroup = [] // stores all theme timelines
+    FocusChildComponent.themeGroup = [] // stores all theme timelines
 
     if (this.themes) {
       this.themes.forEach(theme => {
@@ -613,46 +638,46 @@ export class FocusChildComponent implements OnInit {
     }
   }
 
-  private createAnnotationsChart() {
-    FocusChildComponent.annotChart1 = FocusChildComponent.svg.append("g")
-      .attr("class", "annot_chart1")
-      .attr("transform", "translate(" + this.margin.left + "," + this.marginTop_annotChart + ")");
+  // private createAnnotationsChart() {
+  //   FocusChildComponent.annotChart1 = FocusChildComponent.svg.append("g")
+  //     .attr("class", "annot_chart1")
+  //     .attr("transform", "translate(" + this.margin.left + "," + this.marginTop_annotChart + ")");
 
-    // Draw bounding box
-    FocusChildComponent.annotChart1.append('rect')
-      .attr("class", "bbox")
-      .attr('x', 0)
-      .attr('y', 0)
-      .attr('width', FocusChildComponent.chartWidth)
-      .attr('height', FocusChildComponent.contextHeight)
-      .attr('fill', 'white')
-      .attr('stroke', 'black');
-  }
+  //   // Draw bounding box
+  //   FocusChildComponent.annotChart1.append('rect')
+  //     .attr("class", "bbox")
+  //     .attr('x', 0)
+  //     .attr('y', 0)
+  //     .attr('width', FocusChildComponent.chartWidth)
+  //     .attr('height', FocusChildComponent.contextHeight)
+  //     .attr('fill', 'white')
+  //     .attr('stroke', 'black');
+  // }
 
-  private createAnnotBrushSVGGroup() {
-    FocusChildComponent.annotBrushesGroup = FocusChildComponent.annotChart1.append('g')
-      .attr("class", "annot_brushes")
-      .attr("transform", "translate(" + 0 + "," + 0 + ")")
+  // private createAnnotBrushSVGGroup() {
+  //   FocusChildComponent.annotBrushesGroup = FocusChildComponent.annotChart1.append('g')
+  //     .attr("class", "annot_brushes")
+  //     .attr("transform", "translate(" + 0 + "," + 0 + ")")
 
-    // Append clip path
-    FocusChildComponent.annotBrushesGroup.append("defs").append("clipPath")
-      .attr("id", "clip_annot1")
-      .append("rect")
-      .attr("width", FocusChildComponent.chartWidth)
-      .attr("height", FocusChildComponent.annotHeight);
+  //   // Append clip path
+  //   FocusChildComponent.annotBrushesGroup.append("defs").append("clipPath")
+  //     .attr("id", "clip_annot1")
+  //     .append("rect")
+  //     .attr("width", FocusChildComponent.chartWidth)
+  //     .attr("height", FocusChildComponent.annotHeight);
 
-    FocusChildComponent.clip_annot1 = FocusChildComponent.annotBrushesGroup.append("g")
-      .attr("clip-path", "url(#clip_annot1)")
-  }
+  //   FocusChildComponent.clip_annot1 = FocusChildComponent.annotBrushesGroup.append("g")
+  //     .attr("clip-path", "url(#clip_annot1)")
+  // }
 
-  private addElements() {
-    // Annotchart1
-    // Appends x axis
-    FocusChildComponent.annotChart1.append("g")
-      .attr("class", "axis axis--x")
-      .attr("transform", "translate(0," + FocusChildComponent.contextHeight + ")")
-      .call(FocusChildComponent.xAxisFocus);
-  }
+  // private addElements() {
+  //   // Annotchart1
+  //   // Appends x axis
+  //   FocusChildComponent.annotChart1.append("g")
+  //     .attr("class", "axis axis--x")
+  //     .attr("transform", "translate(0," + FocusChildComponent.contextHeight + ")")
+  //     .call(FocusChildComponent.xAxisFocus);
+  // }
 
   private setContextBrush() {
     // create context brush feature
@@ -704,27 +729,6 @@ export class FocusChildComponent implements OnInit {
     });
   }
 
-  private replaceAnnotation(annotationId, theme, subtheme, startDate, endDate, notes) {
-    this.data_service.deleteAnnotation(annotationId).subscribe(resp => {
-      console.log("Delete Annotation result:", resp)
-    },
-      err => {
-        console.log(err)
-      },
-      () => { // Add new annotation only after prev. version has been deleted
-        var annotation = {
-          theme: theme,
-          subtheme: subtheme,
-          startDate: startDate,
-          endDate: endDate,
-          notes: notes
-        };
-        this.data_service.addAnnotation(annotation, this.selectedObj).subscribe(resp => {
-          return resp;
-        });
-      })
-  }
-
 
   private populateAnnotBrushes() {
     /* Notes: 
@@ -753,35 +757,53 @@ export class FocusChildComponent implements OnInit {
     }
   }
 
+  filterAnnotBrushesByTheme(themeName) {
+    // returns all annot brushes of same theme
+    var out_brushes = [];
+    FocusChildComponent.annotBrushes.forEach(brushObj => {
+      if (brushObj.theme === themeName) {
+        out_brushes.push(brushObj);
+      }
+    })
+    return out_brushes
+  }
+
   private drawAnnotationBrushesFromData() {
-    // Called on chart init
+    // Called on chart init 
     // Select brushes we just created
-    var brushSelection = FocusChildComponent.clip_annot1
-      .selectAll('.brush')
-      .data(FocusChildComponent.annotBrushes, d => { return d.id });
-    // Iterate over annotations and draw corresponding brushes
-    brushSelection.enter()
-      .insert('g', '.brush')
-      .attr('class', 'brush')
-      .attr('id', d => `brush-${d.id}`)
-      .each(function (brushObj) {
-        // this init's the brush
-        brushObj.brush(d3.select(this));
-        // Move brush to location
-        var start = FocusChildComponent.x(brushObj.startDate)
-        var end = FocusChildComponent.x(brushObj.endDate)
-        brushObj.brush.move(d3.select(this), [start, end]
-        );
-      })
+    // console.log("FocusChildComponent.annotBrushes", FocusChildComponent.annotBrushes)
+    // var test = this.filterAnnotBrushesByTheme("temptheme1")
+    // console.log("test", test)
+
+    FocusChildComponent.themeGroup.forEach(element => {
+      var data = this.filterAnnotBrushesByTheme(element.themeName)
+      var brushSelection = element.clip
+        .selectAll('.brush')
+        .data(data, d => { return d.id });
+      // Iterate over annotations and draw corresponding brushes
+      brushSelection.enter()
+        .insert('g', '.brush')
+        .attr('class', 'brush')
+        .attr('id', d => `brush-${d.id}`)
+        .each(function (brushObj) {
+          // this init's the brush
+          brushObj.brush(d3.select(this));
+          // Move brush to location
+          var start = FocusChildComponent.x(brushObj.startDate)
+          var end = FocusChildComponent.x(brushObj.endDate)
+          brushObj.brush.move(d3.select(this), [start, end]
+          );
+        })
+    });
 
     // disable overlay events
-    FocusChildComponent.annotBrushesGroup.selectAll('.overlay').style('pointer-events', 'none');
+    FocusChildComponent.themeTimelineSVGGroup.selectAll('.overlay').style('pointer-events', 'none');
     // remove all previous labels
-    FocusChildComponent.annotBrushesGroup.selectAll('.brushLabel').remove()
+    FocusChildComponent.themeTimelineSVGGroup.selectAll('.brushLabel').remove()
 
     FocusChildComponent.annotBrushes.forEach(brushObj => {
       // disable dragging annotation brushes 
-      var currentBrush = FocusChildComponent.annotBrushesGroup.select('#brush-' + brushObj.id).style('pointer-events', 'none');
+      var currentBrush = FocusChildComponent.themeTimelineSVGGroup.select('#brush-' + brushObj.id).style('pointer-events', 'none');
       // append brush labels
       var s: any = FocusChildComponent.getBrushSelection(brushObj.id);
       if (s) {
@@ -797,6 +819,48 @@ export class FocusChildComponent implements OnInit {
           .attr("font-size", "10px");
       }
     })
+
+    // var brushSelection = FocusChildComponent.clip_annot1
+    //   .selectAll('.brush')
+    //   .data(FocusChildComponent.annotBrushes, d => { return d.id });
+    // // Iterate over annotations and draw corresponding brushes
+    // brushSelection.enter()
+    //   .insert('g', '.brush')
+    //   .attr('class', 'brush')
+    //   .attr('id', d => `brush-${d.id}`)
+    //   .each(function (brushObj) {
+    //     // this init's the brush
+    //     brushObj.brush(d3.select(this));
+    //     // Move brush to location
+    //     var start = FocusChildComponent.x(brushObj.startDate)
+    //     var end = FocusChildComponent.x(brushObj.endDate)
+    //     brushObj.brush.move(d3.select(this), [start, end]
+    //     );
+    //   })
+
+    // // disable overlay events
+    // FocusChildComponent.annotBrushesGroup.selectAll('.overlay').style('pointer-events', 'none');
+    // // remove all previous labels
+    // FocusChildComponent.annotBrushesGroup.selectAll('.brushLabel').remove()
+
+    // FocusChildComponent.annotBrushes.forEach(brushObj => {
+    //   // disable dragging annotation brushes 
+    //   var currentBrush = FocusChildComponent.annotBrushesGroup.select('#brush-' + brushObj.id).style('pointer-events', 'none');
+    //   // append brush labels
+    //   var s: any = FocusChildComponent.getBrushSelection(brushObj.id);
+    //   if (s) {
+    //     var labelAnchor = ((s[1] - s[0]) / 2) + s[0];
+    //     currentBrush.append("text")
+    //       .attr("class", "brushLabel")
+    //       .style("text-anchor", "middle")
+    //       .style("dominant-baseline", "central")
+    //       .text(brushObj.subtheme)
+    //       .attr("x", labelAnchor)
+    //       .attr("y", FocusChildComponent.annotHeight - FocusChildComponent.contextHeight / 2)
+    //       .attr("fill", "black")
+    //       .attr("font-size", "10px");
+    //   }
+    // })
   }
 
   updateLastClicked() {
@@ -809,13 +873,13 @@ export class FocusChildComponent implements OnInit {
           FocusChildComponent.annotBrushes[i].notes = this.notesText;
           // update brushLabel
           // var s: any = FocusChildComponent.getBrushSelection(brushObj.id);
-          FocusChildComponent.clip_annot1.select('#brush-' + FocusChildComponent.annotBrushes[i].id)
+          FocusChildComponent.themeTimelineSVGGroup.select('#brush-' + FocusChildComponent.annotBrushes[i].id)
             .select('.brushLabel').text(FocusChildComponent.annotBrushes[i].subtheme)
         }
       }
 
       // un-highlight previous brush
-      FocusChildComponent.annotBrushesGroup.select('#brush-' + this.lastClickedBrush)
+      FocusChildComponent.themeTimelineSVGGroup.select('#brush-' + this.lastClickedBrush)
         .select('.selection')
         .style('fill-opacity', '0.3');
     }
@@ -832,7 +896,7 @@ export class FocusChildComponent implements OnInit {
     // get the selected brush id
     this.lastClickedBrush = d3.event.path[1].id.replace("brush-", "");
     // highlight selected brush
-    FocusChildComponent.annotBrushesGroup.select('#brush-' + this.lastClickedBrush)
+    FocusChildComponent.themeTimelineSVGGroup.select('#brush-' + this.lastClickedBrush)
       .select('.selection')
       .style('fill-opacity', '0.6');
     // update ui to with selected brush's contents
@@ -851,7 +915,7 @@ export class FocusChildComponent implements OnInit {
         // update position of label
         // done this way so that label becomes immediately visible on newly added brush
         var labelAnchor = ((s[1] - s[0]) / 2) + s[0];
-        FocusChildComponent.annotBrushesGroup.select('#brush-' + brushObj.id)
+        FocusChildComponent.themeTimelineSVGGroup.select('#brush-' + brushObj.id)
           .select('.brushLabel')
           .attr("x", labelAnchor)
           .attr("y", FocusChildComponent.annotHeight - FocusChildComponent.contextHeight / 2)
@@ -861,7 +925,7 @@ export class FocusChildComponent implements OnInit {
 
   highlightBrushed() { // could this be end event instead? called when a highlightbrush is drawn to the screen
     // un-highlight last clicked
-    FocusChildComponent.annotBrushesGroup.select('#brush-' + this.lastClickedBrush).select('.selection').style('fill-opacity', '0.3');
+    FocusChildComponent.themeTimelineSVGGroup.select('#brush-' + this.lastClickedBrush).select('.selection').style('fill-opacity', '0.3');
 
     // filter events. this way we dont lose state of lastClickedBrush every time
     if (d3.event.sourceEvent) {
@@ -933,7 +997,7 @@ export class FocusChildComponent implements OnInit {
     // Remove all annotbrushes
     FocusChildComponent.clearAllBrushes();
     FocusChildComponent.annotBrushes = [];
-    FocusChildComponent.annotBrushesGroup.selectAll('.brushLabel').remove()
+    FocusChildComponent.themeTimelineSVGGroup.selectAll('.brushLabel').remove()
   }
 
 
@@ -959,12 +1023,12 @@ export class FocusChildComponent implements OnInit {
       this.annotateBtnText = "Discard";
       // Enable clicking on brushes but disable dragging
       FocusChildComponent.annotBrushes.forEach(brushObj => {
-        FocusChildComponent.annotBrushesGroup.select('#brush-' + brushObj.id).style('pointer-events', 'all');
+        FocusChildComponent.themeTimelineSVGGroup.select('#brush-' + brushObj.id).style('pointer-events', 'all');
         // The following line is an absolute hack. Without this, however, brushes would still be draggable which is a problem because they get snapped to visible chart extents if you drag them which is counter-intuitive.
-        FocusChildComponent.annotBrushesGroup.select('#brush-' + brushObj.id).select('.selection').style('fill-opacity', '0.3');
+        FocusChildComponent.themeTimelineSVGGroup.select('#brush-' + brushObj.id).select('.selection').style('fill-opacity', '0.3');
       })
       // enable clicking on brushes
-      FocusChildComponent.annotBrushesGroup.selectAll(".selection").on("click", this.brushClicked.bind(this));
+      FocusChildComponent.themeTimelineSVGGroup.selectAll(".selection").on("click", this.brushClicked.bind(this));
       // Re-enable highlighter
       if (d3.select('#highlighterBrush').empty()) {
         FocusChildComponent.svg.append("g")
@@ -975,10 +1039,13 @@ export class FocusChildComponent implements OnInit {
       // Disable zoom
       FocusChildComponent.svg.select(".zoom")
         .attr("fill", "none");
-      // Enable done button
-      this.disableDoneBtn = false;
+
     } else {
       console.log("Annotation mode OFF");
+
+      // clear timeline highlight
+      this.updateLastTimeline()
+
       // disable Delete
       this.disableDeleteBtn = true;
 
@@ -987,7 +1054,7 @@ export class FocusChildComponent implements OnInit {
 
       // disable clicking on brushes
       FocusChildComponent.annotBrushes.forEach(brushObj => {
-        FocusChildComponent.annotBrushesGroup.select('#brush-' + brushObj.id).style('pointer-events', 'none');
+        FocusChildComponent.themeTimelineSVGGroup.select('#brush-' + brushObj.id).style('pointer-events', 'none');
       })
 
       if (this.isDoneBtn == false) {
@@ -1004,7 +1071,7 @@ export class FocusChildComponent implements OnInit {
       // Discard new annotation
       this.highlighterBrushArea.call(FocusChildComponent.highlighterBrush.move, null)
       // un-highlight previous brush
-      FocusChildComponent.annotBrushesGroup.select('#brush-' + this.lastClickedBrush)
+      FocusChildComponent.themeTimelineSVGGroup.select('#brush-' + this.lastClickedBrush)
         .select('.selection')
         .style('fill-opacity', '0.3');
 
@@ -1040,7 +1107,7 @@ export class FocusChildComponent implements OnInit {
         endDateEpoch: this.newAnnotation.endEpoch,
         endDate: this.newAnnotation.endDate,
         brush: this.makeBrush(),
-        theme: "canoa",
+        theme: this.lastClickedTheme,
         subtheme: this.subthemeText,
         notes: this.notesText
       });
@@ -1131,7 +1198,7 @@ export class FocusChildComponent implements OnInit {
 
     FocusChildComponent.updateFocus();
 
-    FocusChildComponent.annotChart1.select(".axis--x").call(FocusChildComponent.xAxisFocus);
+    // FocusChildComponent.annotChart1.select(".axis--x").call(FocusChildComponent.xAxisFocus);
 
     var k = FocusChildComponent.chartWidth / (s[1] - s[0]);
     var Tx = -s[0];
@@ -1149,7 +1216,7 @@ export class FocusChildComponent implements OnInit {
 
     FocusChildComponent.updateFocus();
 
-    FocusChildComponent.annotChart1.select(".axis--x").call(FocusChildComponent.xAxisFocus);
+    // FocusChildComponent.annotChart1.select(".axis--x").call(FocusChildComponent.xAxisFocus);
 
     FocusChildComponent.context.select(".main_brush").call(FocusChildComponent.contextBrush.move, FocusChildComponent.x.range().map(t.invertX, t));
 
@@ -1169,7 +1236,7 @@ export class FocusChildComponent implements OnInit {
     FocusChildComponent.annotBrushes.forEach(brushObj => {
       var from = brushObj.startDate
       var to = brushObj.endDate
-      FocusChildComponent.annotBrushesGroup.select("#brush-" + brushObj.id)
+      FocusChildComponent.themeTimelineSVGGroup.select("#brush-" + brushObj.id)
         .call(brushObj.brush.move, [FocusChildComponent.x(from), FocusChildComponent.x(to)]);
     })
   }
