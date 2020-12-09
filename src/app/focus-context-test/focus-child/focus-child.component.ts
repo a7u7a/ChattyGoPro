@@ -6,7 +6,9 @@ import { DataParserService } from '../../data-parser.service'
 import { NbInputModule } from '@nebular/theme';
 import { brushSelection } from 'd3';
 import { conditionallyCreateMapObjectLiteral } from '@angular/compiler/src/render3/view/util';
-import { FormBuilder, FormGroup, FormArray, FormControl, ValidatorFn } from '@angular/forms';
+import { FormGroup, FormControl, Validators } from '@angular/forms'
+import { timeout } from 'q';
+// import { FormBuilder, FormGroup, FormArray, FormControl, ValidatorFn } from '@angular/forms';
 
 @Component({
   selector: 'app-focus-child',
@@ -100,8 +102,8 @@ export class FocusChildComponent implements OnInit {
   newAnnotCounter: number;
   isDoneBtn = false; //hack
   annotationsBackup;
-  themes = [{ id: 0, name: "theme1" },
-  { id: 1, name: "theme2" }]
+  // themes = [{ id: 0, name: "default" },
+  // { id: 1, name: "theme2" }]
   annotToolsGroup;
   chart_config;
   dataStreams;
@@ -110,6 +112,12 @@ export class FocusChildComponent implements OnInit {
   focusStart;
   static focusGroup
   focusStackedHeight;
+  newThemeName = "";
+  disableCreateThemBtn = true;
+
+  themeForm = new FormGroup({
+    theme: new FormControl('', [Validators.required])
+  })
 
   toEpoch = d3.timeFormat("%Q");
 
@@ -122,10 +130,33 @@ export class FocusChildComponent implements OnInit {
 
   ngOnInit(): void {
     this.newAnnotCounter = 0;
-    this.annotToolsGroup = new FormGroup({
-      themes: new FormControl()
-    });
+
+    this.themeForm.get("theme").valueChanges.subscribe(selectedValue => {
+      setTimeout(() => {
+        this.newThemeName = this.themeForm.value.theme
+        if (this.newThemeName.length > 0) {
+          this.disableCreateThemBtn = false;
+        } else {
+          this.disableCreateThemBtn = true;
+        }
+      })
+    })
   }
+
+  // onSubmit() {
+  //   console.log(this.themeForm.value);
+  // }
+
+  createTheme() {
+    console.log("createTheme", this.newThemeName)
+  }
+
+  // newThemeChanged(){
+  //   console.log("newThemeChanged!", this.newThemeName.length)
+  //   if(this.newThemeName.length > 0){
+  //     this.disableCreateThemBtn = false;
+  //   }
+  // }
 
   public getData(startDate, endDate, selectedObj, chart_config) {
     this.chart_config = chart_config // make this get the actual object
@@ -241,12 +272,15 @@ export class FocusChildComponent implements OnInit {
 
     this.getAnnotations(); // Triggers => drawAnnotFromData()
 
+    this.getThemes();
+
     this.addElements();
 
     this.setContextBrush();
 
     this.displayAnnotationForm = true;
     this.showChartInfo = true;
+
 
   }
 
@@ -371,15 +405,15 @@ export class FocusChildComponent implements OnInit {
     FocusChildComponent.context.selectAll(null)
       .data([this.chart_config.contextView.streamLabel])
       .enter()
-        .append('text')
-        .append('tspan')
-        .style("text-anchor", "start")
-        .style("font-weight", "bold")
-        .attr("x", 10)
-        .attr("y", 15)
-        .attr("fill", '#black')
-        .attr("font-size", "10px")
-        .text(t => { return t })
+      .append('text')
+      .append('tspan')
+      .style("text-anchor", "start")
+      .style("font-weight", "bold")
+      .attr("x", 10)
+      .attr("y", 15)
+      .attr("fill", '#black')
+      .attr("font-size", "10px")
+      .text(t => { return t })
 
 
     // Appends x axis to Context
@@ -446,15 +480,15 @@ export class FocusChildComponent implements OnInit {
       focusChart.selectAll(null) // add label
         .data(labels)
         .enter()
-          .append('text')
-          .append("tspan")
-          .style("text-anchor", "start")
-          .style("font-weight", "bold")
-          .attr("x", (d, i) => { var x = i < 1 ? 10:0 ; var offset = x + i * 10; return offset })
-          .attr("y", (d, i)=> { var y = i == 0 ? 15 : 30; return y})
-          .attr("fill", (d, i) => { return colors[i] })
-          .attr("font-size", "10px")
-          .text(t => { return t })
+        .append('text')
+        .append("tspan")
+        .style("text-anchor", "start")
+        .style("font-weight", "bold")
+        .attr("x", (d, i) => { var x = i < 1 ? 10 : 0; var offset = x + i * 10; return offset })
+        .attr("y", (d, i) => { var y = i == 0 ? 15 : 30; return y })
+        .attr("fill", (d, i) => { return colors[i] })
+        .attr("font-size", "10px")
+        .text(t => { return t })
 
       var lines = focusChart.append('g')
         .attr("clip-path", "url(#clip_" + id + ")")
@@ -578,12 +612,20 @@ export class FocusChildComponent implements OnInit {
 
   // ANNOTATION METHODS
   // GET/ADD/REPLACE
+  private getThemes() {
+    this.data_service.getAnnotations(this.selectedObj, this.startDate, this.endDate).subscribe((response) => {
+      var themes = this.data_parser.parseThemes(response.data);
+      console.log("themes", themes);
+    });
+  }
+
+
   private getAnnotations() {
     FocusChildComponent.annotations = {}
     this.data_service.getAnnotations(this.selectedObj, this.startDate, this.endDate).subscribe((response) => {
       FocusChildComponent.annotations = this.data_parser.parseAnnotations(response.data);
       console.log("Total annotations found:", Object.keys(FocusChildComponent.annotations).length);
-
+      console.log("FocusChildComponent.annotations", FocusChildComponent.annotations)
       // Draw annotations once received from server
       this.populateAnnotBrushes();
       this.drawAnnotationBrushesFromData();
@@ -940,7 +982,7 @@ export class FocusChildComponent implements OnInit {
         endDateEpoch: this.newAnnotation.endEpoch,
         endDate: this.newAnnotation.endDate,
         brush: this.makeBrush(),
-        theme: this.themeText,
+        theme: "3b",
         subtheme: this.subthemeText,
         notes: this.notesText
       });

@@ -8,6 +8,32 @@ export class DataParserService {
 
   constructor() { }
 
+  public parseAnnotations(rawAnnotations) {
+    var annotations = {};
+    rawAnnotations.forEach(annotation => {
+      annotations[annotation._id] = {
+        startDateEpoch: annotation.startDate,
+        startDate: d3.timeParse("%Q")(annotation.startDate),
+        endDateEpoch: annotation.endDate,
+        endDate: d3.timeParse("%Q")(annotation.endDate),
+        subtheme: annotation.subtheme,
+        notes: annotation.notes,
+        object: annotation.object,
+        theme: annotation.theme
+      };
+    });
+    return annotations;
+  }
+
+  public parseThemes(rawAnnotations){
+    var themes = [];
+    var c = 0;
+    rawAnnotations.forEach(annotObj => {
+      themes.push({name: annotObj.theme} )
+    });
+    return themes
+  }
+
   public parseMIQ(data) { // clearly not very elegant - could be improved
 
     var dataStreams = {
@@ -69,16 +95,13 @@ export class DataParserService {
 
     var downsampleThres = 1000;
     Object.keys(dataStreams).forEach(function (key) {
-      // console.log("test",this.largestTriangleThreeBucket)  
       dataStreams[key] = this.largestTriangleThreeBucket(dataStreams[key], downsampleThres, "date", "val");
-      // dataStreams[key] = "hrnlo";
     }.bind(this));
 
     return dataStreams
   }
 
   public parseGoPro(data) {
-
     var dataStreams = {
       gyro_x: [],
       gyro_y: [],
@@ -109,67 +132,6 @@ export class DataParserService {
     }.bind(this));
 
     return dataStreams;
-
-    // var gyro_x = [],
-    //   gyro_y = [],
-    //   gyro_z = [],
-    //   accl_x = [],
-    //   accl_y = [],
-    //   accl_z = [],
-    //   gps_alt = [];
-
-    // Downsample streams
-    // var downsampleThres = 1000;
-    // dataStreams.gyro_x = this.largestTriangleThreeBucket(dataStreams.gyro_x, downsampleThres, "date", "val");
-    // dataStreams.gyro_y = this.largestTriangleThreeBucket(dataStreams.gyro_y, downsampleThres, "date", "val");
-    // dataStreams.gyro_z = this.largestTriangleThreeBucket(dataStreams.gyro_z, downsampleThres, "date", "val");
-    // dataStreams.accl_x = this.largestTriangleThreeBucket(dataStreams.accl_x, downsampleThres, "date", "val");
-    // dataStreams.accl_y = this.largestTriangleThreeBucket(dataStreams.accl_y, downsampleThres, "date", "val");
-    // dataStreams.accl_z = this.largestTriangleThreeBucket(dataStreams.accl_z, downsampleThres, "date", "val");
-    // dataStreams.gps_alt = this.largestTriangleThreeBucket(dataStreams.gps_alt, downsampleThres, "date", "val");
-
-    // compute domains
-    // var gyro_domain = d3.extent(d3.extent(dataStreams.gyro_x, (d) => { return d.val }).concat(
-    //   d3.extent(dataStreams.gyro_y, (d) => { return d.val; }),
-    //   d3.extent(dataStreams.gyro_z, (d) => { return d.val; })));
-
-    // var accl_domain = d3.extent(d3.extent(dataStreams.accl_x, (d) => { return d.val }).concat(
-    //   d3.extent(dataStreams.accl_y, (d) => { return d.val }),
-    //   d3.extent(dataStreams.accl_z, (d) => { return d.val })));
-
-    // var alt_domain = d3.extent(dataStreams.gps_alt, d => { return d.val; });
-
-    // any stream should do (not entirely sure tho!)
-    // var date_domain = d3.extent(gyro_x, d => { return d.date; });
-
-    // console.log("Current date domain", date_domain);
-
-    // return {
-    //   gyro: [gyro_x, gyro_y, gyro_z],
-    //   accl: [accl_x, accl_y, accl_z],
-    //   gps_alt: gps_alt,
-    //   gyro_domain: gyro_domain,
-    //   accl_domain: accl_domain,
-    //   alt_domain: alt_domain,
-    //   date_domain: date_domain
-    // };
-  }
-
-  public parseAnnotations(rawAnnotations) {
-    var annotations = {};
-    rawAnnotations.forEach(annotation => {
-      annotations[annotation._id] = {
-        startDateEpoch: annotation.startDate,
-        startDate: d3.timeParse("%Q")(annotation.startDate),
-        endDateEpoch: annotation.endDate,
-        endDate: d3.timeParse("%Q")(annotation.endDate),
-        subtheme: annotation.subtheme,
-        notes: annotation.notes,
-        object: annotation.object,
-        theme: annotation.theme
-      };
-    });
-    return annotations;
   }
 
   public largestTriangleThreeBucket(data, threshold, xProperty, yProperty) {
