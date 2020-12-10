@@ -22,19 +22,10 @@ export class FocusChildComponent implements OnInit {
   static svg;
   static x;
   static x_context;
-  static focus1Margin;
-  static focus2Margin;
-  static focus3Margin;
-  static y_f1;
-  static y_f2;
-  static y_f3;
   y_context;
   static xAxisFocus;
   static xAxis_f2;
   static xAxis_f3;
-  public yAxisLeft_f1;
-  public yAxisLeft_f2;
-  public yAxisLeft_f3;
   static contextHeight;
   static chartWidth;
   static contextBrush;
@@ -53,15 +44,8 @@ export class FocusChildComponent implements OnInit {
   static lines_f2;
   static line_f3;
   contextLine;
-  marginTop_f1;
-  marginTop_f2;
-  marginTop_f3;
-  marginTop_annotChart;
   marginTop_annotControls;
   annotEditorHeight;
-  static focus1Height;
-  static focus2Height;
-  static focus3Height;
   static annotHeight;
   chartHeight;
   strokeWidth = "0.5";
@@ -119,6 +103,11 @@ export class FocusChildComponent implements OnInit {
   viewBoxWidth;
   annotInsertHeight = 0;
   lastClickedTheme;
+  clusterViewHeight;
+  clusterViewStart;
+  static clusterViewGroup;
+  static clusterLines;
+  clusterData;
 
 
   themeForm = new FormGroup({
@@ -168,7 +157,7 @@ export class FocusChildComponent implements OnInit {
 
     this.data_service.getData(this.startDate, this.endDate, this.selectedObj, selectedVis, 1).subscribe((response) => {
       if (response.data.length > 0) {
-        // console.log(response)
+        console.log(response)
         if (this.chart_config.parser == 'gopro') {
           console.log("Using GoPro parser")
           this.createChart(this.data_parser.parseGoPro(response.data));
@@ -223,9 +212,22 @@ export class FocusChildComponent implements OnInit {
     return out_stream;
   }
 
+  private reshapeClusterData(){
+    // to make it easier to plot, could be improved!
+    var clusterData = []
+    this.dataStreams.clusters.forEach(element => {
+      clusterData.push([{date: element.date, val:0},
+      {date: element.date, val: element.val}])
+    });
+    return clusterData;
+  }
 
   private createChart(dataStreams) { // useful as TOC
     this.dataStreams = dataStreams;
+    if (this.dataStreams.clusters.length > 0) {
+      this.clusterData = this.reshapeClusterData()
+
+    }
     console.log("dataStreams", dataStreams)
 
     // this one applies to all cases
@@ -248,7 +250,7 @@ export class FocusChildComponent implements OnInit {
 
     this.createFocusCharts(); // programatially creates focus charts
 
-    // this.createClusterTimelines() // todo
+    this.createClusterTimeline();
 
     this.getThemes();
 
@@ -264,6 +266,84 @@ export class FocusChildComponent implements OnInit {
   }
 
   // CHART SETUP
+
+  // clusterLines(){
+  //   var line = d3.line()
+  //         .x((d: any) => { return FocusChildComponent.x(d.date) })
+  //         .y(this.clusterViewHeight)
+  //   return line
+  // }
+
+  private createClusterTimeline() {
+    var colors = ['#F1C40F', '#27AE60', '#BB8FCE', '#2874A6']
+
+    if (this.clusterData) {
+      console.log(this.clusterData)
+
+      var yScale = d3.scaleLinear()
+        .range([this.clusterViewHeight, 0])
+        .domain(this.getDomain([this.clusterData]))
+
+      var yAxisLeft = d3.axisLeft(yScale)
+      var line = d3.line()
+        .x((d:any) => { return FocusChildComponent.x(d.date) })
+        .y((d:any) => { return yScale(d.val) });
+
+      FocusChildComponent.clusterViewGroup = FocusChildComponent.svg.append("g")
+        .attr("class", "clusterSVGGroup")
+        .attr("transform", "translate(" + this.margin.left + "," + this.clusterViewStart + ")");
+
+      FocusChildComponent.clusterLines = FocusChildComponent.clusterViewGroup.append("g")
+        .attr("class", "clusters")
+        .attr("transform", "translate(0,0)");
+
+      FocusChildComponent.clusterLines.append("defs").append("clipPath") // clip path
+        .attr("id", "clip_cluster")
+        .append("rect")
+        .attr("width", FocusChildComponent.chartWidth)
+        .attr("height", this.clusterViewHeight);
+
+      FocusChildComponent.clusterLines.append('rect') // add bounding box
+        .attr("class", "bbox")
+        .attr('x', 0)
+        .attr('y', 0)
+        .attr('width', FocusChildComponent.chartWidth)
+        .attr('height', this.clusterViewHeight)
+        .attr('fill', 'white')
+        .attr('stroke', 'black');
+
+      var lines = FocusChildComponent.clusterLines.append('g')
+        .attr("clip-path", "url(#clip_cluster)")
+
+      lines.selectAll(".line")
+        .data(this.clusterData)
+        .enter()
+        .append("path")
+        .attr("class", "line")  // I add the class line to be able to modify this line later on.
+        .attr("fill", "none")
+        .attr("stroke", (d, i) => { return colors[d.val] }) // skip black
+        .attr("stroke-width", this.strokeWidth)
+        .attr("d", line);
+
+      // lines.append('path')
+      //   .datum(this.dataStreams.clusters)
+      //   .attr("class", "line")
+      //   .attr("fill", "none")
+      //   .attr("stroke", colors[1])
+      //   .attr("stroke-width", this.strokeWidth)
+      //   .attr("d", line);
+
+      FocusChildComponent.clusterViewGroup.append('g')
+        .attr("class", "axis axis--x")
+        .attr("transform", "translate(0," + this.clusterViewHeight + ")")
+        .call(FocusChildComponent.xAxisFocus);
+
+      FocusChildComponent.clusterViewGroup.append("g")
+        .attr("class", "axis axis--y")
+        .call(yAxisLeft);
+    }
+  }
+
 
   private getFocusHeights() {
     var heights = []
@@ -282,13 +362,19 @@ export class FocusChildComponent implements OnInit {
     this.spacer2 = 0;
     FocusChildComponent.contextHeight = 80;
     FocusChildComponent.annotHeight = 80;
+    this.clusterViewHeight = 40;
     this.margin = { top: 0, right: 0, bottom: 0, left: 25 };
     // where focus charts start
-    this.focusStart = FocusChildComponent.contextHeight + this.spacer1;
+    this.focusStart = FocusChildComponent.contextHeight + this.spacer1;;
     // total focus height
     this.focusStackedHeight = this.getFocusHeights().reduce((a, b) => a + b, 0);
+    this.clusterViewStart = this.focusStart + this.focusStackedHeight + this.spacer1;
     // where annotation chart starts
     this.annotStart = this.focusStart + this.focusStackedHeight + this.spacer1;
+    if (this.dataStreams.clusters.length > 0) {
+      this.annotStart += this.clusterViewHeight + this.spacer1;
+    }
+
     // zoom height for zoom area
     this.zoomHeight = this.focusStackedHeight;
     // height of one theme lane
@@ -302,14 +388,6 @@ export class FocusChildComponent implements OnInit {
       .attr('width', "70%")
       .attr('height', "100%")
       .attr('viewBox', '0 0 ' + this.viewBoxWidth + ' ' + this.chartHeight)
-    // get rid of these
-    FocusChildComponent.focus1Height = 170;
-    FocusChildComponent.focus2Height = 170;
-    FocusChildComponent.focus3Height = 170;
-    this.marginTop_f1 = this.margin.top + FocusChildComponent.contextHeight + this.spacer1;
-    this.marginTop_f2 = this.marginTop_f1 + FocusChildComponent.focus1Height;
-    this.marginTop_f3 = this.marginTop_f2 + FocusChildComponent.focus2Height;
-    this.marginTop_annotChart = this.annotStart;
   }
 
   private setMainAxis() {
@@ -512,7 +590,7 @@ export class FocusChildComponent implements OnInit {
       .attr("transform", "translate(" + 0 + "," + 0 + ")")
       .call(FocusChildComponent.highlighterBrush);
 
-    // Appends zoom to svg over focus1 area
+    // Appends zoom to svg over area
     FocusChildComponent.focusSVGGroup.append("rect")
       .attr("class", "zoom")
       .attr("width", FocusChildComponent.chartWidth)
@@ -641,7 +719,7 @@ export class FocusChildComponent implements OnInit {
     this.data_service.getAnnotations(this.selectedObj, this.startDate, this.endDate).subscribe((response) => {
       FocusChildComponent.annotations = this.data_parser.parseAnnotations(response.data);
       console.log("Total annotations found:", Object.keys(FocusChildComponent.annotations).length);
-      console.log("FocusChildComponent.annotations", FocusChildComponent.annotations)
+      // console.log("FocusChildComponent.annotations", FocusChildComponent.annotations)
       // Draw annotations once received from server
       this.populateAnnotBrushes();
       this.drawAnnotationBrushesFromData();
@@ -707,7 +785,7 @@ export class FocusChildComponent implements OnInit {
     // console.log("FocusChildComponent.annotBrushes", FocusChildComponent.annotBrushes)
     // var test = this.filterAnnotBrushesByTheme("temptheme1")
     // console.log("test", test)
-    var themeColors = ['#C0392B','#E74C3C','#9B59B6','#8E44AD','#2980B9','#3498DB','#1ABC9C','#16A085','#27AE60','#2ECC71','#F1C40F','#F39C12','#E67E22','#D35400'];
+    var themeColors = ['#C0392B', '#E74C3C', '#9B59B6', '#8E44AD', '#2980B9', '#3498DB', '#1ABC9C', '#16A085', '#27AE60', '#2ECC71', '#F1C40F', '#F39C12', '#E67E22', '#D35400'];
     var c = 0;
     FocusChildComponent.themeGroup.forEach(element => {
       var data = this.filterAnnotBrushesByTheme(element.themeName)
@@ -730,7 +808,7 @@ export class FocusChildComponent implements OnInit {
         })
         .select('.selection') // add color
         .style('fill', themeColors[c])
-        c+=1
+      c += 1
     });
 
     // disable overlay events
@@ -927,7 +1005,7 @@ export class FocusChildComponent implements OnInit {
       if (d3.select('#highlighterBrush').empty()) {
         FocusChildComponent.svg.append("g")
           .attr("id", "highlighterBrush")
-          .attr("transform", "translate(" + this.margin.left + "," + this.marginTop_f1 + ")")
+          .attr("transform", "translate(" + this.margin.left + "," + this.focusStart + ")")
           .call(FocusChildComponent.highlighterBrush);
       }
       // Disable zoom
@@ -1087,7 +1165,7 @@ export class FocusChildComponent implements OnInit {
     FocusChildComponent.updateBrushes()
   }
 
-  static updateTimelineXAxis(){
+  static updateTimelineXAxis() {
     // when zooming/panning
     FocusChildComponent.themeGroup.forEach(element => {
       element.annotChart.select(".axis--x").call(FocusChildComponent.xAxisFocus);

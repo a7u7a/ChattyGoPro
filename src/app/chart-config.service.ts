@@ -18,6 +18,7 @@ export class ChartConfigService {
       name: 'Edinburgh',
       parser: 'gopro', 
       streamIds: this.streamIds.goPro,
+      clusterView: true,
       contextView: {
         streamId: 'gps_alt', // use variable name as apperas in data-parser
         streamLabel: 'Altitude',
@@ -82,12 +83,11 @@ export class ChartConfigService {
         },
       ]
     },
-
-
     {
       name: "Cardiff",
       parser: "miq",
       streamIds: this.streamIds.miq,
+      clusterView: false,
       contextView: {
         streamId: 'shock_compression_slope3', // simply use name of variable available 
         streamLabel: 'Slope',
