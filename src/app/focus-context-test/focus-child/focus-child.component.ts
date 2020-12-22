@@ -166,6 +166,10 @@ export class FocusChildComponent implements OnInit {
           console.log("Using MIQ parser")
           this.createChart(this.data_parser.parseMIQ(response.data));
         }
+        else if (this.chart_config.parser == 'parse_gpmf_miq') {
+          console.log("Using GPMF + MIQ parser")
+          this.createChart(this.data_parser.parse_gpmf_miq(response.data));
+        }
 
       }
       else {
@@ -272,7 +276,7 @@ export class FocusChildComponent implements OnInit {
   //         .x((d: any) => { return FocusChildComponent.x(d.date) })
   //         .y(this.clusterViewHeight)
   //   return line
-  // }
+  // }  
 
   private createClusterTimeline() {
     var colors = ['#F1C40F', '#27AE60', '#BB8FCE', '#2874A6']
@@ -286,8 +290,8 @@ export class FocusChildComponent implements OnInit {
 
       var yAxisLeft = d3.axisLeft(yScale)
       var line = d3.line()
-        .x((d:any) => { return FocusChildComponent.x(d.date) })
-        .y((d:any) => { return yScale(d.val) });
+        .x((d:any) => {console.log("xd",d); return FocusChildComponent.x(d.date) })
+        .y((d:any) => {console.log("yd",d); return yScale(d.val) });
 
       FocusChildComponent.clusterViewGroup = FocusChildComponent.svg.append("g")
         .attr("class", "clusterSVGGroup")
@@ -321,7 +325,7 @@ export class FocusChildComponent implements OnInit {
         .append("path")
         .attr("class", "line")  // I add the class line to be able to modify this line later on.
         .attr("fill", "none")
-        .attr("stroke", (d, i) => { return colors[d.val] }) // skip black
+        .attr("stroke", (d, i) => { return colors[d.val] }) 
         .attr("stroke-width", this.strokeWidth)
         .attr("d", line);
 
@@ -496,7 +500,7 @@ export class FocusChildComponent implements OnInit {
       element.streams.forEach(stream => {
         labels.push(stream.streamLabel)
         colors.push(stream.lineColor)
-        streams.push(this.getSensorStreams(stream.streamId))
+        streams.push(this.getSensorStreams(stream.streamId)) // chart data
       });
 
       var yScale = d3.scaleLinear()

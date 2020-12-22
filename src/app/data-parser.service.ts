@@ -40,6 +40,50 @@ export class DataParserService {
     return backToArray
   }
 
+  public parse_gpmf_miq(data) {
+    var dataStreams = {
+      gyro_x: [],
+      gyro_y: [],
+      gyro_z: [],
+      accl_x: [],
+      accl_y: [],
+      accl_z: [],
+      front_axle: [],
+      rear_axle: [],
+      g_force: [],
+      rear_sensor: [],
+      clusters: []
+    };
+
+    data.forEach((d: any) => {
+      var date = d3.timeParse("%Q")(d.sensorData.sensor_data.time.timestamp);
+      var sensorData = d.sensorData;
+
+      dataStreams.gyro_x.push({ date: date, val: sensorData.sensor_data.gyroscope.x });
+      dataStreams.gyro_y.push({ date: date, val: sensorData.sensor_data.gyroscope.y });
+      dataStreams.gyro_z.push({ date: date, val: sensorData.sensor_data.gyroscope.z });
+      dataStreams.accl_x.push({ date: date, val: sensorData.sensor_data.acceleration.x });
+      dataStreams.accl_y.push({ date: date, val: sensorData.sensor_data.acceleration.y });
+      dataStreams.accl_z.push({ date: date, val: sensorData.sensor_data.acceleration.z });
+      dataStreams.front_axle.push({ date: date, val: sensorData.sensor_data.front_axle });
+      dataStreams.rear_axle.push({ date: date, val: sensorData.sensor_data.rear_axle });
+      dataStreams.g_force.push({ date: date, val: sensorData.sensor_data.g_force });
+      dataStreams.rear_sensor.push({ date: date, val: sensorData.sensor_data.rear_sensor });
+      if ('computed' in sensorData) {
+        dataStreams.clusters.push({ date: date, val: sensorData.computed.fake_clusters });
+      }
+    });
+
+    // Downsample streams
+    var downsampleThres = 1000;
+    Object.keys(dataStreams).forEach(function (key) {
+      dataStreams[key] = this.largestTriangleThreeBucket(dataStreams[key], downsampleThres, "date", "val");
+    }.bind(this));
+
+    return dataStreams;
+  }
+
+
   public parseMIQ(data) { // clearly not very elegant - could be improved
 
     var dataStreams = {
