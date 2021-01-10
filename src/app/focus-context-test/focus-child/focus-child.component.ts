@@ -107,7 +107,7 @@ export class FocusChildComponent implements OnInit {
   clusterViewStart;
   static clusterViewGroup;
   static clusterLines;
-  clusterData;
+  static clusterData;
 
 
   themeForm = new FormGroup({
@@ -218,7 +218,7 @@ export class FocusChildComponent implements OnInit {
   private createChart(dataStreams) { // useful as TOC
     this.dataStreams = dataStreams;
     if (this.dataStreams.clusters.length > 0) {
-      this.clusterData = this.reshapeClusterData()
+      FocusChildComponent.clusterData = this.reshapeClusterData()
 
     }
     console.log("dataStreams", dataStreams)
@@ -290,12 +290,12 @@ static drawClusterLines(){
   private createClusterTimeline() {
     var colors = ["#00FF00", "#FF00FF", "#0000FF", "#FF0000"]
 
-    if (this.clusterData) {
-      console.log(this.clusterData)
+    if (FocusChildComponent.clusterData) {
+      console.log(FocusChildComponent.clusterData)
 
       var yScale = d3.scaleLinear()
         .range([FocusChildComponent.clusterViewHeight, 0])
-        .domain(this.getDomain([this.clusterData]))
+        .domain(this.getDomain([FocusChildComponent.clusterData]))
 
       var yAxisLeft = d3.axisLeft(yScale)
 
@@ -326,7 +326,7 @@ static drawClusterLines(){
         .attr("clip-path", "url(#clip_cluster)")
 
       lines.selectAll(".line")
-        .data(this.clusterData)
+        .data(FocusChildComponent.clusterData)
         .enter()
         .append("path")
         .attr("class", "line") 
@@ -1196,8 +1196,10 @@ static drawClusterLines(){
   }
 
   static updateClusters(){
+    if (FocusChildComponent.clusterData) {
     FocusChildComponent.clusterViewGroup.selectAll('.line').attr('d', FocusChildComponent.drawClusterLines())
     FocusChildComponent.clusterViewGroup.select('.axis--x').call(FocusChildComponent.xAxisFocus); // bottom axis
+    }
   }
 
   static updateFocus() {
