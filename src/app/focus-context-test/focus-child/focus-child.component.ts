@@ -291,7 +291,7 @@ static drawClusterLines(){
     var colors = ["#00FF00", "#FF00FF", "#0000FF", "#FF0000"]
 
     if (FocusChildComponent.clusterData) {
-      console.log(FocusChildComponent.clusterData)
+      // console.log(FocusChildComponent.clusterData)
 
       var yScale = d3.scaleLinear()
         .range([FocusChildComponent.clusterViewHeight, 0])
