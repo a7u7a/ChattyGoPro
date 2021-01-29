@@ -129,18 +129,21 @@ export class FocusChildComponent implements OnInit {
 
     this.themeForm.get("theme").valueChanges.subscribe(selectedValue => {
       setTimeout(() => {
+        // Perform validations on new theme name
         this.newThemeName = this.themeForm.value.theme
-        console.log("themeGroup",FocusChildComponent.themeGroup);
         
         // Check if the theme name already exists
-        var result = FocusChildComponent.themeGroup.filter(obj => {
+        var themeNameMatches = FocusChildComponent.themeGroup.filter(obj => {
           return obj.themeName === this.newThemeName
         })
-        //console.log("found matches",result)
-        // console.log("char len",this.newThemeName.length)
 
-        // validate theme name before allowing the user to create new theme timeline
-        if ( this.newThemeName.length > 0 && result.length == 0 && this.newThemeName.length < this.themeNameLengthLimit) {
+        var regexp = /^[a-zA-Z0-9-_]+$/; // Allow alphanumeric + underscores only
+
+        // Validate theme name before allowing the user to create new theme timeline
+        if (this.newThemeName.length > 0 && 
+          themeNameMatches.length == 0 &&
+          this.newThemeName.length < this.themeNameLengthLimit &&
+          this.newThemeName.search(regexp) === 0 ) { 
           this.disableCreateThemBtn = false;
         } else {
           this.disableCreateThemBtn = true;
@@ -631,11 +634,13 @@ static drawClusterLines(){
   themeTimelineClicked() {
     if (this.annotModeEnabled) {
       this.updateLastTimeline();
+      var test = d3.event.path[0].classList[0]
       this.lastClickedTheme = d3.event.path[0].classList[0].replace('bbox_', '')
       FocusChildComponent.themeTimelineSVGGroup.select('.bbox_' + this.lastClickedTheme)
         .attr('fill', 'lightgray')
       // Enable done button
       this.disableDoneBtn = false;
+      // console.log(this.lastClickedTheme, test);
     }
   }
 
