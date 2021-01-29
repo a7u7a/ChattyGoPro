@@ -108,6 +108,7 @@ export class FocusChildComponent implements OnInit {
   static clusterViewGroup;
   static clusterLines;
   static clusterData;
+  themeNameLengthLimit = 60;
 
 
   themeForm = new FormGroup({
@@ -129,7 +130,17 @@ export class FocusChildComponent implements OnInit {
     this.themeForm.get("theme").valueChanges.subscribe(selectedValue => {
       setTimeout(() => {
         this.newThemeName = this.themeForm.value.theme
-        if (this.newThemeName.length > 0) {
+        console.log("themeGroup",FocusChildComponent.themeGroup);
+        
+        // Check if the theme name already exists
+        var result = FocusChildComponent.themeGroup.filter(obj => {
+          return obj.themeName === this.newThemeName
+        })
+        //console.log("found matches",result)
+        // console.log("char len",this.newThemeName.length)
+
+        // validate theme name before allowing the user to create new theme timeline
+        if ( this.newThemeName.length > 0 && result.length == 0 && this.newThemeName.length < this.themeNameLengthLimit) {
           this.disableCreateThemBtn = false;
         } else {
           this.disableCreateThemBtn = true;
@@ -686,7 +697,6 @@ static drawClusterLines(){
   }
 
   private createThemesTimelines() {
-
     // similar pattern to createFocusCharts()
     FocusChildComponent.themeTimelineSVGGroup = FocusChildComponent.svg.append('g')
       .attr('class', 'themeTimelineSVGGroup')
