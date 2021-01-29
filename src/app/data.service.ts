@@ -15,7 +15,7 @@ export class DataService {
 
     console.log("Fetching data from: ", environment.apiUrl);
     console.log("Query: ",{startDate:start, endDate:end, object:objectId, fields:fields});
-  
+
     return this.httpClient.post<any>(environment.apiUrl + '/data/getRange', {startDate:start, endDate:end, object:objectId, fields:fields, num:nPerSec})  
   }
   

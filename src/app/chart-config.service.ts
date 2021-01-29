@@ -9,15 +9,16 @@ export class ChartConfigService {
 
   public streamIds = {
     goPro: ["acceleration", "gyroscope", "gps"],
-    miq: ["fork_compression", "fork_rebound", "shock_compression", "shock_rebound"]
+    miq: ["fork_compression", "fork_rebound", "shock_compression", "shock_rebound"],
+    gpmf_miq: ["acceleration", "gyroscope","front_axle","rear_axle","g_force","rear_sensor"]
   }
 
   public configs = [
-    
     {
-      name: 'Edinburgh',
+      name: 'GoPro chart',
       parser: 'gopro', 
-      streamIds: this.streamIds.goPro,
+      streamIds: this.streamIds.goPro, // List of fields to add in request
+      clusterView: true,
       contextView: {
         streamId: 'gps_alt', // use variable name as apperas in data-parser
         streamLabel: 'Altitude',
@@ -82,12 +83,11 @@ export class ChartConfigService {
         },
       ]
     },
-
-
     {
-      name: "Cardiff",
+      name: "MIQ chart",
       parser: "miq",
       streamIds: this.streamIds.miq,
+      clusterView: false,
       contextView: {
         streamId: 'shock_compression_slope3', // simply use name of variable available 
         streamLabel: 'Slope',
@@ -152,55 +152,142 @@ export class ChartConfigService {
         },
 
       ]
+    },
+    {
+      name: "GoPro + MIQ chart",
+      parser: "parse_gpmf_miq",
+      streamIds: this.streamIds.gpmf_miq,
+      clusterView: false,
+      contextView: {
+        streamId: 'front_axle', // simply use name of variable available 
+        streamLabel: 'Front Axle',
+        lineColor: '#e41a1c',
+      },
+      focusCharts: [
+        {
+          name: 'Acceleration (m/s2)',
+          id: 'f1',
+          height: 80,
+          streams: [
+            {
+              streamId: 'accl_x',
+              streamLabel: 'x',
+              lineColor: '#e41a1c'
+            },
+            {
+              streamId: 'accl_y',
+              streamLabel: 'y',
+              lineColor: '#377eb8'
+            },
+            {
+              streamId: 'accl_z',
+              streamLabel: 'z',
+              lineColor: '#4daf4a'
+            }
+          ]
+        },
+        {
+          name: 'Gyroscope (rad/s)',
+          id: 'f2',
+          height: 80,
+          streams: [
+            {
+              streamId: 'gyro_x',
+              streamLabel: 'x',
+              lineColor: '#e41a1c'
+            },
+            {
+              streamId: 'gyro_y',
+              streamLabel: 'y',
+              lineColor: '#377eb8'
+            },
+            {
+              streamId: 'gyro_z',
+              streamLabel: 'z',
+              lineColor: '#4daf4a'
+            }
+          ]
+        },
+        {
+          name: 'Front Axle',
+          id: 'f3',
+          height: 80,
+          streams: [
+            {
+              streamId: 'front_axle',
+              lineColor: '#E74C3C'
+            }
+          ]
+        },
+        {
+          name: 'Rear Axle',
+          id: 'f4',
+          height: 80,
+          streams: [
+            {
+              streamId: 'rear_axle',
+              lineColor: '#A569BD'
+            }
+          ]
+        },
+        {
+          name: 'G force',
+          id: 'f5',
+          height: 80,
+          streams: [
+            {
+              streamId: 'g_force',
+              lineColor: '#2E86C1'
+            }
+          ]
+        },
+        {
+          name: 'Rear Sensor',
+          id: 'f6',
+          height: 80,
+          streams: [
+            {
+              streamId: 'rear_sensor',
+              lineColor: '#F5B041'
+            }
+          ]
+        }
+      ]
     }
   ]
 }
 
-
-
 /*
-
 chatty = {
-    'speaker': id,
-    'sensors': {
-        'fork_compression': {
-            'p1': row['p1_fork_c'],
-            'p2': row['p2_fork_c'],
-            'gforce': row['gforce_fork_c'],
-            'slope3': row['slope3_fork_c'],
-            'slopeMax': row['slopeMax_fork_c'],
-            'pMaxSpeed': row['pMaxSpeed_fork_c'],
-        },
-        "fork_rebound": {
-            'p1': row['p1_fork_r'],
-            'p2': row['p2_fork_r'],
-            'gforce': row['gforce_fork_r'],
-            'slope3': row['slope3_fork_r'],
-            'slopeMax': row['slopeMax_fork_r'],
-            'pMaxSpeed': row['pMaxSpeed_fork_r'],
-        },
-        "shock_compression": {
-            'p1': row['p1_shock_c'],
-            'p2': row['p2_shock_c'],
-            'gforce': row['gforce_shock_c'],
-            'slope3': row['slope3_shock_c'],
-            'slopeMax': row['slopeMax_shock_c'],
-            'pMaxSpeed': row['pMaxSpeed_shock_c'],
-        },
-        "shock_rebound": {
-            'p1': row['p1_shock_r'],
-            'p2': row['p2_shock_r'],
-            'gforce': row['gforce_shock_r'],
-            'slope3': row['slope3_shock_r'],
-            'slopeMax': row['slopeMax_shock_r'],
-            'pMaxSpeed': row['pMaxSpeed_shock_r'],
-        },
-        "time": {
-            'timestamp': int(row['timestamp'])
-        },
-        "status": {
-            "status": "offline"
-        }
-    }
+  'speaker':id,  #TODO: Fix IDs!
+  'sensors': {
+      'acceleration': {
+          'x':row['acceleration_x'],
+          'y':row['acceleration_y'],
+          'z':row['acceleration_z']
+      },
+      "gyroscope":{ # TODO: check against description
+          'x':row['gyroscope_x'],
+          'y':row['gyroscope_y'],
+          'z':row['gyroscope_z']
+      },
+      "orientation":{ #TODO: check against description
+          'x':row['orientation_x'],
+          'y':row['orientation_y'],
+          'z':row['orientation_z'],
+      },
+      "shutter":row['orientation_z'],
+      "image_uniformity":row['image_uniformity'],
+      "front_axle": row['front_axle'],
+      "rear_axle":row['rear_axle'],
+      "g_force":row['g_force'],
+      "rear_sensor":row['rear_sensor'],
+      "time": {
+          'timestamp':int(row['timestamp'])
+      },
+      "status": {
+          "status":"offline"
+      }
+  }
 }
 */

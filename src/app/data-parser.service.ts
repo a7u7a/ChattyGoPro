@@ -25,7 +25,7 @@ export class DataParserService {
     return annotations;
   }
 
-  public parseThemes(rawAnnotations){
+  public parseThemes(rawAnnotations) {
     // remove duplicates and sort alphabetically
     var themes = [];
     var c = 0;
@@ -39,6 +39,50 @@ export class DataParserService {
     var backToArray = [...themesSet]
     return backToArray
   }
+
+  public parse_gpmf_miq(data) {
+    var dataStreams = {
+      gyro_x: [],
+      gyro_y: [],
+      gyro_z: [],
+      accl_x: [],
+      accl_y: [],
+      accl_z: [],
+      front_axle: [],
+      rear_axle: [],
+      g_force: [],
+      rear_sensor: [],
+      clusters: []
+    };
+
+    data.forEach((d: any) => {
+      var date = d3.timeParse("%Q")(d.sensorData.sensor_data.time.timestamp);
+      var sensorData = d.sensorData;
+
+      dataStreams.gyro_x.push({ date: date, val: sensorData.sensor_data.gyroscope.x });
+      dataStreams.gyro_y.push({ date: date, val: sensorData.sensor_data.gyroscope.y });
+      dataStreams.gyro_z.push({ date: date, val: sensorData.sensor_data.gyroscope.z });
+      dataStreams.accl_x.push({ date: date, val: sensorData.sensor_data.acceleration.x });
+      dataStreams.accl_y.push({ date: date, val: sensorData.sensor_data.acceleration.y });
+      dataStreams.accl_z.push({ date: date, val: sensorData.sensor_data.acceleration.z });
+      dataStreams.front_axle.push({ date: date, val: sensorData.sensor_data.front_axle });
+      dataStreams.rear_axle.push({ date: date, val: sensorData.sensor_data.rear_axle });
+      dataStreams.g_force.push({ date: date, val: sensorData.sensor_data.g_force });
+      dataStreams.rear_sensor.push({ date: date, val: sensorData.sensor_data.rear_sensor });
+      if ('computed' in sensorData) {
+        dataStreams.clusters.push({ date: date, val: sensorData.computed.fake_clusters });
+      }
+    });
+
+    // Downsample streams
+    var downsampleThres = 1000;
+    Object.keys(dataStreams).forEach(function (key) {
+      dataStreams[key] = this.largestTriangleThreeBucket(dataStreams[key], downsampleThres, "date", "val");
+    }.bind(this));
+
+    return dataStreams;
+  }
+
 
   public parseMIQ(data) { // clearly not very elegant - could be improved
 
@@ -66,37 +110,41 @@ export class DataParserService {
       shock_rebound_gforce: [],
       shock_rebound_slope3: [],
       shock_rebound_slopeMax: [],
-      shock_rebound_pMaxSpeed: []
+      shock_rebound_pMaxSpeed: [],
+      clusters: []
     }
 
     data.forEach((d: any) => {
       var date = d3.timeParse("%Q")(d.sensorData.sensor_data.time.timestamp);
-      var sensorData = d.sensorData.sensor_data;
+      var sensorData = d.sensorData;
 
-      dataStreams.fork_compression_p1.push({ date: date, val: sensorData.fork_compression.p1 });
-      dataStreams.fork_compression_p2.push({ date: date, val: sensorData.fork_compression.p2 });
-      dataStreams.fork_compression_gforce.push({ date: date, val: sensorData.fork_compression.gforce });
-      dataStreams.fork_compression_slope3.push({ date: date, val: sensorData.fork_compression.slope3 });
-      dataStreams.fork_compression_slopeMax.push({ date: date, val: sensorData.fork_compression.slopeMax });
-      dataStreams.fork_compression_pMaxSpeed.push({ date: date, val: sensorData.fork_compression.pMaxSpeed });
-      dataStreams.fork_rebound_p1.push({ date: date, val: sensorData.fork_rebound.p1 });
-      dataStreams.fork_rebound_p2.push({ date: date, val: sensorData.fork_rebound.p2 });
-      dataStreams.fork_rebound_gforce.push({ date: date, val: sensorData.fork_rebound.gforce });
-      dataStreams.fork_rebound_slope3.push({ date: date, val: sensorData.fork_rebound.slope3 });
-      dataStreams.fork_rebound_slopeMax.push({ date: date, val: sensorData.fork_rebound.slopeMax });
-      dataStreams.fork_rebound_pMaxSpeed.push({ date: date, val: sensorData.fork_rebound.pMaxSpeed });
-      dataStreams.shock_compression_p1.push({ date: date, val: sensorData.shock_compression.p1 });
-      dataStreams.shock_compression_p2.push({ date: date, val: sensorData.shock_compression.p2 });
-      dataStreams.shock_compression_gforce.push({ date: date, val: sensorData.shock_compression.gforce });
-      dataStreams.shock_compression_slope3.push({ date: date, val: sensorData.shock_compression.slope3 });
-      dataStreams.shock_compression_slopeMax.push({ date: date, val: sensorData.shock_compression.slopeMax });
-      dataStreams.shock_compression_pMaxSpeed.push({ date: date, val: sensorData.shock_compression.pMaxSpeed });
-      dataStreams.shock_rebound_p1.push({ date: date, val: sensorData.shock_rebound.p1 });
-      dataStreams.shock_rebound_p2.push({ date: date, val: sensorData.shock_rebound.p2 });
-      dataStreams.shock_rebound_gforce.push({ date: date, val: sensorData.shock_rebound.gforce });
-      dataStreams.shock_rebound_slope3.push({ date: date, val: sensorData.shock_rebound.slope3 });
-      dataStreams.shock_rebound_slopeMax.push({ date: date, val: sensorData.shock_rebound.slopeMax });
-      dataStreams.shock_rebound_pMaxSpeed.push({ date: date, val: sensorData.shock_rebound.pMaxSpeed });
+      dataStreams.fork_compression_p1.push({ date: date, val: sensorData.sensor_data.fork_compression.p1 });
+      dataStreams.fork_compression_p2.push({ date: date, val: sensorData.sensor_data.fork_compression.p2 });
+      dataStreams.fork_compression_gforce.push({ date: date, val: sensorData.sensor_data.fork_compression.gforce });
+      dataStreams.fork_compression_slope3.push({ date: date, val: sensorData.sensor_data.fork_compression.slope3 });
+      dataStreams.fork_compression_slopeMax.push({ date: date, val: sensorData.sensor_data.fork_compression.slopeMax });
+      dataStreams.fork_compression_pMaxSpeed.push({ date: date, val: sensorData.sensor_data.fork_compression.pMaxSpeed });
+      dataStreams.fork_rebound_p1.push({ date: date, val: sensorData.sensor_data.fork_rebound.p1 });
+      dataStreams.fork_rebound_p2.push({ date: date, val: sensorData.sensor_data.fork_rebound.p2 });
+      dataStreams.fork_rebound_gforce.push({ date: date, val: sensorData.sensor_data.fork_rebound.gforce });
+      dataStreams.fork_rebound_slope3.push({ date: date, val: sensorData.sensor_data.fork_rebound.slope3 });
+      dataStreams.fork_rebound_slopeMax.push({ date: date, val: sensorData.sensor_data.fork_rebound.slopeMax });
+      dataStreams.fork_rebound_pMaxSpeed.push({ date: date, val: sensorData.sensor_data.fork_rebound.pMaxSpeed });
+      dataStreams.shock_compression_p1.push({ date: date, val: sensorData.sensor_data.shock_compression.p1 });
+      dataStreams.shock_compression_p2.push({ date: date, val: sensorData.sensor_data.shock_compression.p2 });
+      dataStreams.shock_compression_gforce.push({ date: date, val: sensorData.sensor_data.shock_compression.gforce });
+      dataStreams.shock_compression_slope3.push({ date: date, val: sensorData.sensor_data.shock_compression.slope3 });
+      dataStreams.shock_compression_slopeMax.push({ date: date, val: sensorData.sensor_data.shock_compression.slopeMax });
+      dataStreams.shock_compression_pMaxSpeed.push({ date: date, val: sensorData.sensor_data.shock_compression.pMaxSpeed });
+      dataStreams.shock_rebound_p1.push({ date: date, val: sensorData.sensor_data.shock_rebound.p1 });
+      dataStreams.shock_rebound_p2.push({ date: date, val: sensorData.sensor_data.shock_rebound.p2 });
+      dataStreams.shock_rebound_gforce.push({ date: date, val: sensorData.sensor_data.shock_rebound.gforce });
+      dataStreams.shock_rebound_slope3.push({ date: date, val: sensorData.sensor_data.shock_rebound.slope3 });
+      dataStreams.shock_rebound_slopeMax.push({ date: date, val: sensorData.sensor_data.shock_rebound.slopeMax });
+      dataStreams.shock_rebound_pMaxSpeed.push({ date: date, val: sensorData.sensor_data.shock_rebound.pMaxSpeed });
+      if ('computed' in sensorData) {
+        dataStreams.clusters.push({ date: date, val: sensorData.computed.fake_clusters });
+      }
     });
 
     var downsampleThres = 1000;
@@ -115,20 +163,24 @@ export class DataParserService {
       accl_x: [],
       accl_y: [],
       accl_z: [],
-      gps_alt: []
+      gps_alt: [],
+      clusters: []
     };
 
     data.forEach((d: any) => {
       var date = d3.timeParse("%Q")(d.sensorData.sensor_data.time.timestamp);
-      var sensorData = d.sensorData.sensor_data;
+      var sensorData = d.sensorData;
 
-      dataStreams.gyro_x.push({ date: date, val: sensorData.gyroscope.x });
-      dataStreams.gyro_y.push({ date: date, val: sensorData.gyroscope.y });
-      dataStreams.gyro_z.push({ date: date, val: sensorData.gyroscope.z });
-      dataStreams.accl_x.push({ date: date, val: sensorData.acceleration.x });
-      dataStreams.accl_y.push({ date: date, val: sensorData.acceleration.y });
-      dataStreams.accl_z.push({ date: date, val: sensorData.acceleration.z });
-      dataStreams.gps_alt.push({ date: date, val: sensorData.gps.alt });
+      dataStreams.gyro_x.push({ date: date, val: sensorData.sensor_data.gyroscope.x });
+      dataStreams.gyro_y.push({ date: date, val: sensorData.sensor_data.gyroscope.y });
+      dataStreams.gyro_z.push({ date: date, val: sensorData.sensor_data.gyroscope.z });
+      dataStreams.accl_x.push({ date: date, val: sensorData.sensor_data.acceleration.x });
+      dataStreams.accl_y.push({ date: date, val: sensorData.sensor_data.acceleration.y });
+      dataStreams.accl_z.push({ date: date, val: sensorData.sensor_data.acceleration.z });
+      dataStreams.gps_alt.push({ date: date, val: sensorData.sensor_data.gps.alt });
+      if ('computed' in sensorData) {
+        dataStreams.clusters.push({ date: date, val: sensorData.computed.fake_clusters });
+      }
     });
 
     // Downsample streams
