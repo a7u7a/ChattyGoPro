@@ -248,7 +248,6 @@ export class FocusChildComponent implements OnInit {
     this.dataStreams = dataStreams;
     if (this.dataStreams.clusters.length > 0) {
       FocusChildComponent.clusterData = this.reshapeClusterData()
-
     }
     console.log("dataStreams", dataStreams)
 
@@ -270,7 +269,7 @@ export class FocusChildComponent implements OnInit {
 
     this.createContextChart();
 
-    this.createFocusCharts(); // programatially creates focus charts
+    this.createFocusCharts(); // programatially creates focus charts according to 
 
     this.createClusterTimeline();
 
@@ -421,7 +420,7 @@ export class FocusChildComponent implements OnInit {
     this.themeHeight = FocusChildComponent.annotHeight + this.spacer1
     // total chart dims
     FocusChildComponent.chartWidth = this.viewBoxWidth - this.margin.right - this.margin.left;
-    this.chartHeight = this.annotStart + this.themeHeight; // assumes 1 preexisting theme 
+    this.chartHeight = this.annotStart; 
     // apply dims to base svg element
     FocusChildComponent.hostElement = document.getElementById("mainChart");
     FocusChildComponent.svg = d3.select(FocusChildComponent.hostElement).append('svg')
