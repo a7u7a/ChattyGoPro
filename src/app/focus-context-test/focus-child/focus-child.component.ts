@@ -108,7 +108,7 @@ export class FocusChildComponent implements OnInit {
   static clusterViewGroup;
   static clusterLines;
   static clusterData;
-  themeNameLengthLimit = 60;
+
 
 
   themeForm = new FormGroup({
@@ -131,25 +131,40 @@ export class FocusChildComponent implements OnInit {
       setTimeout(() => {
         // Perform validations on new theme name
         this.newThemeName = this.themeForm.value.theme
-        
-        // Check if the theme name already exists
-        var themeNameMatches = FocusChildComponent.themeGroup.filter(obj => {
-          return obj.themeName === this.newThemeName
-        })
 
-        var regexp = /^[a-zA-Z0-9-_]+$/; // Allow alphanumeric + underscores only
+        // Check if the theme name already exists
+        // var themeNameMatches = FocusChildComponent.themeGroup.filter(obj => {
+        //   return obj.themeName === this.newThemeName
+        // })
+
+        //var regexp = /^[a-zA-Z0-9-_]+$/; // Allow alphanumeric + underscores only
 
         // Validate theme name before allowing the user to create new theme timeline
-        if (this.newThemeName.length > 0 && 
-          themeNameMatches.length == 0 &&
-          this.newThemeName.length < this.themeNameLengthLimit &&
-          this.newThemeName.search(regexp) === 0 ) { 
+        if (this.validateThemeName(this.newThemeName)) {
           this.disableCreateThemBtn = false;
         } else {
           this.disableCreateThemBtn = true;
         }
       })
     })
+  }
+
+  private validateThemeName(themeName) {
+    var themeNameLengthLimit = 60;
+    // Check if the theme name already exists
+    var themeNameMatches = FocusChildComponent.themeGroup.filter(obj => {
+      return obj.themeName === themeName
+    })
+    var regexp = /^[a-zA-Z0-9-_]+$/;
+
+    if (themeName.length > 0 && // has chars
+      themeNameMatches.length == 0 && // is unique
+      themeName.length < themeNameLengthLimit && // does not exceed limit
+      themeName.search(regexp) === 0) {   // alphanumeric + underscores only
+      return true
+    } else {
+      return false
+    }
   }
 
   public getData(startDate, endDate, selectedObj, chart_config) {
@@ -281,25 +296,25 @@ export class FocusChildComponent implements OnInit {
   //   return line
   // }  
 
-  private reshapeClusterData(){
+  private reshapeClusterData() {
     // to make it easier to plot (please improve me)
     var clusterData = []
     // for(var i in this.dataStreams.clusters){
 
     // }
     this.dataStreams.clusters.forEach(element => {
-      clusterData.push([{date: element.date, val:"0"},
-      {date: element.date, val: element.val}])
+      clusterData.push([{ date: element.date, val: "0" },
+      { date: element.date, val: element.val }])
     });
     return clusterData;
   }
 
-static drawClusterLines(){
-  var line = d3.line()
-  .x((d:any) => { return FocusChildComponent.x(d.date) })
-  .y((d:any) => { var y = d.val === "0" ? 0 : FocusChildComponent.clusterViewHeight; return y }); 
-  return line
-}
+  static drawClusterLines() {
+    var line = d3.line()
+      .x((d: any) => { return FocusChildComponent.x(d.date) })
+      .y((d: any) => { var y = d.val === "0" ? 0 : FocusChildComponent.clusterViewHeight; return y });
+    return line
+  }
 
   private createClusterTimeline() {
     var colors = ["#00FF00", "#FF00FF", "#0000FF", "#FF0000"]
@@ -343,9 +358,9 @@ static drawClusterLines(){
         .data(FocusChildComponent.clusterData)
         .enter()
         .append("path")
-        .attr("class", "line") 
+        .attr("class", "line")
         .attr("fill", "none")
-        .attr("stroke", function(d) { return colors[d[1].val] })
+        .attr("stroke", function (d) { return colors[d[1].val] })
         .attr("stroke-width", "1")
         .attr("d", FocusChildComponent.drawClusterLines());
 
@@ -697,8 +712,13 @@ static drawClusterLines(){
 
   createTheme() {
     // called by ui button
-    console.log("createTheme", this.newThemeName)
-    this.addThemeTimeline(this.newThemeName)
+    // validate theme name first
+    if(this.validateThemeName(this.newThemeName)){
+      console.log("Creating new theme timeline", this.newThemeName)
+      this.addThemeTimeline(this.newThemeName)
+    }else{
+      console.log('Cannot create new theme timeline, name not valid!')
+    }
   }
 
   private createThemesTimelines() {
@@ -1210,10 +1230,10 @@ static drawClusterLines(){
     FocusChildComponent.updateClusters();
   }
 
-  static updateClusters(){
+  static updateClusters() {
     if (FocusChildComponent.clusterData) {
-    FocusChildComponent.clusterViewGroup.selectAll('.line').attr('d', FocusChildComponent.drawClusterLines())
-    FocusChildComponent.clusterViewGroup.select('.axis--x').call(FocusChildComponent.xAxisFocus); // bottom axis
+      FocusChildComponent.clusterViewGroup.selectAll('.line').attr('d', FocusChildComponent.drawClusterLines())
+      FocusChildComponent.clusterViewGroup.select('.axis--x').call(FocusChildComponent.xAxisFocus); // bottom axis
     }
   }
 
