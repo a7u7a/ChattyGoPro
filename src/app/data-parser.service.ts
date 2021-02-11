@@ -177,7 +177,10 @@ export class DataParserService {
       dataStreams.accl_x.push({ date: date, val: sensorData.sensor_data.acceleration.x });
       dataStreams.accl_y.push({ date: date, val: sensorData.sensor_data.acceleration.y });
       dataStreams.accl_z.push({ date: date, val: sensorData.sensor_data.acceleration.z });
-      dataStreams.gps_alt.push({ date: date, val: sensorData.sensor_data.gps.alt });
+      if(sensorData.sensor_data.gps.alt){
+        dataStreams.gps_alt.push({ date: date, val: sensorData.sensor_data.gps.alt });
+      }
+      
       if ('computed' in sensorData) {
         dataStreams.clusters.push({ date: date, val: sensorData.computed.fake_clusters });
       }
