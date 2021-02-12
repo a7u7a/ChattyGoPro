@@ -115,8 +115,8 @@ export class DataParserService {
     }
 
     data.forEach((d: any) => {
-      var date = d3.timeParse("%Q")(d.sensorData.sensor_data.time.timestamp);
       var sensorData = d.sensorData;
+      var date = d3.timeParse("%Q")(sensorData.sensor_data.time.timestamp);
 
       dataStreams.fork_compression_p1.push({ date: date, val: sensorData.sensor_data.fork_compression.p1 });
       dataStreams.fork_compression_p2.push({ date: date, val: sensorData.sensor_data.fork_compression.p2 });
@@ -168,8 +168,8 @@ export class DataParserService {
     };
 
     data.forEach((d: any) => {
-      var date = d3.timeParse("%Q")(d.sensorData.sensor_data.time.timestamp);
       var sensorData = d.sensorData;
+      var date = d3.timeParse("%Q")(sensorData.sensor_data.time.timestamp);
 
       dataStreams.gyro_x.push({ date: date, val: sensorData.sensor_data.gyroscope.x });
       dataStreams.gyro_y.push({ date: date, val: sensorData.sensor_data.gyroscope.y });

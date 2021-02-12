@@ -61,7 +61,8 @@ export class FocusParentComponent implements OnInit {
       this.availableBikeRuns = response.data;
       var counter = 0;
       this.availableBikeRuns.forEach((element , index )=> {
-        this.bikeRunsToSelect.push({idx: counter, id: element.runuuid, label:element.runName })
+        var rideDate = d3.timeParse("%Q")(element.startDate).toLocaleDateString("en-GB")
+        this.bikeRunsToSelect.push({idx: counter, id: element.runuuid, label:element.runName + " " + rideDate})
         counter++;
       });
     })

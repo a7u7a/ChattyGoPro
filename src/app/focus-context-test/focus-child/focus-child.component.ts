@@ -254,6 +254,7 @@ export class FocusChildComponent implements OnInit {
     // this one applies to all cases
     // use the first element of the dataStreams since all will return the same date domain
     this.date_domain = d3.extent(dataStreams[Object.keys(dataStreams)[0]], (d: any) => { return d.date; });
+    console.log("date_domain", this.date_domain)
 
     this.isLoading = false;
 
@@ -281,8 +282,8 @@ export class FocusChildComponent implements OnInit {
 
   private setChartInfo() {
     // Display range dates on top of chart
-    this.displayDateFrom = this.date_domain[0].toLocaleDateString("en-GB", { weekday: 'long' }) + " " + this.date_domain[0].toLocaleString();
-    this.displayDateTo = this.date_domain[1].toLocaleDateString("en-GB", { weekday: 'long' }) + " " + this.date_domain[1].toLocaleString();
+    this.displayDateFrom = this.date_domain[0].toLocaleDateString("en-GB", { weekday: 'long' }) + " " + this.date_domain[0].toLocaleString("en-GB");
+    this.displayDateTo = this.date_domain[1].toLocaleDateString("en-GB", { weekday: 'long' }) + " " + this.date_domain[1].toLocaleString("en-GB");
     this.displayRideMinutes = Math.round(((this.date_domain[1].getTime() - this.date_domain[0].getTime()) / 60000) * 10) / 10;
   }
 
@@ -1190,7 +1191,7 @@ export class FocusChildComponent implements OnInit {
       this.addAnnotation(brushObj.theme, brushObj.subtheme, brushObj.startDateEpoch, brushObj.endDateEpoch, brushObj.notes)
     })
     // reload chart using the same chart configuration
-    this.getData(this.startDate, this.endDate, this.selectedObj, this.chart_config);
+    this.getData(this.startDate, this.endDate, this.selectedObj, this.chart_config, this.displayRideName);
     this.annotInsertHeight = 0;
   }
 
