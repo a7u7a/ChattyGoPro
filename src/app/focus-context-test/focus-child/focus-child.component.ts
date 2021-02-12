@@ -68,6 +68,7 @@ export class FocusChildComponent implements OnInit {
   isLoading = false;
   status;
   showChartInfo;
+  displayRideName;
   displayDateFrom;
   displayDateTo;
   displayRideMinutes;
@@ -108,8 +109,6 @@ export class FocusChildComponent implements OnInit {
   static clusterViewGroup;
   static clusterLines;
   static clusterData;
-
-
 
   themeForm = new FormGroup({
     theme: new FormControl('', [Validators.required])
@@ -167,7 +166,8 @@ export class FocusChildComponent implements OnInit {
     }
   }
 
-  public getData(startDate, endDate, selectedObj, chart_config) {
+  public getData(startDate, endDate, selectedObj, chart_config, rideName) {
+    this.displayRideName = rideName;
     this.annotInsertHeight = 0;
     this.chart_config = chart_config // make this get the actual object
     console.log("selected chart config", this.chart_config)
