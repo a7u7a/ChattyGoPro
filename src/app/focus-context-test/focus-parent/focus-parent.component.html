@@ -1,29 +1,40 @@
 <nb-card>
 
+  <!-- 
+    - Replace datepicker selector with bike run list 
+    - Delete bike chart config selector
+    - Add toggle to specify obj id (simply uncomment)
+  -->
 
   <nb-card-header>Data Annotator Tool</nb-card-header>
 
   <nb-card-body>
 
-    Select date and device: <br>
+    Select a bike run and click submit to display the data: <br>
 
     <form [formGroup]="form" (ngSubmit)="submit()" class="input-form">
 
-      <nb-select formControlName="devices" id="devices" class="devices" placeholder="Device">
-        <nb-option *ngFor="let camera of cameras; let i = index" [value]="cameras[i].id">
-          {{cameras[i].label}}
+      <nb-select formControlName="bikeRuns" id="bikeRuns" class="bikeRuns" placeholder="Bike run">
+        <nb-option *ngFor="let bikeRun of bikeRunsToSelect; let i = index" [value]="bikeRunsToSelect[i].idx">
+          {{bikeRunsToSelect[i].label}}
         </nb-option>
       </nb-select>
 
-      <nb-select formControlName="configs" id="config" class="configs" placeholder="Configuration">
+      <!-- <nb-select formControlName="devices" id="devices" class="devices" placeholder="Device">
+        <nb-option *ngFor="let objId of objIdToSelect; let i = index" [value]="objIdToSelect[i].id">
+          {{objIdToSelect[i].label}}
+        </nb-option>
+      </nb-select> -->
+
+      <!-- <nb-select formControlName="configs" id="config" class="configs" placeholder="Configuration">
         <nb-option *ngFor="let config of availChartConfigs; let i = index" [value]="availChartConfigs[i].id">
           {{availChartConfigs[i].name}}
         </nb-option>
-      </nb-select>
+      </nb-select> -->
 
-      <input nbInput placeholder="Date" [ngModel]="pickedDate" [nbDatepicker]="dateTimePicker" 
+      <!-- <input nbInput placeholder="Date" [ngModel]="pickedDate" [nbDatepicker]="dateTimePicker" 
         (ngModelChange)="setPickerDate($event)" [ngModelOptions]="{standalone: true}">
-      <nb-datepicker #dateTimePicker></nb-datepicker>
+      <nb-datepicker #dateTimePicker></nb-datepicker> -->
 
       <button nbButton class="submit-button">Submit</button>
     </form>
