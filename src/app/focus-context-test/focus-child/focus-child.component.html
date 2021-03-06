@@ -16,7 +16,7 @@
         <strong>Total ride time: </strong> {{ displayRideMinutes }} minutes
     </div>
 
-    <div>
+    <div *ngIf = "bikeConfig">
         <strong>Bike configuration:</strong>
         <br>
         <ng-container *ngFor="let item of bikeConfig| keyvalue">
