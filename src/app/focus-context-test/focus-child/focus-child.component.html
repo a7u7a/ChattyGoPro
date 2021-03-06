@@ -1,12 +1,35 @@
 <div *ngIf="isLoading"> {{ status }} </div>
 <div *ngIf="showChartInfo">
-    <p>
-        <strong> Run name:  </strong> {{ displayRideName }}
+
+    <div>
+        <strong>Bike run info:</strong>
+        <br>
+        <strong> Run name:</strong> {{ displayRideName }}
+        <br>
+        <strong> Track name:</strong> {{ trackName }}
+        <br>
+        <strong> Rider name:</strong> {{ riderName }}
+
         <br>
         <strong>Displaying data from: </strong> {{ displayDateFrom }} <strong> to: </strong> {{ displayDateTo }}
         <br>
         <strong>Total ride time: </strong> {{ displayRideMinutes }} minutes
-    </p>
+    </div>
+
+    <div>
+        <strong>Bike configuration:</strong>
+        <br>
+        <ng-container *ngFor="let item of bikeConfig| keyvalue">
+            <strong>{{ item.key }}: </strong> {{ item.value }}
+        </ng-container>
+        <br>
+
+        <!-- Display raw -->
+        <!-- <div style="width:auto;overflow:auto">
+        <pre>{{bikeConfig | json}}</pre>
+    </div> -->
+    </div>
+
 </div>
 
 <div id="mainChart"></div>
@@ -20,9 +43,9 @@
         <button nbButton size="small" id="delete-button" class="delete-button" [disabled]="disableDeleteBtn"
             (click)="deleteSelectedAnnot()">Delete</button>
 
-            <form [formGroup]="themeForm" (ngSubmit)="onSubmit()" [disabled]="disableAnnotationFields" novalidate>
-        <input nbInput type="text" class="newTheme-field" placeholder="New theme name" formControlName="theme"
-            fieldSize="small" style="font-weight:normal;">
+        <form [formGroup]="themeForm" (ngSubmit)="onSubmit()" [disabled]="disableAnnotationFields" novalidate>
+            <input nbInput type="text" class="newTheme-field" placeholder="New theme name" formControlName="theme"
+                fieldSize="small" style="font-weight:normal;">
         </form>
 
         <button nbButton size="small" id="create-theme-button" class="create-theme-button"
@@ -39,6 +62,6 @@
             fieldSize="small" [disabled]="disableAnnotationFields" style="font-weight:normal;"></textarea>
     </div>
 
-      <!-- <input type="text" id="themeName" name="themeName" formControlName="theme"> -->
-    
-</div>  
+    <!-- <input type="text" id="themeName" name="themeName" formControlName="theme"> -->
+
+</div>

@@ -97,11 +97,11 @@ export class FocusParentComponent implements OnInit {
 
       var startDate = selectedBikeRun.startDate;
       var endDate = selectedBikeRun.endDate;
-      var selectedObjId = selectedBikeRun.objId;
+      // var selectedObjId = selectedBikeRun.objId;
       var selectedChartConfig = this.getChartConfig(selectedBikeRun.dataSources);
-      var rideName = selectedBikeRun.runName;
+      // var rideName = selectedBikeRun.runName;
 
-      this.chart.getData(startDate, endDate, selectedObjId, selectedChartConfig, rideName);
+      this.chart.getData(startDate, endDate, selectedChartConfig, selectedBikeRun);
     }
       
     // Previous way of building query

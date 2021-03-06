@@ -109,6 +109,10 @@ export class FocusChildComponent implements OnInit {
   static clusterViewGroup;
   static clusterLines;
   static clusterData;
+  bikeRun;
+  bikeConfig;
+  trackName;
+  riderName;
 
   themeForm = new FormGroup({
     theme: new FormControl('', [Validators.required])
@@ -166,8 +170,13 @@ export class FocusChildComponent implements OnInit {
     }
   }
 
-  public getData(startDate, endDate, selectedObj, chart_config, rideName) {
-    this.displayRideName = rideName;
+  public getData(startDate, endDate, chart_config, bikeRun) {
+    this.bikeRun = bikeRun
+    this.trackName = bikeRun.trackName
+    this.riderName = bikeRun.riderName
+    this.bikeConfig = bikeRun.bikeConfig
+    this.displayRideName = bikeRun.runName;
+    this.selectedObj = bikeRun.objId;
     this.annotInsertHeight = 0;
     this.chart_config = chart_config // make this get the actual object
     console.log("selected chart config", this.chart_config)
@@ -180,7 +189,7 @@ export class FocusChildComponent implements OnInit {
     this.status = "Loading chart.."
     this.startDate = startDate;
     this.endDate = endDate;
-    this.selectedObj = selectedObj;
+    
     // var selectedVis = ["acceleration", "gyroscope", "gps"];    
     var selectedVis = this.chart_config.streamIds
 
@@ -1191,7 +1200,7 @@ export class FocusChildComponent implements OnInit {
       this.addAnnotation(brushObj.theme, brushObj.subtheme, brushObj.startDateEpoch, brushObj.endDateEpoch, brushObj.notes)
     })
     // reload chart using the same chart configuration
-    this.getData(this.startDate, this.endDate, this.selectedObj, this.chart_config, this.displayRideName);
+    this.getData(this.startDate, this.endDate, this.chart_config, this.bikeRun);
     this.annotInsertHeight = 0;
   }
 
