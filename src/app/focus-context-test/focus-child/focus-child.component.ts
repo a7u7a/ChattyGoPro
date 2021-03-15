@@ -326,7 +326,8 @@ export class FocusChildComponent implements OnInit {
   }
 
   private createClusterTimeline() {
-    var colors = ["#00FF00", "#FF00FF", "#0000FF", "#FF0000"]
+    // var colors = ["#00FF00", "#FF00FF", "#0000FF", "#FF0000"]
+    var colors = ["#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#00FFFF", "#FF00FF"]
 
     if (FocusChildComponent.clusterData) {
       // console.log(FocusChildComponent.clusterData)
