@@ -327,7 +327,7 @@ export class FocusChildComponent implements OnInit {
 
   private createClusterTimeline() {
     
-    const colors = d3.schemePaired
+    const colors = d3.schemeCategory10
 
     if (FocusChildComponent.clusterData) {
       // console.log(FocusChildComponent.clusterData)
