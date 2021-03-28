@@ -70,13 +70,14 @@ export class DataParserService {
       dataStreams.g_force.push({ date: date, val: sensorData.sensor_data.g_force });
       dataStreams.rear_sensor.push({ date: date, val: sensorData.sensor_data.rear_sensor });
       if ('computed' in sensorData) {
-        dataStreams.clusters.push({ date: date, val: sensorData.computed.fake_clusters });
+        dataStreams.clusters.push({ date: date, val: sensorData.computed.clusters });
       }
     });
 
     // Downsample streams
     var downsampleThres = 1000;
     Object.keys(dataStreams).forEach(function (key) {
+      if(key == "clusters"){return}
       dataStreams[key] = this.largestTriangleThreeBucket(dataStreams[key], downsampleThres, "date", "val");
     }.bind(this));
 
